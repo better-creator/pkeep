@@ -180,7 +180,7 @@ export default function LiveMeeting({ onComplete, onCancel }: LiveMeetingProps) 
 
     // 3. Connect WebSocket (v3 — token + multilingual model)
     const ws = new WebSocket(
-      `wss://streaming.assemblyai.com/v3/ws?speech_model=universal-streaming-multilingual&sample_rate=16000&token=${token}`
+      `wss://streaming.assemblyai.com/v3/ws?speech_model=universal-streaming-multilingual&sample_rate=16000&language_code=ko&token=${token}`
     )
     wsRef.current = ws
 
