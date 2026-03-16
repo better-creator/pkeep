@@ -32,31 +32,36 @@ interface FlowViewProps {
 }
 
 // Dagre 레이아웃 설정
-const dagreGraph = new dagre.graphlib.Graph()
-dagreGraph.setDefaultEdgeLabel(() => ({}))
-
-const nodeWidth = 220
-const nodeHeight = 100
+const nodeWidth = 260
+const nodeHeight = 120
 
 function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
   direction: 'TB' | 'LR' = 'LR'
 ) {
-  dagreGraph.setGraph({ rankdir: direction, nodesep: 100, ranksep: 150 })
+  // 매번 새 그래프 생성 (이전 데이터 누적 방지)
+  const g = new dagre.graphlib.Graph()
+  g.setDefaultEdgeLabel(() => ({}))
+  g.setGraph({
+    rankdir: direction,
+    nodesep: 60,
+    ranksep: 120,
+    align: 'UL',
+  })
 
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight })
+    g.setNode(node.id, { width: nodeWidth, height: nodeHeight })
   })
 
   edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target)
+    g.setEdge(edge.source, edge.target)
   })
 
-  dagre.layout(dagreGraph)
+  dagre.layout(g)
 
   const layoutedNodes = nodes.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id)
+    const nodeWithPosition = g.node(node.id)
     return {
       ...node,
       position: {
@@ -305,7 +310,7 @@ export function FlowView({ items }: FlowViewProps) {
   }, [nodes])
 
   return (
-    <div className="h-[650px] rounded-2xl overflow-hidden border border-border/50 bg-background/50">
+    <div className="h-[calc(100vh-220px)] min-h-[500px] rounded-2xl overflow-hidden border border-border/50 bg-background/50">
       <ReactFlow
         nodes={nodes}
         edges={edges}
