@@ -6,13 +6,19 @@ import {
   GitBranch,
   AlertTriangle,
   ListChecks,
-  Calendar,
   Mic,
   ArrowRight,
   CheckCircle,
   Clock,
   AlertCircle,
   CircleDot,
+  MessageSquare,
+  BookOpen,
+  Figma,
+  FolderOpen,
+  Link2,
+  Phone,
+  Mail,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -131,6 +137,49 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* 연동 현황 */}
+      <div className="glass-card">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100/50">
+          <h2 className="font-semibold text-stone-800">연동 현황</h2>
+          <span className="text-xs text-stone-400">실시간 동기화</span>
+        </div>
+        <div className="px-5 py-4 flex gap-3 overflow-x-auto">
+          {[
+            { name: 'Notion', icon: BookOpen, status: 'connected', color: 'text-stone-700', bg: 'bg-stone-100', count: 4, desc: '회의록 4건 동기화' },
+            { name: 'Slack', icon: MessageSquare, status: 'connected', color: 'text-purple-600', bg: 'bg-purple-100', count: 12, desc: '#dev 채널 12건 반영' },
+            { name: 'Figma', icon: Figma, status: 'connected', color: 'text-pink-600', bg: 'bg-pink-100', count: 3, desc: '디자인 결정 3건 연결' },
+            { name: 'Google Drive', icon: FolderOpen, status: 'pending', color: 'text-blue-600', bg: 'bg-blue-100', count: 0, desc: '연동 대기중' },
+          ].map((tool) => (
+            <div
+              key={tool.name}
+              className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+                tool.status === 'connected'
+                  ? 'border-stone-200 bg-white hover:border-stone-300'
+                  : 'border-dashed border-stone-200 bg-stone-50/50'
+              }`}
+            >
+              <div className={`p-2 rounded-lg ${tool.bg}`}>
+                <tool.icon className={`h-4 w-4 ${tool.color}`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-stone-700">{tool.name}</span>
+                  {tool.status === 'connected' ? (
+                    <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      연동됨
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-stone-400">대기</span>
+                  )}
+                </div>
+                <p className="text-[11px] text-stone-400">{tool.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 gap-6">
         {/* Recent Decisions */}
         <div className="col-span-2 glass-card">
@@ -162,9 +211,10 @@ export default function DashboardPage() {
                           <Badge variant="secondary" className={`text-xs rounded-lg ${st.bg}`}>{st.label}</Badge>
                         </div>
                         <p className="text-sm font-medium text-stone-800 mt-1.5 truncate">{dec.title}</p>
-                        <p className="text-xs text-stone-400 mt-1">
-                          {getMeetingCode(dec.meetingId)} · {dec.proposedBy} · {dec.createdAt}
-                        </p>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <SourceBadge meetingId={dec.meetingId} meetings={meetings} />
+                          <span className="text-xs text-stone-400">{dec.proposedBy} · {dec.createdAt}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -206,6 +256,32 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* 연동 출처 요약 */}
+          <div className="glass-card">
+            <div className="px-5 py-4 border-b border-stone-100/50">
+              <h2 className="font-semibold text-stone-800">출처별 현황</h2>
+            </div>
+            <div className="p-5 space-y-2.5">
+              {[
+                { icon: Mic, label: '회의 녹음', count: meetings.filter(m => (m as any).sourceType === 'meeting').length, color: 'text-red-500', bg: 'bg-red-50' },
+                { icon: MessageSquare, label: 'Slack', count: meetings.filter(m => (m as any).sourceType === 'slack').length, color: 'text-purple-500', bg: 'bg-purple-50' },
+                { icon: BookOpen, label: 'Notion', count: meetings.filter(m => (m as any).sourceType === 'notion').length, color: 'text-stone-600', bg: 'bg-stone-100' },
+                { icon: Phone, label: '통화', count: meetings.filter(m => (m as any).sourceType === 'call').length, color: 'text-green-500', bg: 'bg-green-50' },
+                { icon: Mail, label: '이메일', count: meetings.filter(m => (m as any).sourceType === 'email').length, color: 'text-rose-500', bg: 'bg-rose-50' },
+              ].filter(s => s.count > 0).map(s => (
+                <div key={s.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`p-1.5 rounded-md ${s.bg}`}>
+                      <s.icon className={`h-3 w-3 ${s.color}`} />
+                    </div>
+                    <span className="text-sm text-stone-600">{s.label}</span>
+                  </div>
+                  <span className="text-sm font-medium text-stone-700">{s.count}건</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Quick Actions */}
           <div className="glass-card">
             <div className="px-5 py-4 border-b border-stone-100/50">
@@ -244,5 +320,27 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// 출처 뱃지 — 소스 타입에 따라 색상 아이콘 표시
+const sourceTypeBadgeConfig: Record<string, { icon: typeof Mic; label: string; bg: string; text: string }> = {
+  meeting: { icon: Mic, label: '회의', bg: 'bg-red-50', text: 'text-red-600' },
+  slack: { icon: MessageSquare, label: 'Slack', bg: 'bg-purple-50', text: 'text-purple-600' },
+  notion: { icon: BookOpen, label: 'Notion', bg: 'bg-stone-100', text: 'text-stone-600' },
+  call: { icon: Phone, label: '통화', bg: 'bg-green-50', text: 'text-green-600' },
+  email: { icon: Mail, label: '이메일', bg: 'bg-rose-50', text: 'text-rose-600' },
+}
+
+function SourceBadge({ meetingId, meetings }: { meetingId: string; meetings: StoredMeeting[] }) {
+  const meeting = meetings.find(m => m.id === meetingId)
+  const st = (meeting as any)?.sourceType || 'meeting'
+  const cfg = sourceTypeBadgeConfig[st] || sourceTypeBadgeConfig.meeting
+  const Icon = cfg.icon
+  return (
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium ${cfg.bg} ${cfg.text}`}>
+      <Icon className="h-2.5 w-2.5" />
+      {cfg.label}
+    </span>
   )
 }
