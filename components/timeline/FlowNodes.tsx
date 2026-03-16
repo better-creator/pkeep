@@ -181,15 +181,19 @@ function getAreaBadgeStyle(area?: string): { bg: string; text: string; label: st
   }
 }
 
-// 소스 타입 아이콘 매핑
-const sourceTypeIcons: Record<string, React.ElementType> = {
-  meeting: Mic,
-  slack: MessageSquare,
-  notion: BookOpen,
-  call: Phone,
-  email: Mail,
-  document: FileText,
+// 소스 타입 아이콘 + 스타일 매핑
+const sourceTypeConfig: Record<string, { icon: React.ElementType; label: string; bg: string; text: string }> = {
+  meeting: { icon: Mic, label: '회의', bg: 'bg-blue-500/15', text: 'text-blue-500' },
+  slack: { icon: MessageSquare, label: 'Slack', bg: 'bg-amber-500/15', text: 'text-amber-500' },
+  notion: { icon: BookOpen, label: 'Notion', bg: 'bg-stone-500/15', text: 'text-stone-500' },
+  call: { icon: Phone, label: '통화', bg: 'bg-green-500/15', text: 'text-green-500' },
+  email: { icon: Mail, label: '이메일', bg: 'bg-rose-500/15', text: 'text-rose-500' },
+  document: { icon: FileText, label: '문서', bg: 'bg-indigo-500/15', text: 'text-indigo-500' },
+  text: { icon: FileText, label: '텍스트', bg: 'bg-stone-500/15', text: 'text-stone-500' },
 }
+const sourceTypeIcons: Record<string, React.ElementType> = Object.fromEntries(
+  Object.entries(sourceTypeConfig).map(([k, v]) => [k, v.icon])
+)
 
 function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
   const nodeType = data.type
@@ -241,12 +245,18 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
         </div>
       )}
 
-      {/* 소스 타입 아이콘 */}
-      {data.sourceType && sourceTypeIcons[data.sourceType] && !(data.hasConflict || data.hasBlocker) && (
+      {/* 소스 타입 뱃지 */}
+      {data.sourceType && sourceTypeConfig[data.sourceType] && !(data.hasConflict || data.hasBlocker) && (
         <div className="absolute top-2 right-2 z-10">
           {(() => {
-            const SourceIcon = sourceTypeIcons[data.sourceType!]
-            return <SourceIcon className="h-3 w-3 text-muted-foreground/60" />
+            const cfg = sourceTypeConfig[data.sourceType!]
+            const SourceIcon = cfg.icon
+            return (
+              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${cfg.bg}`}>
+                <SourceIcon className={`h-3 w-3 ${cfg.text}`} />
+                <span className={`text-[9px] font-medium ${cfg.text}`}>{cfg.label}</span>
+              </div>
+            )
           })()}
         </div>
       )}

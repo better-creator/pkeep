@@ -297,19 +297,52 @@ function buildTimelineItems(meetings: Meeting[], decisions: Decision[]): TLItem[
     }
   }
 
-  // 회의 노드
+  // sourceType → FlowNodeType 매핑
+  const sourceTypeToNodeType = (st?: string): 'meeting' | 'slack' | 'github' => {
+    if (st === 'slack') return 'slack'
+    return 'meeting'
+  }
+
+  // 변경된 결정 간 연결을 위한 매핑 구축
+  // "changed" 결정은 같은 영역의 이전 "confirmed" 결정을 대체한 것으로 연결
+  const changedDecisionLinks = new Map<string, string>() // changedDecId → originalDecId
+  const rejectedItems: { id: string; meetingId: string; title: string; reason: string; relatedDecision: string; proposedBy?: string }[] = (() => {
+    try {
+      const raw = localStorage.getItem('pkeep-rejected')
+      return raw ? JSON.parse(raw) : []
+    } catch { return [] }
+  })()
+
+  // changed 결정 → 관련 결정 연결 찾기 (같은 영역 + 이전 날짜의 결정)
+  for (const dec of decisions) {
+    if (dec.status === 'changed') {
+      // 같은 영역의 이전 confirmed 결정 중 관련된 것 찾기
+      const relatedDecs = decisions.filter(d =>
+        d.id !== dec.id &&
+        d.area === dec.area &&
+        d.createdAt < dec.createdAt &&
+        (d.status === 'confirmed' || d.status === 'pending')
+      )
+      if (relatedDecs.length > 0) {
+        changedDecisionLinks.set(dec.id, relatedDecs[relatedDecs.length - 1].id)
+      }
+    }
+  }
+
+  // 회의/소스 노드 — sourceType에 따라 다른 노드 타입 부여
   for (const mtg of meetings) {
     const mtgDecisions = decisions.filter(d => d.meetingId === mtg.id)
+    const st = (mtg as any).sourceType || 'meeting'
     items.push({
       id: mtg.id,
-      type: 'meeting',
+      type: sourceTypeToNodeType(st),
       category: 'meeting',
       source: 'manual',
       code: mtg.code,
       title: mtg.title,
       date: mtg.date,
       description: mtg.summary,
-      sourceType: 'meeting',
+      sourceType: st,
       connections: {
         sources: [],
         impacts: mtgDecisions.map(d => ({
@@ -324,19 +357,20 @@ function buildTimelineItems(meetings: Meeting[], decisions: Decision[]): TLItem[
     })
   }
 
-  // 결정 노드 — 회의에서 생성된 관계만 (스파게티 방지)
+  // 결정 노드 — 회의 연결 + 변경 결정 간 연결 + 소스타입 반영
   for (const dec of decisions) {
     const meeting = meetings.find(m => m.id === dec.meetingId)
     const decTasks = storedTasks.filter(t => t.meetingId === dec.meetingId)
+    const meetingSourceType = (meeting as any)?.sourceType || 'meeting'
 
     const sources: TLItem['connections']['sources'] = []
     const impacts: TLItem['connections']['impacts'] = []
 
-    // 원본 회의 연결
+    // 원본 회의/소스 연결
     if (meeting) {
       sources.push({
         id: meeting.id,
-        type: 'meeting' as const,
+        type: sourceTypeToNodeType(meetingSourceType) as any,
         category: 'meeting' as const,
         code: meeting.code,
         title: meeting.title,
@@ -344,18 +378,57 @@ function buildTimelineItems(meetings: Meeting[], decisions: Decision[]): TLItem[
       })
     }
 
+    // changed 결정 → 이전 결정 연결 (changed_by)
+    const originalDecId = changedDecisionLinks.get(dec.id)
+    if (originalDecId) {
+      const origDec = decisions.find(d => d.id === originalDecId)
+      if (origDec) {
+        sources.push({
+          id: origDec.id,
+          type: 'decision' as const,
+          category: 'decision' as const,
+          code: origDec.code,
+          title: origDec.title,
+          relation: 'changed_by' as const,
+        })
+      }
+    }
+
+    // 이 결정이 다른 결정에 의해 변경된 경우 impacts에 추가
+    changedDecisionLinks.forEach((origId, changedId) => {
+      if (origId === dec.id) {
+        const changedDec = decisions.find(d => d.id === changedId)
+        if (changedDec) {
+          impacts.push({
+            id: changedDec.id,
+            type: 'decision' as const,
+            category: 'decision' as const,
+            code: changedDec.code,
+            title: changedDec.title,
+            relation: 'changed_by' as const,
+          })
+        }
+      }
+    })
+
+    // 관련 rejected alternative가 있으면 충돌 표시
+    const hasRelatedRejection = rejectedItems.some(r =>
+      r.meetingId === dec.meetingId && r.relatedDecision === dec.title
+    )
+
     items.push({
       id: dec.id,
       type: 'decision',
       category: 'decision',
       source: 'manual',
       code: dec.code,
-      title: `${dec.title}`,
+      title: dec.title,
       date: dec.createdAt?.split('T')[0] || meeting?.date || '',
       description: `[${getAreaLabel(dec.area || '')}] ${dec.rationale}`,
       status: dec.status as any,
       area: dec.area,
-      sourceType: 'meeting',
+      sourceType: meetingSourceType,
+      hasConflict: hasRelatedRejection || dec.status === 'changed',
       owner: dec.proposedBy ? {
         id: dec.proposedBy,
         name: dec.proposedBy,
