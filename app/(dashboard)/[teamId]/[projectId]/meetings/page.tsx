@@ -445,33 +445,34 @@ export default function MeetingsPage() {
                   />
                 </div>
 
-                {/* 입력 방식 선택 그리드 */}
+                {/* 입력 방식 선택 — 오디오 중심 */}
                 {inputMode === 'grid' && (
                   <>
-                    <div className="space-y-2">
-                      <Label>입력 방식 선택</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {/* 회의 녹음 */}
-                        <button
-                          onClick={() => {
-                            setSourceType('meeting')
-                            setRecordingSource('recording')
-                            setRecordingStartTime(new Date())
-                            setStep('recording')
-                          }}
-                          className="p-4 rounded-xl border-2 border-border hover:border-red-300 dark:hover:border-red-500/30 bg-card transition-all group cursor-pointer text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                              <Mic className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">회의 녹음</p>
-                              <p className="text-[11px] text-muted-foreground">녹음 후 AI 분석</p>
-                            </div>
-                          </div>
-                        </button>
+                    <div className="space-y-3">
+                      <Label>녹음 방식</Label>
 
+                      {/* 회의 녹음 — 메인 CTA */}
+                      <button
+                        onClick={() => {
+                          setSourceType('meeting')
+                          setRecordingSource('recording')
+                          setRecordingStartTime(new Date())
+                          setStep('recording')
+                        }}
+                        className="w-full p-5 rounded-xl border-2 border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/5 hover:border-red-400 transition-all group cursor-pointer text-left"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-red-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-lg shadow-red-500/20">
+                            <Mic className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-base">회의 녹음</p>
+                            <p className="text-sm text-muted-foreground">마이크로 녹음하면 AI가 결정·근거·할 일을 자동 추출합니다</p>
+                          </div>
+                        </div>
+                      </button>
+
+                      <div className="grid grid-cols-2 gap-2">
                         {/* 실시간 회의 */}
                         <button
                           onClick={() => {
@@ -514,110 +515,26 @@ export default function MeetingsPage() {
                             </div>
                           </div>
                         </button>
-
-                        {/* 슬랙 대화 */}
-                        <button
-                          onClick={() => {
-                            setSourceType('slack')
-                            setRecordingSource('text')
-                            setInputMode('text')
-                          }}
-                          className="p-4 rounded-xl border-2 border-border hover:border-purple-300 dark:hover:border-purple-500/30 bg-card transition-all group cursor-pointer text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                              <MessageSquare className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">슬랙 대화</p>
-                              <p className="text-[11px] text-muted-foreground">복사 붙여넣기</p>
-                            </div>
-                          </div>
-                        </button>
-
-                        {/* 텍스트 입력 */}
-                        <button
-                          onClick={() => {
-                            setSourceType('text')
-                            setRecordingSource('text')
-                            setInputMode('text')
-                          }}
-                          className="p-4 rounded-xl border-2 border-border hover:border-emerald-300 dark:hover:border-emerald-500/30 bg-card transition-all group cursor-pointer text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                              <PenLine className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">텍스트 입력</p>
-                              <p className="text-[11px] text-muted-foreground">직접 입력</p>
-                            </div>
-                          </div>
-                        </button>
-
-                        {/* 노션/문서 */}
-                        <button
-                          onClick={() => {
-                            setSourceType('notion')
-                            setRecordingSource('text')
-                            setInputMode('text')
-                          }}
-                          className="p-4 rounded-xl border-2 border-border hover:border-gray-400 dark:hover:border-gray-500/30 bg-card transition-all group cursor-pointer text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                              <BookOpen className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">노션/문서</p>
-                              <p className="text-[11px] text-muted-foreground">URL + 내용</p>
-                            </div>
-                          </div>
-                        </button>
-
-                        {/* 전화/통화 */}
-                        <button
-                          onClick={() => {
-                            setSourceType('call')
-                            setRecordingSource('text')
-                            setInputMode('text')
-                          }}
-                          className="p-4 rounded-xl border-2 border-border hover:border-amber-300 dark:hover:border-amber-500/30 bg-card transition-all group cursor-pointer text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                              <Phone className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">전화/통화</p>
-                              <p className="text-[11px] text-muted-foreground">통화 내용 요약</p>
-                            </div>
-                          </div>
-                        </button>
-
-                        {/* 이메일 */}
-                        <button
-                          onClick={() => {
-                            setSourceType('email')
-                            setRecordingSource('text')
-                            setInputMode('text')
-                          }}
-                          className="p-4 rounded-xl border-2 border-border hover:border-sky-300 dark:hover:border-sky-500/30 bg-card transition-all group cursor-pointer text-left"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-sky-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                              <Mail className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">이메일</p>
-                              <p className="text-[11px] text-muted-foreground">이메일 내용 붙여넣기</p>
-                            </div>
-                          </div>
-                        </button>
                       </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    {/* 텍스트 메모 — 접힌 상태 */}
+                    <div className="border-t border-border/50 pt-4">
+                      <button
+                        onClick={() => {
+                          setSourceType('text')
+                          setRecordingSource('text')
+                          setInputMode('text')
+                        }}
+                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        <PenLine className="h-3.5 w-3.5" />
+                        <span>텍스트로 직접 입력하기</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
                       <Button variant="outline" className="w-full" onClick={() => setShowNewSheet(false)}>
                         취소
                       </Button>
