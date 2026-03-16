@@ -219,12 +219,19 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
       }
     : null
 
+  const conflictRingClass = data.hasConflict
+    ? data.hasBlocker
+      ? 'ring-2 ring-red-500/70 shadow-[0_0_12px_rgba(239,68,68,0.4)] animate-pulse'
+      : 'ring-2 ring-amber-500/70 shadow-[0_0_12px_rgba(245,158,11,0.4)] animate-pulse'
+    : ''
+
   return (
     <div
       className={`
         relative px-5 py-4 rounded-xl border-2 min-w-[240px] max-w-[300px]
         transition-all duration-200 cursor-pointer backdrop-blur-sm
         ${bgClass} ${borderClass}
+        ${conflictRingClass}
         ${selected ? `ring-2 ring-primary shadow-xl scale-105 ${glowClass}` : 'hover:shadow-lg hover:scale-[1.02]'}
       `}
     >
@@ -240,8 +247,10 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
 
       {/* 충돌/블로커 인디케이터 */}
       {(data.hasConflict || data.hasBlocker) && (
-        <div className="absolute top-2 right-2 z-10">
-          <AlertTriangle className={`h-4 w-4 ${data.hasBlocker ? 'text-red-500' : 'text-amber-500'}`} />
+        <div className="absolute -top-1.5 -right-1.5 z-10">
+          <div className={`relative flex items-center justify-center w-6 h-6 rounded-full ${data.hasBlocker ? 'bg-red-500' : 'bg-amber-500'} shadow-md`}>
+            <AlertTriangle className="h-3.5 w-3.5 text-white" />
+          </div>
         </div>
       )}
 

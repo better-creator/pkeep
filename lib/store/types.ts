@@ -13,7 +13,7 @@ export interface StoredDecision {
   title: string
   rationale: string
   area?: 'planning' | 'design' | 'dev'
-  status: 'pending' | 'confirmed' | 'changed' | 'rejected' | 'hold'
+  status: 'pending' | 'confirmed' | 'changed' | 'rejected' | 'hold' | 'disabled'
   proposedBy?: string
   createdAt: string
 }

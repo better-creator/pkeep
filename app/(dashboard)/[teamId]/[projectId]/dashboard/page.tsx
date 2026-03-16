@@ -25,7 +25,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import type { StoredMeeting, StoredDecision, StoredTask } from '@/lib/store/types'
+import type { StoredMeeting, StoredDecision, StoredTask, StoredRejected } from '@/lib/store/types'
+import { detectConflicts, getSeverityConfig, getConflictTypeLabel, type Conflict } from '@/lib/conflicts'
 
 // ─── Config ───
 const statusConfig: Record<string, { icon: typeof CheckCircle; color: string; bg: string; label: string }> = {
@@ -62,11 +63,29 @@ export default function DashboardPage() {
   const [meetings, setMeetings] = useState<StoredMeeting[]>([])
   const [decisions, setDecisions] = useState<StoredDecision[]>([])
   const [tasks, setTasks] = useState<StoredTask[]>([])
+  const [conflicts, setConflicts] = useState<Conflict[]>([])
 
   useEffect(() => {
-    setMeetings(JSON.parse(localStorage.getItem('pkeep-meetings') || '[]'))
-    setDecisions(JSON.parse(localStorage.getItem('pkeep-decisions') || '[]'))
-    setTasks(JSON.parse(localStorage.getItem('pkeep-tasks') || '[]'))
+    const m = JSON.parse(localStorage.getItem('pkeep-meetings') || '[]')
+    const d: StoredDecision[] = JSON.parse(localStorage.getItem('pkeep-decisions') || '[]')
+    const t = JSON.parse(localStorage.getItem('pkeep-tasks') || '[]')
+    const r: StoredRejected[] = JSON.parse(localStorage.getItem('pkeep-rejected') || '[]')
+    setMeetings(m)
+    setDecisions(d)
+    setTasks(t)
+
+    const detected = detectConflicts(d, r)
+    // Merge saved resolution state
+    const saved: Conflict[] | null = JSON.parse(localStorage.getItem('pkeep-conflicts') || 'null')
+    if (saved) {
+      for (const det of detected) {
+        const s = saved.find(
+          sv => sv.newDecision.id === det.newDecision.id && sv.existingDecision.id === det.existingDecision.id && sv.type === det.type
+        )
+        if (s?.resolved) { det.resolved = true; det.resolution = s.resolution }
+      }
+    }
+    setConflicts(detected)
   }, [])
 
   const totalDecisions = decisions.length
@@ -164,6 +183,64 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* Conflict Detection */}
+      {(() => {
+        const unresolvedConflicts = conflicts.filter(c => !c.resolved && c.type !== 'rejected_alternative')
+        if (unresolvedConflicts.length === 0) return null
+        return (
+          <div className="card-soft p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-red-100">
+                  <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+                </div>
+                <h3 className="text-sm font-semibold text-stone-800">충돌 감지</h3>
+                <Badge variant="secondary" className="text-[10px] bg-red-100 text-red-700">
+                  {unresolvedConflicts.length}건
+                </Badge>
+              </div>
+              <Link
+                href={`/${teamId}/${projectId}/conflicts`}
+                className="text-xs text-orange-600 font-medium hover:underline"
+              >
+                모두 보기 →
+              </Link>
+            </div>
+            <div className="space-y-1.5">
+              {unresolvedConflicts.slice(0, 4).map(conflict => {
+                const sev = getSeverityConfig(conflict.severity)
+                return (
+                  <div
+                    key={conflict.id}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-[3px] ${sev.border} ${sev.bg}`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${sev.dot}`} />
+                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                      <Badge variant="outline" className="text-[9px] font-mono px-1 py-0">
+                        {conflict.newDecision.code}
+                      </Badge>
+                      <span className="text-[10px] text-stone-400">vs</span>
+                      <Badge variant="outline" className="text-[9px] font-mono px-1 py-0">
+                        {conflict.existingDecision.code}
+                      </Badge>
+                      <span className="text-[10px] text-stone-500 truncate">
+                        {getConflictTypeLabel(conflict.type)}
+                      </span>
+                    </div>
+                    <Link
+                      href={`/${teamId}/${projectId}/conflicts`}
+                      className="text-[10px] text-orange-600 font-medium hover:underline flex-shrink-0"
+                    >
+                      해결하기 →
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* AI Warning */}
       {pendingDecisions.length > 0 && (

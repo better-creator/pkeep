@@ -12,9 +12,13 @@ import {
   FolderKanban,
   ChevronDown,
   Plus,
+  AlertTriangle,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
+import type { StoredDecision, StoredRejected } from "@/lib/store/types"
+import { detectConflicts, countUnresolved, type Conflict } from "@/lib/conflicts"
 
 import {
   Sidebar,
@@ -53,6 +57,29 @@ export function AppSidebar() {
   const teamId = params.teamId as string || mockTeam.id
   const projectId = params.projectId as string
 
+  const [unresolvedCount, setUnresolvedCount] = useState(0)
+
+  useEffect(() => {
+    try {
+      const decisions: StoredDecision[] = JSON.parse(localStorage.getItem('pkeep-decisions') || '[]')
+      const rejected: StoredRejected[] = JSON.parse(localStorage.getItem('pkeep-rejected') || '[]')
+      const detected = detectConflicts(decisions, rejected)
+      // Merge saved resolution state
+      const saved: Conflict[] | null = JSON.parse(localStorage.getItem('pkeep-conflicts') || 'null')
+      if (saved) {
+        for (const d of detected) {
+          const s = saved.find(
+            sv => sv.newDecision.id === d.newDecision.id && sv.existingDecision.id === d.existingDecision.id && sv.type === d.type
+          )
+          if (s?.resolved) { d.resolved = true; d.resolution = s.resolution }
+        }
+      }
+      setUnresolvedCount(countUnresolved(detected))
+    } catch {
+      // localStorage may not be available during SSR
+    }
+  }, [])
+
   const navItems = [
     {
       title: "대시보드",
@@ -68,6 +95,12 @@ export function AppSidebar() {
       title: "결정",
       icon: CircleDot,
       href: `/${teamId}/${projectId}/decisions`,
+    },
+    {
+      title: "충돌",
+      icon: AlertTriangle,
+      href: `/${teamId}/${projectId}/conflicts`,
+      badge: unresolvedCount,
     },
     {
       title: "할 일",
@@ -161,6 +194,11 @@ export function AppSidebar() {
                         <Link href={item.href} className="flex items-center gap-2.5">
                           <item.icon className={`h-4 w-4 ${isActive ? 'text-orange-500' : 'accent' in item && item.accent ? 'text-orange-500' : ''}`} />
                           <span className="font-medium text-sm">{item.title}</span>
+                          {'badge' in item && typeof item.badge === 'number' && item.badge > 0 && (
+                            <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                              {item.badge}
+                            </span>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
