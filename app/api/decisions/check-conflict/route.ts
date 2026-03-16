@@ -77,7 +77,7 @@ async function checkLogicalConflict(
 ): Promise<{ is_conflict: boolean; reason: string }> {
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4.1-mini',
       messages: [
         {
           role: 'system',

@@ -425,7 +425,7 @@ async function checkLogicalConflict(
 ): Promise<{ isConflict: boolean; reason: string }> {
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4.1-mini',
       messages: [
         {
           role: 'system',
@@ -546,7 +546,7 @@ export async function POST(
 
     // GPT-4o로 5종 맥락 추출 (특허 청구항 1, 5, 7, 9)
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4.1-mini',
       messages: [
         {
           role: 'system',

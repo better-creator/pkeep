@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const langHint = language === 'ko' ? '한국어' : language === 'en' ? '영어' : '감지된 언어'
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4.1-mini',
       messages: [
         {
           role: 'system',
