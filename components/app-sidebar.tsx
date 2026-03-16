@@ -38,8 +38,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 // Temporary mock data
 const mockProjects = [
-  { id: "proj-1", name: "PKEEP MVP" },
-  { id: "proj-2", name: "E-commerce App" },
+  { id: "proj-1", name: "핏커넥트 MVP" },
+  { id: "proj-2", name: "관리자 대시보드" },
 ]
 
 const mockTeam = {
@@ -60,7 +60,7 @@ export function AppSidebar() {
       href: `/${teamId}/${projectId}/dashboard`,
     },
     {
-      title: "소스",
+      title: "녹음",
       icon: Mic,
       href: `/${teamId}/${projectId}/meetings`,
     },

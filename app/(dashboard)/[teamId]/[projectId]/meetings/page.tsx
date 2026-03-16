@@ -406,7 +406,7 @@ export default function MeetingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">소스</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">녹음</h1>
           <p className="text-muted-foreground mt-1">
             회의를 녹음하거나 파일을 올리면 AI가 결정·근거·할 일을 자동 추출합니다
           </p>
@@ -416,7 +416,7 @@ export default function MeetingsPage() {
           onClick={() => { resetForm(); setShowNewSheet(true) }}
         >
           <Plus className="h-4 w-4 mr-2" />
-          새 소스
+          새 녹음
         </Button>
       </div>
 
@@ -424,7 +424,7 @@ export default function MeetingsPage() {
       <Sheet open={showNewSheet} onOpenChange={setShowNewSheet}>
         <SheetContent className="sm:max-w-xl overflow-y-auto">
           <SheetHeader className="mb-6">
-            <SheetTitle>새 소스 추가</SheetTitle>
+            <SheetTitle>새 녹음 추가</SheetTitle>
             <SheetDescription>
               회의를 녹음하거나 파일을 올리면 AI가 자동으로 분석합니다.
             </SheetDescription>
@@ -965,7 +965,7 @@ export default function MeetingsPage() {
             <Mic className="h-8 w-8 text-primary/40" />
           </div>
           <div>
-            <h3 className="text-lg font-medium mb-1">아직 소스가 없습니다</h3>
+            <h3 className="text-lg font-medium mb-1">아직 녹음가 없습니다</h3>
             <p className="text-muted-foreground text-sm max-w-sm mx-auto">
               회의를 녹음하거나 파일을 올려보세요.{'\n'}
               AI가 결정사항, 근거, 할 일을 자동으로 추출합니다.
@@ -976,7 +976,7 @@ export default function MeetingsPage() {
             onClick={() => { resetForm(); setShowNewSheet(true) }}
           >
             <Plus className="h-4 w-4 mr-2" />
-            첫 번째 소스 추가
+            첫 번째 녹음 추가
           </Button>
         </div>
       ) : (
