@@ -234,7 +234,7 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
       {/* 입력 핸들 */}
       <Handle
         type="target"
-        position={Position.Left}
+        position={Position.Top}
         className={`!w-3 !h-3 !border-2 !border-background ${handleColor}`}
       />
 
@@ -356,7 +356,7 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
       {/* 출력 핸들 */}
       <Handle
         type="source"
-        position={Position.Right}
+        position={Position.Bottom}
         className={`!w-3 !h-3 !border-2 !border-background ${handleColor}`}
       />
     </div>

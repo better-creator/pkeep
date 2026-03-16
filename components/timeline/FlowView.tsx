@@ -45,8 +45,8 @@ function getLayoutedElements(
   g.setDefaultEdgeLabel(() => ({}))
   g.setGraph({
     rankdir: direction,
-    nodesep: 60,
-    ranksep: 120,
+    nodesep: 40,
+    ranksep: 80,
     align: 'UL',
   })
 
@@ -265,7 +265,7 @@ export function FlowView({ items }: FlowViewProps) {
   // 노드와 엣지 생성 및 레이아웃
   const { initialNodes, initialEdges } = useMemo(() => {
     const { nodes, edges } = convertToFlowElements(items, highlightedIds)
-    const layouted = getLayoutedElements(nodes, edges, 'LR')
+    const layouted = getLayoutedElements(nodes, edges, 'TB')
     return { initialNodes: layouted.nodes, initialEdges: layouted.edges }
   }, [items, highlightedIds])
 
