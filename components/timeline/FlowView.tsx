@@ -14,7 +14,7 @@ import ReactFlow, {
 } from 'reactflow'
 import dagre from 'dagre'
 import 'reactflow/dist/style.css'
-import { Filter, ListTodo } from 'lucide-react'
+import { Filter, ListTodo, Mic, MessageSquare, BookOpen, Phone, Mail, FileText } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -103,6 +103,10 @@ function convertToFlowElements(items: TimelineItem[], highlightedIds?: Set<strin
         owner: item.owner,
         contributors: item.contributors,
         tasks: item.tasks,
+        area: item.area,
+        sourceType: item.sourceType,
+        hasConflict: item.hasConflict,
+        hasBlocker: item.hasBlocker,
       },
       position: { x: 0, y: 0 },
       style: isHighlighted ? {} : { opacity: 0.3 },
@@ -204,6 +208,7 @@ function findItemsWithTask(items: TimelineItem[], taskId: string): Set<string> {
 
 export function FlowView({ items }: FlowViewProps) {
   const [taskFilter, setTaskFilter] = useState<string>('all')
+  const [areaFilter, setAreaFilter] = useState<string>('all')
 
   // 맥락 카드 상태
   const [contextCardOpen, setContextCardOpen] = useState(false)
@@ -212,11 +217,45 @@ export function FlowView({ items }: FlowViewProps) {
   // 모든 태스크 목록
   const allTasks = useMemo(() => extractAllTasks(items), [items])
 
+  // 영역 필터 normalization
+  const normalizeArea = (area?: string) => {
+    switch (area) {
+      case 'planning': return '기획'
+      case 'design': return '디자인'
+      case 'dev': return '개발'
+      default: return area || ''
+    }
+  }
+
   // 필터링된 하이라이트 ID
   const highlightedIds = useMemo(() => {
-    if (taskFilter === 'all') return undefined
-    return findItemsWithTask(items, taskFilter)
-  }, [items, taskFilter])
+    let ids: Set<string> | undefined = undefined
+
+    // 태스크 필터
+    if (taskFilter !== 'all') {
+      ids = findItemsWithTask(items, taskFilter)
+    }
+
+    // 영역 필터
+    if (areaFilter !== 'all') {
+      const areaIds = new Set<string>()
+      items.forEach(item => {
+        if (normalizeArea(item.area) === areaFilter || item.type === 'meeting') {
+          areaIds.add(item.id)
+        }
+      })
+      if (ids) {
+        // 둘 다 적용 시 intersection
+        const combined = new Set<string>()
+        ids.forEach(id => { if (areaIds.has(id)) combined.add(id) })
+        ids = combined
+      } else {
+        ids = areaIds
+      }
+    }
+
+    return ids
+  }, [items, taskFilter, areaFilter])
 
   // 노드와 엣지 생성 및 레이아웃
   const { initialNodes, initialEdges } = useMemo(() => {
@@ -292,30 +331,54 @@ export function FlowView({ items }: FlowViewProps) {
           showInteractive={false}
         />
 
-        {/* 태스크 필터 */}
+        {/* 필터 패널 */}
         <Panel position="top-right" className="!m-4">
-          <div className="bg-background/95 backdrop-blur-sm rounded-xl border border-border/50 p-3 shadow-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <ListTodo className="h-4 w-4 text-primary" />
-              <span className="text-xs font-semibold">태스크 필터</span>
+          <div className="bg-background/95 backdrop-blur-sm rounded-xl border border-border/50 p-3 shadow-lg space-y-3">
+            {/* 영역 필터 */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Filter className="h-4 w-4 text-primary" />
+                <span className="text-xs font-semibold">영역 필터</span>
+              </div>
+              <Select value={areaFilter} onValueChange={setAreaFilter}>
+                <SelectTrigger className="w-48 h-9 text-xs rounded-lg bg-secondary/50 border-0">
+                  <SelectValue placeholder="영역 선택" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all" className="text-xs">전체 보기</SelectItem>
+                  <SelectItem value="기획" className="text-xs">기획</SelectItem>
+                  <SelectItem value="디자인" className="text-xs">디자인</SelectItem>
+                  <SelectItem value="개발" className="text-xs">개발</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={taskFilter} onValueChange={setTaskFilter}>
-              <SelectTrigger className="w-48 h-9 text-xs rounded-lg bg-secondary/50 border-0">
-                <Filter className="h-3 w-3 mr-1.5 text-muted-foreground" />
-                <SelectValue placeholder="태스크 선택" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="all" className="text-xs">전체 보기</SelectItem>
-                {allTasks.map(task => (
-                  <SelectItem key={task.id} value={task.id} className="text-xs">
-                    {task.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {taskFilter !== 'all' && (
-              <p className="text-[10px] text-muted-foreground mt-2">
-                선택된 태스크와 연결된 결정만 강조됩니다
+
+            {/* 태스크 필터 */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <ListTodo className="h-4 w-4 text-primary" />
+                <span className="text-xs font-semibold">태스크 필터</span>
+              </div>
+              <Select value={taskFilter} onValueChange={setTaskFilter}>
+                <SelectTrigger className="w-48 h-9 text-xs rounded-lg bg-secondary/50 border-0">
+                  <SelectValue placeholder="태스크 선택" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all" className="text-xs">전체 보기</SelectItem>
+                  {allTasks.map(task => (
+                    <SelectItem key={task.id} value={task.id} className="text-xs">
+                      {task.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(taskFilter !== 'all' || areaFilter !== 'all') && (
+              <p className="text-[10px] text-muted-foreground">
+                {areaFilter !== 'all' && '선택된 영역의 노드만 강조됩니다'}
+                {taskFilter !== 'all' && areaFilter !== 'all' && ' · '}
+                {taskFilter !== 'all' && '선택된 태스크와 연결된 결정만 강조됩니다'}
               </p>
             )}
           </div>
@@ -345,6 +408,60 @@ export function FlowView({ items }: FlowViewProps) {
               <div className="flex items-center gap-2.5 text-xs">
                 <div className="w-4 h-4 rounded bg-zinc-600 shadow-sm" />
                 <span className="text-muted-foreground">Github</span>
+              </div>
+            </div>
+
+            <div className="border-t border-border/50 mt-3 pt-3">
+              <p className="text-xs font-semibold text-foreground mb-3">영역</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5 text-xs">
+                  <div className="w-4 h-4 rounded-full bg-purple-500/15 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-purple-400" />
+                  </div>
+                  <span className="text-muted-foreground">기획</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <div className="w-4 h-4 rounded-full bg-pink-500/15 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-pink-400" />
+                  </div>
+                  <span className="text-muted-foreground">디자인</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <div className="w-4 h-4 rounded-full bg-sky-500/15 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-sky-400" />
+                  </div>
+                  <span className="text-muted-foreground">개발</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border/50 mt-3 pt-3">
+              <p className="text-xs font-semibold text-foreground mb-3">소스 타입</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5 text-xs">
+                  <Mic className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">미팅</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">Slack</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <BookOpen className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">Notion</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <Phone className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">전화</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <Mail className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">이메일</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs">
+                  <FileText className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">문서</span>
+                </div>
               </div>
             </div>
 

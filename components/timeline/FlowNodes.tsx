@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
-import { GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare, Users } from 'lucide-react'
+import { GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare, Users, Mic, BookOpen, Phone, Mail, FileText, AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Person, Task } from './types'
@@ -13,11 +13,15 @@ export interface FlowNodeData {
   code: string
   title: string
   description?: string
-  status?: 'confirmed' | 'changed' | 'pending' | 'superseded' | 'deprecated' | 'disabled' | 'draft'
+  status?: 'confirmed' | 'changed' | 'pending' | 'superseded' | 'deprecated' | 'disabled' | 'draft' | 'hold'
   type: FlowNodeType
   owner?: Person
   contributors?: Person[]
   tasks?: Task[]
+  area?: string           // 'planning' | 'design' | 'dev' | '기획' | '디자인' | '개발'
+  sourceType?: string     // 'meeting' | 'slack' | 'notion' | 'call' | etc
+  hasConflict?: boolean
+  hasBlocker?: boolean
 }
 
 const nodeStyles: Record<FlowNodeType, {
@@ -148,6 +152,43 @@ const statusStyles: Record<string, {
     glow: 'shadow-gray-500/20',
     handleColor: '!bg-gray-500',
   },
+  hold: {
+    bg: 'bg-gray-400/10',
+    border: 'border-gray-400/50',
+    iconBg: 'bg-gray-400',
+    badge: 'bg-gray-400/20 text-gray-400 border-gray-400/30',
+    label: '보류중',
+    glow: 'shadow-gray-400/20',
+    handleColor: '!bg-gray-400',
+  },
+}
+
+// 영역 뱃지 색상
+function getAreaBadgeStyle(area?: string): { bg: string; text: string; label: string } | null {
+  if (!area) return null
+  switch (area) {
+    case 'planning':
+    case '기획':
+      return { bg: 'bg-purple-500/15', text: 'text-purple-400', label: '기획' }
+    case 'design':
+    case '디자인':
+      return { bg: 'bg-pink-500/15', text: 'text-pink-400', label: '디자인' }
+    case 'dev':
+    case '개발':
+      return { bg: 'bg-sky-500/15', text: 'text-sky-400', label: '개발' }
+    default:
+      return null
+  }
+}
+
+// 소스 타입 아이콘 매핑
+const sourceTypeIcons: Record<string, React.ElementType> = {
+  meeting: Mic,
+  slack: MessageSquare,
+  notion: BookOpen,
+  call: Phone,
+  email: Mail,
+  document: FileText,
 }
 
 function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
@@ -193,6 +234,23 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
         className={`!w-3 !h-3 !border-2 !border-background ${handleColor}`}
       />
 
+      {/* 충돌/블로커 인디케이터 */}
+      {(data.hasConflict || data.hasBlocker) && (
+        <div className="absolute top-2 right-2 z-10">
+          <AlertTriangle className={`h-4 w-4 ${data.hasBlocker ? 'text-red-500' : 'text-amber-500'}`} />
+        </div>
+      )}
+
+      {/* 소스 타입 아이콘 */}
+      {data.sourceType && sourceTypeIcons[data.sourceType] && !(data.hasConflict || data.hasBlocker) && (
+        <div className="absolute top-2 right-2 z-10">
+          {(() => {
+            const SourceIcon = sourceTypeIcons[data.sourceType!]
+            return <SourceIcon className="h-3 w-3 text-muted-foreground/60" />
+          })()}
+        </div>
+      )}
+
       {/* 노드 내용 */}
       <div className="relative flex items-start gap-3">
         {/* 아이콘 */}
@@ -220,6 +278,16 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
           <p className="text-base font-medium leading-tight line-clamp-2" title={data.title}>
             {data.title}
           </p>
+
+          {/* 영역 뱃지 */}
+          {(() => {
+            const areaBadge = getAreaBadgeStyle(data.area)
+            return areaBadge ? (
+              <div className={`inline-flex items-center rounded-full px-2 py-0.5 mt-1.5 text-[10px] font-medium ${areaBadge.bg} ${areaBadge.text}`}>
+                {areaBadge.label}
+              </div>
+            ) : null
+          })()}
 
           {/* 작업자 정보 */}
           {(data.owner || (data.contributors && data.contributors.length > 0)) && (

@@ -1,494 +1,526 @@
 'use client'
 
-import { useState } from 'react'
-import { TimelineView, TimelineItem } from '@/components/timeline'
-import { DecisionHierarchyView, Decision, DecisionMaker } from '@/components/decisions'
-import { useParams } from 'next/navigation'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Clock, GitBranch } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { CircleDot, FileText, List, Network } from 'lucide-react'
+import { FlowView as FlowViewComponent } from '@/components/timeline/FlowView'
+import type { TimelineItem as TLItem } from '@/components/timeline/types'
 
-// Mock 사용자 데이터 (Person 타입과 호환되도록)
-const users = {
-  kim: { id: 'u1', name: '김철수', role: 'owner' as const },
-  lee: { id: 'u2', name: '이영희', role: 'owner' as const },
-  park: { id: 'u3', name: '박지민', role: 'contributor' as const },
-  choi: { id: 'u4', name: '최수연', role: 'reviewer' as const },
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface Decision {
+  id: string
+  meetingId: string
+  code: string
+  title: string
+  rationale: string
+  area: string
+  status: string
+  proposedBy?: string
+  createdAt: string
 }
 
-// DecisionMaker 버전 (결정 전용)
-const decisionUsers: Record<string, DecisionMaker> = {
-  kim: { id: 'u1', name: '김철수', role: 'owner' },
-  lee: { id: 'u2', name: '이영희', role: 'owner' },
-  park: { id: 'u3', name: '박지민', role: 'contributor' },
-  choi: { id: 'u4', name: '최수연', role: 'approver' },
+interface Meeting {
+  id: string
+  code: string
+  title: string
+  date: string
+  duration_seconds: number
+  source: string
+  summary: string
+  keywords: string[]
 }
 
-// Mock timeline data with connections, owners, tasks - category + source 구조
-const mockTimelineItems: TimelineItem[] = [
-  // 화면 노드
-  {
-    id: 'scr-001',
-    type: 'screen',
-    category: 'screen',
-    source: 'figma',
-    code: 'SCR-001',
-    title: '대시보드',
-    date: '2024-01-14',
-    description: '메인 대시보드 화면',
-    owner: users.lee,
-    contributors: [users.park],
-    connections: {
-      sources: [
-        { id: '1', type: 'decision', category: 'decision', code: 'DEC-004', title: '타임라인 뷰로 변경', relation: 'affects' },
-        { id: '5', type: 'decision', category: 'decision', code: 'DEC-002', title: '다크 테마 기본 설정', relation: 'affects' },
-      ],
-      impacts: [],
-    },
-  },
-  {
-    id: 'scr-002',
-    type: 'screen',
-    category: 'screen',
-    source: 'figma',
-    code: 'SCR-002',
-    title: '로그인 화면',
-    date: '2024-01-14',
-    description: '사용자 로그인/회원가입',
-    owner: users.park,
-    connections: {
-      sources: [
-        { id: '10', type: 'decision', category: 'decision', code: 'DEC-003', title: '소셜 로그인 우선', relation: 'affects' },
-      ],
-      impacts: [],
-    },
-  },
-  // 결정 노드
-  {
-    id: '1',
-    type: 'decision',
-    category: 'decision',
-    source: 'manual',
-    code: 'DEC-004',
-    title: '타임라인 뷰로 변경',
-    date: '2024-01-18',
-    description: '칸반 보드 대신 타임라인 뷰로 변경하여 컨텍스트 흐름을 개선',
-    status: 'changed',
-    owner: users.lee,
-    contributors: [users.kim],
-    reviewers: [users.choi],
-    tasks: [
-      { id: 't1', title: '타임라인 컴포넌트 설계', status: 'done', assignee: users.lee },
-      { id: 't2', title: 'React Flow 연동', status: 'done', assignee: users.park },
-      { id: 't3', title: '애니메이션 추가', status: 'in_progress', assignee: users.lee },
-    ],
-    connections: {
-      sources: [
-        { id: '3', type: 'meeting', category: 'meeting', code: 'MTG-002', title: 'UI/UX 리뷰', relation: 'created_from' },
-        { id: '6', type: 'decision', category: 'decision', code: 'DEC-001', title: 'Next.js 14 사용', relation: 'changed_by' },
-      ],
-      impacts: [
-        { id: 'scr-001', type: 'screen', category: 'screen', code: 'SCR-001', title: '대시보드', relation: 'affects' },
-        { id: '2', type: 'github', category: 'implementation', code: 'PR #31', title: '타임라인 뷰 구현', relation: 'implemented_in' },
-      ],
-    },
-  },
-  {
-    id: '2',
-    type: 'github',
-    category: 'implementation',
-    source: 'github',
-    code: 'PR #31',
-    title: 'feat: 타임라인 뷰 구현 [SCR-001]',
-    date: '2024-01-18',
-    event_type: 'pr',
-    url: 'https://github.com/...',
-    owner: users.park,
-    reviewers: [users.kim, users.lee],
-    connections: {
-      sources: [
-        { id: '1', type: 'decision', category: 'decision', code: 'DEC-004', title: '타임라인 뷰로 변경', relation: 'implemented_in' },
-      ],
-      impacts: [],
-    },
-  },
-  {
-    id: '3',
-    type: 'meeting',
-    category: 'meeting',
-    source: 'zoom',
-    code: 'MTG-002',
-    title: 'UI/UX 리뷰',
-    date: '2024-01-17',
-    description: '타임라인 vs 칸반 논의, 다크 모드 색상 검토',
-    owner: users.kim,
-    contributors: [users.lee, users.park],
-    connections: {
-      sources: [],
-      impacts: [
-        { id: '1', type: 'decision', category: 'decision', code: 'DEC-004', title: '타임라인 뷰로 변경', relation: 'created_from' },
-        { id: '8', type: 'decision', category: 'decision', code: 'DEC-005', title: '다크 테마 확정', relation: 'created_from' },
-      ],
-    },
-  },
-  {
-    id: '4',
-    type: 'github',
-    category: 'implementation',
-    source: 'github',
-    code: 'PR #28',
-    title: 'feat: 사이드바 레이아웃 구현',
-    date: '2024-01-17',
-    event_type: 'pr',
-    url: 'https://github.com/...',
-    owner: users.park,
-    reviewers: [users.kim],
-    connections: {
-      sources: [
-        { id: '6', type: 'decision', category: 'decision', code: 'DEC-001', title: 'Next.js 14 사용', relation: 'implemented_in' },
-      ],
-      impacts: [
-        { id: 'scr-001', type: 'screen', category: 'screen', code: 'SCR-001', title: '대시보드', relation: 'affects' },
-      ],
-    },
-  },
-  {
-    id: '5',
-    type: 'decision',
-    category: 'decision',
-    source: 'manual',
-    code: 'DEC-002',
-    title: '다크 테마 기본 설정',
-    date: '2024-01-16',
-    description: '애플리케이션의 기본 색상 스키마를 다크 테마로 설정',
-    status: 'confirmed',
-    owner: users.lee,
-    reviewers: [users.kim],
-    tasks: [
-      { id: 't4', title: '색상 팔레트 정의', status: 'done', assignee: users.lee },
-      { id: 't5', title: 'CSS 변수 설정', status: 'done', assignee: users.park },
-    ],
-    connections: {
-      sources: [
-        { id: '7', type: 'meeting', category: 'meeting', code: 'MTG-001', title: '프로젝트 킥오프', relation: 'discussed_in' },
-      ],
-      impacts: [
-        { id: 'scr-001', type: 'screen', category: 'screen', code: 'SCR-001', title: '대시보드', relation: 'affects' },
-        { id: '9', type: 'github', category: 'implementation', code: 'PR #25', title: '다크 모드 색상 수정', relation: 'implemented_in' },
-      ],
-    },
-  },
-  {
-    id: '9',
-    type: 'github',
-    category: 'implementation',
-    source: 'github',
-    code: 'PR #25',
-    title: 'fix: 다크 모드 색상 수정 [DEC-002]',
-    date: '2024-01-16',
-    event_type: 'commit',
-    url: 'https://github.com/...',
-    owner: users.park,
-    connections: {
-      sources: [
-        { id: '5', type: 'decision', category: 'decision', code: 'DEC-002', title: '다크 테마 기본 설정', relation: 'implemented_in' },
-      ],
-      impacts: [],
-    },
-  },
-  {
-    id: '6',
-    type: 'decision',
-    category: 'decision',
-    source: 'notion',
-    code: 'DEC-001',
-    title: 'Next.js 14 사용',
-    date: '2024-01-15',
-    description: '더 나은 성능과 개발자 경험을 위한 프론트엔드 프레임워크 결정',
-    status: 'confirmed',
-    owner: users.kim,
-    contributors: [users.park],
-    reviewers: [users.lee, users.choi],
-    tasks: [
-      { id: 't6', title: '프로젝트 초기 설정', status: 'done', assignee: users.kim },
-      { id: 't7', title: 'App Router 마이그레이션', status: 'done', assignee: users.park },
-      { id: 't8', title: '서버 컴포넌트 적용', status: 'in_progress', assignee: users.kim },
-      { id: 't9', title: '성능 최적화', status: 'todo', assignee: users.park },
-    ],
-    connections: {
-      sources: [
-        { id: '7', type: 'meeting', category: 'meeting', code: 'MTG-001', title: '프로젝트 킥오프', relation: 'created_from' },
-      ],
-      impacts: [
-        { id: '1', type: 'decision', category: 'decision', code: 'DEC-004', title: '타임라인 뷰로 변경', relation: 'affects' },
-        { id: '4', type: 'github', category: 'implementation', code: 'PR #28', title: '사이드바 레이아웃 구현', relation: 'implemented_in' },
-      ],
-    },
-  },
-  {
-    id: '10',
-    type: 'decision',
-    category: 'decision',
-    source: 'manual',
-    code: 'DEC-003',
-    title: '소셜 로그인 우선',
-    date: '2024-01-15',
-    description: '카카오, 구글 소셜 로그인을 먼저 구현하고 이메일 로그인은 나중에',
-    status: 'confirmed',
-    owner: users.park,
-    reviewers: [users.kim],
-    tasks: [
-      { id: 't10', title: '카카오 OAuth 설정', status: 'done', assignee: users.park },
-      { id: 't11', title: '구글 OAuth 설정', status: 'in_progress', assignee: users.park },
-      { id: 't12', title: '로그인 UI 구현', status: 'todo', assignee: users.lee },
-    ],
-    connections: {
-      sources: [
-        { id: '7', type: 'meeting', category: 'meeting', code: 'MTG-001', title: '프로젝트 킥오프', relation: 'created_from' },
-      ],
-      impacts: [
-        { id: 'scr-002', type: 'screen', category: 'screen', code: 'SCR-002', title: '로그인 화면', relation: 'affects' },
-        { id: '11', type: 'github', category: 'implementation', code: 'PR #23', title: '카카오 OAuth 구현', relation: 'implemented_in' },
-      ],
-    },
-  },
-  {
-    id: '11',
-    type: 'github',
-    category: 'implementation',
-    source: 'github',
-    code: 'PR #23',
-    title: 'feat: 카카오 OAuth 구현 [DEC-003]',
-    date: '2024-01-15',
-    event_type: 'pr',
-    url: 'https://github.com/...',
-    owner: users.park,
-    reviewers: [users.kim],
-    connections: {
-      sources: [
-        { id: '10', type: 'decision', category: 'decision', code: 'DEC-003', title: '소셜 로그인 우선', relation: 'implemented_in' },
-      ],
-      impacts: [],
-    },
-  },
-  {
-    id: '7',
-    type: 'meeting',
-    category: 'meeting',
-    source: 'zoom',
-    code: 'MTG-001',
-    title: '프로젝트 킥오프',
-    date: '2024-01-14',
-    description: '초기 프로젝트 설정, 기술 스택 결정, MVP 범위 정의',
-    owner: users.kim,
-    contributors: [users.lee, users.park, users.choi],
-    connections: {
-      sources: [],
-      impacts: [
-        { id: '6', type: 'decision', category: 'decision', code: 'DEC-001', title: 'Next.js 14 사용', relation: 'created_from' },
-        { id: '10', type: 'decision', category: 'decision', code: 'DEC-003', title: '소셜 로그인 우선', relation: 'created_from' },
-        { id: '5', type: 'decision', category: 'decision', code: 'DEC-002', title: '다크 테마 기본 설정', relation: 'discussed_in' },
-      ],
-    },
-  },
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: '전체' },
+  { value: 'confirmed', label: '확정' },
+  { value: 'pending', label: '보류' },
+  { value: 'changed', label: '변경' },
+  { value: 'rejected', label: '기각' },
 ]
 
-// Mock decisions (확장된 데이터)
-const mockDecisions: Decision[] = [
-  {
-    id: '6',
-    code: 'DEC-001',
-    title: 'Next.js 14 사용',
-    content: '더 나은 성능과 개발자 경험을 위한 프론트엔드 프레임워크 결정. App Router와 서버 컴포넌트를 활용하여 최적의 성능을 달성한다.',
-    date: '2024-01-15',
-    status: 'confirmed',
-    hierarchy: 'root',
-    owner: { ...decisionUsers.kim, decidedAt: '2024-01-15' },
-    approvers: [{ ...decisionUsers.lee, decidedAt: '2024-01-15' }, { ...decisionUsers.choi, decidedAt: '2024-01-15' }],
-    contributors: [decisionUsers.park],
-    currentVersion: 1,
-    area: '기술',
-    keywords: ['프론트엔드', 'React', 'Next.js'],
-    projectId: 'proj-1',
-    meetingId: '7',
-    affectedScreenIds: ['scr-001'],
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-15',
-  },
-  {
-    id: '5',
-    code: 'DEC-002',
-    title: '다크 테마 기본 설정',
-    content: '애플리케이션의 기본 색상 스키마를 다크 테마로 설정. 사용자 눈의 피로를 줄이고 모던한 느낌을 준다.',
-    date: '2024-01-16',
-    status: 'superseded',
-    hierarchy: 'root',
-    owner: { ...decisionUsers.lee, decidedAt: '2024-01-16' },
-    approvers: [{ ...decisionUsers.kim, decidedAt: '2024-01-16' }],
-    supersededById: '8',
-    currentVersion: 1,
-    area: 'UI',
-    keywords: ['테마', '다크모드', '색상'],
-    projectId: 'proj-1',
-    meetingId: '7',
-    affectedScreenIds: ['scr-001'],
-    createdAt: '2024-01-16',
-    updatedAt: '2024-01-17',
-  },
-  {
-    id: '8',
-    code: 'DEC-005',
-    title: '라이트 테마로 변경',
-    content: '사용자 피드백을 반영하여 라이트 테마를 기본으로 변경. 다크 테마는 옵션으로 제공.',
-    date: '2024-01-18',
-    status: 'confirmed',
-    hierarchy: 'revision',
-    owner: { ...decisionUsers.lee, decidedAt: '2024-01-18' },
-    approvers: [{ ...decisionUsers.kim, decidedAt: '2024-01-18' }],
-    supersedes: '5',
-    currentVersion: 2,
-    revisions: [
-      {
-        id: 'rev-1',
-        version: 1,
-        title: '다크 테마 기본 설정',
-        changedBy: decisionUsers.lee,
-        changedAt: '2024-01-16',
-        previousDecisionId: undefined,
-      },
-      {
-        id: 'rev-2',
-        version: 2,
-        title: '라이트 테마로 변경',
-        changedBy: decisionUsers.lee,
-        changedAt: '2024-01-18',
-        changeReason: '사용자 피드백 반영',
-        previousDecisionId: '5',
-      },
-    ],
-    area: 'UI',
-    keywords: ['테마', '라이트모드', '색상'],
-    projectId: 'proj-1',
-    meetingId: '3',
-    affectedScreenIds: ['scr-001'],
-    createdAt: '2024-01-18',
-    updatedAt: '2024-01-18',
-  },
-  {
-    id: '10',
-    code: 'DEC-003',
-    title: '소셜 로그인 우선',
-    content: '카카오, 구글 소셜 로그인을 먼저 구현하고 이메일 로그인은 나중에 추가',
-    date: '2024-01-15',
-    status: 'confirmed',
-    hierarchy: 'root',
-    owner: { ...decisionUsers.park, decidedAt: '2024-01-15' },
-    approvers: [{ ...decisionUsers.kim, decidedAt: '2024-01-15' }],
-    currentVersion: 1,
-    area: '기능',
-    keywords: ['로그인', 'OAuth', '인증'],
-    projectId: 'proj-1',
-    meetingId: '7',
-    affectedScreenIds: ['scr-002'],
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-15',
-  },
-  {
-    id: '1',
-    code: 'DEC-004',
-    title: '타임라인 뷰로 변경',
-    content: '칸반 보드 대신 타임라인 뷰로 변경하여 컨텍스트 흐름을 개선',
-    date: '2024-01-18',
-    status: 'pending',
-    hierarchy: 'child',
-    owner: { ...decisionUsers.lee, decidedAt: '2024-01-18' },
-    contributors: [decisionUsers.kim],
-    parentDecisionId: '6',
-    currentVersion: 1,
-    area: 'UI',
-    keywords: ['타임라인', '뷰', 'UX'],
-    projectId: 'proj-1',
-    meetingId: '3',
-    affectedScreenIds: ['scr-001'],
-    createdAt: '2024-01-18',
-    updatedAt: '2024-01-18',
-  },
-  {
-    id: '12',
-    code: 'DEC-006',
-    title: 'PostgreSQL 대신 SQLite 사용',
-    content: 'MVP 단계에서는 SQLite로 시작하고 추후 PostgreSQL로 마이그레이션',
-    date: '2024-01-14',
-    status: 'deprecated',
-    hierarchy: 'root',
-    owner: { ...decisionUsers.kim, decidedAt: '2024-01-14' },
-    currentVersion: 1,
-    area: '기술',
-    keywords: ['데이터베이스', 'SQLite'],
-    projectId: 'proj-1',
-    createdAt: '2024-01-14',
-    updatedAt: '2024-01-20',
-  },
-  {
-    id: '13',
-    code: 'DEC-007',
-    title: '모바일 앱 개발 보류',
-    content: '웹 MVP 완성 후 모바일 앱 개발 여부 재검토',
-    date: '2024-01-14',
-    status: 'disabled',
-    hierarchy: 'root',
-    owner: { ...decisionUsers.choi, decidedAt: '2024-01-14' },
-    currentVersion: 1,
-    area: '기능',
-    keywords: ['모바일', '앱'],
-    projectId: 'proj-1',
-    createdAt: '2024-01-14',
-    updatedAt: '2024-01-14',
-  },
+const AREA_OPTIONS = [
+  { value: 'all', label: '전체' },
+  { value: '기획', label: '기획' },
+  { value: '디자인', label: '디자인' },
+  { value: '개발', label: '개발' },
 ]
 
-type ViewType = 'timeline' | 'decisions'
+// Also accept English area keys from StoredDecision.area
+function getAreaLabel(area: string) {
+  switch (area) {
+    case 'planning': return '기획'
+    case 'design': return '디자인'
+    case 'dev': return '개발'
+    default: return area
+  }
+}
 
-export default function DecisionsPage() {
-  const params = useParams()
-  const teamId = params.teamId as string
-  const projectId = params.projectId as string
-  const [viewType, setViewType] = useState<ViewType>('timeline')
-  const [selectedDecisionId, setSelectedDecisionId] = useState<string>()
+function normalizeArea(area: string) {
+  switch (area) {
+    case 'planning': return '기획'
+    case 'design': return '디자인'
+    case 'dev': return '개발'
+    default: return area
+  }
+}
 
+// ---------------------------------------------------------------------------
+// Styling helpers
+// ---------------------------------------------------------------------------
+
+function getStatusBadgeClass(status: string) {
+  switch (status) {
+    case 'confirmed':
+      return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+    case 'pending':
+      return 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+    case 'changed':
+      return 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+    case 'rejected':
+      return 'bg-red-500/10 text-red-600 border-red-500/20'
+    default:
+      return 'bg-gray-500/10 text-gray-600 border-gray-500/20'
+  }
+}
+
+function getStatusLabel(status: string) {
+  switch (status) {
+    case 'confirmed': return '확정'
+    case 'pending': return '보류'
+    case 'changed': return '변경'
+    case 'rejected': return '기각'
+    default: return status
+  }
+}
+
+function getAreaBadgeClass(area: string) {
+  const norm = normalizeArea(area)
+  switch (norm) {
+    case '기획':
+      return 'bg-purple-500/10 text-purple-600 border-purple-500/20'
+    case '디자인':
+      return 'bg-pink-500/10 text-pink-600 border-pink-500/20'
+    case '개발':
+      return 'bg-sky-500/10 text-sky-600 border-sky-500/20'
+    default:
+      return 'bg-gray-500/10 text-gray-600 border-gray-500/20'
+  }
+}
+
+function getMeetingCode(meetingId: string): string {
+  if (meetingId.startsWith('mtg-')) {
+    const num = meetingId.replace('mtg-', '')
+    return `MTG-${num.padStart(3, '0')}`
+  }
+  return `MTG-${meetingId}`
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+type ViewMode = 'list' | 'map'
+
+/** List View — decision cards with filters & status dropdown */
+function ListView({
+  decisions,
+  filtered,
+  statusFilter,
+  areaFilter,
+  setStatusFilter,
+  setAreaFilter,
+  onStatusChange,
+}: {
+  decisions: Decision[]
+  filtered: Decision[]
+  statusFilter: string
+  areaFilter: string
+  setStatusFilter: (v: string) => void
+  setAreaFilter: (v: string) => void
+  onStatusChange: (id: string, status: string) => void
+}) {
   return (
-    <div className="flex flex-col h-full text-[1.3em]">
-      {/* 탭 헤더 */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
-        <h1 className="text-2xl font-semibold">결정</h1>
-        <Tabs value={viewType} onValueChange={(v) => setViewType(v as ViewType)}>
-          <TabsList className="bg-muted/50">
-            <TabsTrigger value="timeline" className="gap-2 data-[state=active]:bg-background">
-              <Clock className="h-5 w-5" />
-              컨텍스트 흐름
-            </TabsTrigger>
-            <TabsTrigger value="decisions" className="gap-2 data-[state=active]:bg-background">
-              <GitBranch className="h-5 w-5" />
-              상태별 보기
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+    <>
+      {/* Filter Bar */}
+      {decisions.length > 0 && (
+        <div className="flex items-center gap-3 px-6 py-3 border-b border-border/30 bg-muted/20">
+          <span className="text-xs text-muted-foreground font-medium">필터</span>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[120px] h-8 text-xs rounded-lg">
+              <SelectValue placeholder="상태" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={areaFilter} onValueChange={setAreaFilter}>
+            <SelectTrigger className="w-[120px] h-8 text-xs rounded-lg">
+              <SelectValue placeholder="영역" />
+            </SelectTrigger>
+            <SelectContent>
+              {AREA_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(statusFilter !== 'all' || areaFilter !== 'all') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs text-muted-foreground"
+              onClick={() => {
+                setStatusFilter('all')
+                setAreaFilter('all')
+              }}
+            >
+              초기화
+            </Button>
+          )}
+        </div>
+      )}
 
-      {/* 뷰 컨텐츠 */}
-      <div className="flex-1 overflow-hidden">
-        {viewType === 'timeline' && (
-          <TimelineView items={mockTimelineItems} teamId={teamId} projectId={projectId} />
-        )}
-        {viewType === 'decisions' && (
-          <div className="h-full overflow-auto p-6">
-            <DecisionHierarchyView
-              decisions={mockDecisions}
-              selectedDecisionId={selectedDecisionId}
-              onSelectDecision={(d) => setSelectedDecisionId(d.id)}
-            />
+      {/* Cards */}
+      <div className="flex-1 overflow-auto p-6">
+        {decisions.length === 0 ? (
+          <EmptyState />
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+            <p className="text-muted-foreground">
+              선택한 필터에 해당하는 결정이 없습니다.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 max-w-3xl">
+            {filtered.map((decision) => (
+              <Card key={decision.id} className="border-border/50">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge
+                        variant="outline"
+                        className="font-mono text-[11px] px-2 py-0.5 bg-muted/50"
+                      >
+                        {decision.code}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className={`text-[11px] px-2 py-0.5 ${getAreaBadgeClass(decision.area)}`}
+                      >
+                        {getAreaLabel(decision.area)}
+                      </Badge>
+                    </div>
+                    <Select
+                      value={decision.status}
+                      onValueChange={(val) => onStatusChange(decision.id, val)}
+                    >
+                      <SelectTrigger
+                        className={`w-auto h-7 text-[11px] rounded-md border px-2.5 gap-1 ${getStatusBadgeClass(decision.status)}`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="confirmed" className="text-xs">확정</SelectItem>
+                        <SelectItem value="pending" className="text-xs">보류</SelectItem>
+                        <SelectItem value="changed" className="text-xs">변경</SelectItem>
+                        <SelectItem value="rejected" className="text-xs">기각</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <CardTitle className="text-base mt-2">{decision.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {decision.rationale && (
+                    <div className="rounded-lg bg-amber-500/5 border border-amber-500/20 px-3 py-2.5">
+                      <p className="text-[11px] font-semibold text-amber-600 mb-1">왜?</p>
+                      <p className="text-sm text-foreground/80">{decision.rationale}</p>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <FileText className="h-3 w-3" />
+                      {getMeetingCode(decision.meetingId)}에서 추출
+                    </span>
+                    {decision.proposedBy && (
+                      <span>제안: {decision.proposedBy}</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </div>
+    </>
+  )
+}
+
+/** localStorage → TimelineItem 변환 (풍부한 연결 정보 포함) */
+function buildTimelineItems(meetings: Meeting[], decisions: Decision[]): TLItem[] {
+  const items: TLItem[] = []
+
+  // 태스크도 읽어서 결정에 연결
+  let storedTasks: { id: string; meetingId: string; decisionId?: string; title: string; assignee?: string; done: boolean }[] = []
+  try {
+    const raw = localStorage.getItem('pkeep-tasks')
+    if (raw) storedTasks = JSON.parse(raw)
+  } catch {}
+
+  // 롤(area) → Person role 매핑
+  const areaToRole = (area?: string): 'owner' | 'contributor' | 'reviewer' => {
+    switch (area) {
+      case 'planning': return 'owner'
+      case 'design': return 'contributor'
+      case 'dev': return 'contributor'
+      default: return 'owner'
+    }
+  }
+
+  // 회의 노드
+  for (const mtg of meetings) {
+    const mtgDecisions = decisions.filter(d => d.meetingId === mtg.id)
+    items.push({
+      id: mtg.id,
+      type: 'meeting',
+      category: 'meeting',
+      source: 'manual',
+      code: mtg.code,
+      title: mtg.title,
+      date: mtg.date,
+      description: mtg.summary,
+      sourceType: 'meeting',
+      connections: {
+        sources: [],
+        impacts: mtgDecisions.map(d => ({
+          id: d.id,
+          type: 'decision' as const,
+          category: 'decision' as const,
+          code: d.code,
+          title: d.title,
+          relation: 'created_from' as const,
+        })),
+      },
+    })
+  }
+
+  // 결정 노드 — 회의에서 생성된 관계만 (스파게티 방지)
+  for (const dec of decisions) {
+    const meeting = meetings.find(m => m.id === dec.meetingId)
+    const decTasks = storedTasks.filter(t => t.meetingId === dec.meetingId)
+
+    const sources: TLItem['connections']['sources'] = []
+    const impacts: TLItem['connections']['impacts'] = []
+
+    // 원본 회의 연결
+    if (meeting) {
+      sources.push({
+        id: meeting.id,
+        type: 'meeting' as const,
+        category: 'meeting' as const,
+        code: meeting.code,
+        title: meeting.title,
+        relation: 'created_from' as const,
+      })
+    }
+
+    items.push({
+      id: dec.id,
+      type: 'decision',
+      category: 'decision',
+      source: 'manual',
+      code: dec.code,
+      title: `${dec.title}`,
+      date: dec.createdAt?.split('T')[0] || meeting?.date || '',
+      description: `[${getAreaLabel(dec.area || '')}] ${dec.rationale}`,
+      status: dec.status as any,
+      area: dec.area,
+      sourceType: 'meeting',
+      owner: dec.proposedBy ? {
+        id: dec.proposedBy,
+        name: dec.proposedBy,
+        role: areaToRole(dec.area),
+      } : undefined,
+      tasks: decTasks.slice(0, 3).map(t => ({
+        id: t.id,
+        title: t.title,
+        status: t.done ? 'done' as const : 'in_progress' as const,
+        assignee: t.assignee ? { id: t.assignee, name: t.assignee } : undefined,
+      })),
+      connections: { sources, impacts },
+    })
+  }
+
+  return items
+}
+
+/** Map View — renders the FlowView component directly */
+function MapView({
+  decisions,
+  meetings,
+}: {
+  decisions: Decision[]
+  meetings: Meeting[]
+}) {
+  const timelineItems = useMemo(() => buildTimelineItems(meetings, decisions), [meetings, decisions])
+
+  if (decisions.length === 0) {
+    return <div className="flex-1 overflow-auto p-6"><EmptyState /></div>
+  }
+
+  return (
+    <div className="flex-1 overflow-hidden">
+      <div className="h-full">
+        <FlowViewComponent items={timelineItems} />
+      </div>
+    </div>
+  )
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-center">
+      <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+        <CircleDot className="h-8 w-8 text-muted-foreground/50" />
+      </div>
+      <p className="text-muted-foreground font-medium mb-1">
+        아직 추출된 결정이 없습니다.
+      </p>
+      <p className="text-sm text-muted-foreground/70">
+        소스 페이지에서 회의를 분석하세요.
+      </p>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Main page
+// ---------------------------------------------------------------------------
+
+export default function DecisionsPage() {
+  const [decisions, setDecisions] = useState<Decision[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [areaFilter, setAreaFilter] = useState('all')
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
+
+  // Load from localStorage
+  useEffect(() => {
+    try {
+      const storedDec = localStorage.getItem('pkeep-decisions')
+      if (storedDec) setDecisions(JSON.parse(storedDec))
+    } catch (e) {
+      console.error('Failed to load decisions:', e)
+    }
+    try {
+      const storedMtg = localStorage.getItem('pkeep-meetings')
+      if (storedMtg) setMeetings(JSON.parse(storedMtg))
+    } catch (e) {
+      console.error('Failed to load meetings:', e)
+    }
+  }, [])
+
+  const saveDecisions = useCallback((updated: Decision[]) => {
+    setDecisions(updated)
+    try {
+      localStorage.setItem('pkeep-decisions', JSON.stringify(updated))
+    } catch (e) {
+      console.error('Failed to save decisions:', e)
+    }
+  }, [])
+
+  const handleStatusChange = useCallback(
+    (decisionId: string, newStatus: string) => {
+      const updated = decisions.map((d) =>
+        d.id === decisionId ? { ...d, status: newStatus } : d
+      )
+      saveDecisions(updated)
+    },
+    [decisions, saveDecisions]
+  )
+
+  const filtered = useMemo(() => {
+    return decisions.filter((d) => {
+      if (statusFilter !== 'all' && d.status !== statusFilter) return false
+      if (areaFilter !== 'all' && normalizeArea(d.area) !== areaFilter) return false
+      return true
+    })
+  }, [decisions, statusFilter, areaFilter])
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
+        <div className="flex items-center gap-2">
+          <CircleDot className="h-5 w-5 text-orange-500" />
+          <h1 className="text-xl font-semibold">결정</h1>
+          {decisions.length > 0 && (
+            <span className="text-sm text-muted-foreground ml-2">
+              {viewMode === 'list' ? `${filtered.length}건` : `${decisions.length}건`}
+            </span>
+          )}
+        </div>
+
+        {/* View toggle */}
+        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 px-3 text-xs rounded-md gap-1.5"
+            onClick={() => setViewMode('list')}
+          >
+            <List className="h-3.5 w-3.5" />
+            리스트
+          </Button>
+          <Button
+            variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 px-3 text-xs rounded-md gap-1.5"
+            onClick={() => setViewMode('map')}
+          >
+            <Network className="h-3.5 w-3.5" />
+            맵
+          </Button>
+        </div>
+      </div>
+
+      {/* View content */}
+      {viewMode === 'list' ? (
+        <ListView
+          decisions={decisions}
+          filtered={filtered}
+          statusFilter={statusFilter}
+          areaFilter={areaFilter}
+          setStatusFilter={setStatusFilter}
+          setAreaFilter={setAreaFilter}
+          onStatusChange={handleStatusChange}
+        />
+      ) : (
+        <MapView
+          decisions={decisions}
+          meetings={meetings}
+        />
+      )}
     </div>
   )
 }

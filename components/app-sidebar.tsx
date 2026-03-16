@@ -2,11 +2,11 @@
 
 import * as React from "react"
 import {
+  Mic,
+  CircleDot,
+  ListChecks,
   LayoutDashboard,
-  Users,
-  GitBranch,
   FolderOutput,
-  MessageSquarePlus,
   Bot,
   Settings,
   FolderKanban,
@@ -60,24 +60,24 @@ export function AppSidebar() {
       href: `/${teamId}/${projectId}/dashboard`,
     },
     {
-      title: "프로젝트&팀",
-      icon: Users,
-      href: `/${teamId}/${projectId}/mindmap`,
+      title: "소스",
+      icon: Mic,
+      href: `/${teamId}/${projectId}/meetings`,
     },
     {
-      title: "결정 흐름",
-      icon: GitBranch,
-      href: `/${teamId}/${projectId}/nodeview`,
+      title: "결정",
+      icon: CircleDot,
+      href: `/${teamId}/${projectId}/decisions`,
+    },
+    {
+      title: "할 일",
+      icon: ListChecks,
+      href: `/${teamId}/${projectId}/tasks`,
     },
     {
       title: "결과물",
       icon: FolderOutput,
       href: `/${teamId}/${projectId}/outputs`,
-    },
-    {
-      title: "맥락 추가",
-      icon: MessageSquarePlus,
-      href: `/${teamId}/${projectId}/meetings`,
     },
     {
       title: "AI 진단",
@@ -96,7 +96,7 @@ export function AppSidebar() {
           </div>
           <div>
             <span className="font-semibold text-sm bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">PKEEP</span>
-            <p className="text-[10px] text-muted-foreground">프로젝트 맥락 관리</p>
+            <p className="text-[10px] text-muted-foreground">AI 프로젝트 매니저</p>
           </div>
         </div>
       </SidebarHeader>
@@ -123,7 +123,7 @@ export function AppSidebar() {
                   <DropdownMenuContent align="start" className="w-56 rounded-xl">
                     {mockProjects.map((project) => (
                       <DropdownMenuItem key={project.id} asChild className="rounded-lg">
-                        <Link href={`/${teamId}/${project.id}/dashboard`}>
+                        <Link href={`/${teamId}/${project.id}/meetings`}>
                           {project.name}
                         </Link>
                       </DropdownMenuItem>
@@ -156,10 +156,10 @@ export function AppSidebar() {
                           isActive
                             ? 'bg-orange-500/10 text-orange-600'
                             : 'hover:bg-secondary/50'
-                        } ${item.accent && !isActive ? 'text-orange-500' : ''}`}
+                        } ${'accent' in item && item.accent && !isActive ? 'text-orange-500' : ''}`}
                       >
                         <Link href={item.href} className="flex items-center gap-2.5">
-                          <item.icon className={`h-4 w-4 ${isActive ? 'text-orange-500' : item.accent ? 'text-orange-500' : ''}`} />
+                          <item.icon className={`h-4 w-4 ${isActive ? 'text-orange-500' : 'accent' in item && item.accent ? 'text-orange-500' : ''}`} />
                           <span className="font-medium text-sm">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>

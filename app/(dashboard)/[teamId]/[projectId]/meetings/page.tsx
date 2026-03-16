@@ -1,361 +1,1016 @@
 'use client'
 
-import { useState } from "react"
-import { Plus, Calendar, Users, FileText, Sparkles, ChevronDown, ChevronRight, CheckCircle2, X, Link2, Mic, Upload } from "lucide-react"
+import { useState, useRef, useCallback, useEffect } from "react"
+import {
+  Plus, Calendar, Sparkles, ChevronDown, ChevronRight,
+  CheckCircle2, X, Mic, Upload, Loader2, AlertTriangle, Ban,
+  ListChecks, MessageSquareWarning, Check, Clock,
+  MessageSquare, BookOpen, FileText, Phone, Mail, PenLine
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet"
+import AudioRecorder from "@/components/audio/AudioRecorder"
+import LiveMeeting from "@/components/meeting/LiveMeeting"
+import { useStore } from "@/hooks/use-store"
+import type { TranscriptSegment, StoredMeeting, SourceType } from "@/lib/store/types"
 
-// 서비스 로고 SVG 컴포넌트들
-const SlackLogo = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5">
-    <path fill="#E01E5A" d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z"/>
-    <path fill="#36C5F0" d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z"/>
-    <path fill="#2EB67D" d="M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z"/>
-    <path fill="#ECB22E" d="M15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
-  </svg>
-)
+// ============================================================
+// API Response Types (analyze API가 반환하는 형태)
+// ============================================================
 
-const NotionLogo = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5">
-    <path fill="currentColor" d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.98-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466l1.823 1.447zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.84-.046.933-.56.933-1.167V6.354c0-.606-.233-.933-.746-.886l-15.177.887c-.56.046-.747.326-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.746 0-.933-.234-1.495-.933l-4.577-7.186v6.952l1.448.327s0 .84-1.168.84l-3.22.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.454-.233 4.764 7.279v-6.44l-1.215-.14c-.093-.514.28-.886.747-.933l3.224-.186zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.933.653.933 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.457.933c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.746-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/>
-  </svg>
-)
+interface AnalysisResponse {
+  success: boolean
+  analysis: {
+    issues: { title: string; description?: string }[]
+    decisions: { title: string; rationale: string; area?: string; proposed_by?: string }[]
+    rejected_alternatives: { title: string; reason: string; related_decision: string; proposed_by?: string }[]
+    tasks: { title: string; assignee?: string; related_decision?: string }[]
+    context_relations: { previous_decision_title: string; relation: string; explanation: string }[]
+    summary: string
+    keywords: string[]
+  }
+  auto_created: {
+    decisions: { id: string; code: string; title: string; reason: string; status: string }[]
+    tasks: { id: string; title: string; assignee?: string }[]
+    rejected_alternatives: any[]
+  }
+  conflicts: any[]
+  summary: string
+}
 
-const GoogleMeetLogo = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5">
-    <path fill="#00832d" d="M12.5 11.25v-4.5L16.25 3h-12.5A1.75 1.75 0 0 0 2 4.75v14.5c0 .966.784 1.75 1.75 1.75h12.5l-3.75-3.75v-4.5l5.5 4.125V7.125L12.5 11.25z"/>
-    <path fill="#0066da" d="M12.5 11.25v1.5h9.75V9.75H12.5v1.5z"/>
-    <path fill="#e94235" d="M22.25 9.75h-9.75v-3L16.25 3h4.25c.966 0 1.75.784 1.75 1.75v5z"/>
-    <path fill="#2684fc" d="M12.5 12.75v3l3.75 3.75h4.25a1.75 1.75 0 0 0 1.75-1.75v-5h-9.75z"/>
-    <path fill="#00ac47" d="M6.75 6.75l3.75 3.75-3.75 3.75V6.75z"/>
-  </svg>
-)
+type AnalysisStep =
+  | 'idle'
+  | 'recording'
+  | 'live_meeting'
+  | 'uploading'
+  | 'transcribing'
+  | 'analyzing'
+  | 'creating_tickets'
+  | 'done'
+  | 'error'
 
-const ZoomLogo = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5">
-    <path fill="#2D8CFF" d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.685 14.018l-3.401-2.267v2.267c0 .368-.298.667-.667.667H7.333c-.368 0-.667-.298-.667-.667V9.333c0-.368.298-.667.667-.667h5.284c.368 0 .667.298.667.667v2.267l3.401-2.267c.368-.245.815.061.815.491v5.743c0 .43-.447.736-.815.491z"/>
-  </svg>
-)
-
-// Mock data for meetings
-const mockMeetings = [
-  {
-    id: "1",
-    code: "MTG-001",
-    title: "프로젝트 킥오프",
-    date: "2024-01-14",
-    attendees: ["Kim", "Lee", "Park"],
-    content: `프로젝트 킥오프 미팅
-
-- 프로젝트 목표 설정
-- 기술 스택 논의 (Next.js, Supabase)
-- MVP 범위 정의
-
-결정사항:
-1. Next.js 14 App Router 사용
-2. 결정 중심 접근 방식 채택
-3. 다크 테마 기본 설정`,
-    ai_summary: {
-      decisions: [
-        "Next.js 14 App Router 사용",
-        "결정 중심 접근 방식 채택",
-        "다크 테마 기본 설정"
-      ],
-      todos: [
-        { task: "Supabase 프로젝트 생성", assignee: "Park" },
-        { task: "Figma 디자인 시스템 셋업", assignee: "Lee" },
-        { task: "프로젝트 구조 설계", assignee: "Kim" }
-      ],
-      keywords: ["Next.js", "Supabase", "MVP", "다크테마"]
-    }
-  },
-  {
-    id: "2",
-    code: "MTG-002",
-    title: "UI/UX 리뷰",
-    date: "2024-01-17",
-    attendees: ["Lee", "Park"],
-    content: `UI/UX 리뷰 미팅
-
-- 타임라인 뷰 vs 칸반 보드 논의
-- 사이드바 네비게이션 구조 검토
-- 다크 모드 색상 팔레트 확정`,
-    ai_summary: {
-      decisions: [
-        "타임라인 뷰를 메인 대시보드로 사용",
-        "사이드바에 프로젝트 선택기 배치"
-      ],
-      todos: [
-        { task: "타임라인 컴포넌트 구현", assignee: "Lee" },
-        { task: "사이드바 레이아웃 구현", assignee: "Park" }
-      ],
-      keywords: ["타임라인", "사이드바", "다크모드"]
-    }
-  },
-]
+// ============================================================
+// Page Component
+// ============================================================
 
 export default function MeetingsPage() {
+  const store = useStore()
   const [expandedMeeting, setExpandedMeeting] = useState<string | null>(null)
-  const [showNewMeetingSheet, setShowNewMeetingSheet] = useState(false)
+  const [activeTab, setActiveTab] = useState<'summary' | 'transcript'>('summary')
+  const [showNewSheet, setShowNewSheet] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // New meeting form state
   const [meetingTitle, setMeetingTitle] = useState("")
   const [meetingContent, setMeetingContent] = useState("")
-  const [linkInputs, setLinkInputs] = useState<{ type: string; url: string }[]>([])
-  const isEmpty = mockMeetings.length === 0
+  const [sourceUrl, setSourceUrl] = useState("")
+  const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [recordingSource, setRecordingSource] = useState<'recording' | 'upload' | 'text'>('recording')
+  const [sourceType, setSourceType] = useState<SourceType>('meeting')
+  const [inputMode, setInputMode] = useState<'grid' | 'recording' | 'upload' | 'text'>('grid')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const addLinkInput = (type: string) => {
-    setLinkInputs([...linkInputs, { type, url: "" }])
-  }
+  // Analysis pipeline state
+  const [step, setStep] = useState<AnalysisStep>('idle')
+  const [stepMessage, setStepMessage] = useState("")
+  const [transcription, setTranscription] = useState<{
+    text: string
+    language?: string
+    segments: TranscriptSegment[]
+    speakers?: string[]
+    duration_seconds: number
+  } | null>(null)
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [recordingStartTime, setRecordingStartTime] = useState<Date | null>(null)
 
-  const removeLinkInput = (index: number) => {
-    setLinkInputs(linkInputs.filter((_, i) => i !== index))
-  }
+  // ========== Live Meeting Handler ==========
+  const handleLiveMeetingComplete = async (transcript: string, liveSegments: TranscriptSegment[]) => {
+    setStep('analyzing')
+    setStepMessage('5종 맥락 요소 추출 중...')
+    setRecordingSource('recording')
+    setShowNewSheet(true)
 
-  const updateLinkUrl = (index: number, url: string) => {
-    const updated = [...linkInputs]
-    updated[index].url = url
-    setLinkInputs(updated)
-  }
+    // Store transcript data so saveMeetingToList can use it
+    setTranscription({
+      text: transcript,
+      segments: liveSegments,
+      duration_seconds: liveSegments.length > 0
+        ? Math.round(liveSegments[liveSegments.length - 1].end)
+        : 0,
+    })
 
-  const getLinkIcon = (type: string) => {
-    switch (type) {
-      case 'slack': return <SlackLogo />
-      case 'notion': return <NotionLogo />
-      case 'meet': return <GoogleMeetLogo />
-      case 'zoom': return <ZoomLogo />
-      default: return <Link2 className="h-5 w-5" />
+    try {
+      const analyzeRes = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: transcript }),
+      })
+
+      if (!analyzeRes.ok) {
+        const err = await analyzeRes.json()
+        throw new Error(err.error || 'Analysis failed')
+      }
+
+      setStep('creating_tickets')
+      setStepMessage('티켓 자동 생성 + 충돌 감지 중...')
+
+      const result = await analyzeRes.json()
+      setAnalysisResult(result)
+      setStep('done')
+    } catch (err) {
+      setStep('error')
+      setError(err instanceof Error ? err.message : 'Analysis failed')
     }
   }
 
-  const getLinkLabel = (type: string) => {
-    switch (type) {
-      case 'slack': return 'Slack 스레드'
-      case 'notion': return 'Notion 페이지'
-      case 'meet': return 'Google Meet'
-      case 'zoom': return 'Zoom 녹화'
-      case 'tts': return '음성 녹음 (TTS)'
-      default: return '링크'
+  const handleLiveMeetingCancel = () => {
+    setStep('idle')
+  }
+
+  // ========== Handlers ==========
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setAudioFile(file)
+      setRecordingSource('upload')
+      setError(null)
+    }
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      setAudioFile(file)
+      setRecordingSource('upload')
+      setError(null)
+    }
+  }, [])
+
+  const startFullPipeline = async () => {
+    setError(null)
+    if (audioFile) {
+      await runSTTAndAnalyze(audioFile)
+    } else if (meetingContent.trim()) {
+      setRecordingSource('text')
+      await runTextPipeline()
+    } else {
+      setError('음성 파일을 업로드하거나 내용을 직접 입력하세요.')
     }
   }
+
+  const runSTTAndAnalyze = async (file: File) => {
+    try {
+      setStep('transcribing')
+      setStepMessage('음성 → 텍스트 변환 중... (다국어 자동 감지)')
+
+      const formData = new FormData()
+      formData.append('audio', file)
+
+      const transcribeRes = await fetch('/api/meetings/transcribe', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!transcribeRes.ok) {
+        const err = await transcribeRes.json()
+        throw new Error(err.error || 'Transcription failed')
+      }
+
+      const transcribeData = await transcribeRes.json()
+      const t = transcribeData.transcription
+      setTranscription(t)
+
+      setStep('analyzing')
+      setStepMessage('5종 맥락 요소 추출 중...')
+
+      // 화자 레이블이 있으면 "[Speaker A] 텍스트" 형식으로 구성
+      let textForAnalysis = t.text
+      if (t.segments?.length > 0 && t.segments[0].speaker) {
+        textForAnalysis = t.segments
+          .map((seg: TranscriptSegment) => `[${seg.speaker}] ${seg.text}`)
+          .join('\n')
+      }
+
+      const analyzeRes = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textForAnalysis, language: t.language }),
+      })
+
+      if (!analyzeRes.ok) {
+        const err = await analyzeRes.json()
+        throw new Error(err.error || 'Analysis failed')
+      }
+
+      setStep('creating_tickets')
+      setStepMessage('티켓 자동 생성 + 충돌 감지 중...')
+
+      const result = await analyzeRes.json()
+      setAnalysisResult(result)
+      setStep('done')
+    } catch (err) {
+      setStep('error')
+      setError(err instanceof Error ? err.message : 'Pipeline failed')
+    }
+  }
+
+  const runTextPipeline = async () => {
+    try {
+      setStep('analyzing')
+      setStepMessage('5종 맥락 요소 추출 중...')
+
+      const analyzeRes = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: meetingContent }),
+      })
+
+      if (!analyzeRes.ok) {
+        const err = await analyzeRes.json()
+        throw new Error(err.error || 'Analysis failed')
+      }
+
+      setStep('creating_tickets')
+      setStepMessage('티켓 자동 생성 + 충돌 감지 중...')
+
+      const result = await analyzeRes.json()
+      setAnalysisResult(result)
+      setStep('done')
+    } catch (err) {
+      setStep('error')
+      setError(err instanceof Error ? err.message : 'Analysis failed')
+    }
+  }
+
+  // 분석 완료 → 회의록 + 결정 + 할일 + 기각 모두 store에 저장
+  const saveMeetingToList = () => {
+    if (!analysisResult) return
+
+    const code = store.getNextMeetingCode()
+    const meetingId = `meeting-${Date.now()}`
+    const now = new Date().toISOString()
+
+    const title = meetingTitle.trim()
+      || analysisResult.analysis.summary?.split('.')[0]?.slice(0, 40)
+      || `회의 ${code}`
+
+    // 1. 회의록 저장
+    const newMeeting: StoredMeeting = {
+      id: meetingId,
+      code,
+      title,
+      date: (recordingStartTime || new Date()).toISOString().split('T')[0],
+      duration_seconds: transcription?.duration_seconds || 0,
+      source: recordingSource,
+      sourceType,
+      sourceUrl: sourceUrl.trim() || undefined,
+      language: transcription?.language,
+      transcriptText: transcription?.text || meetingContent,
+      transcriptSegments: transcription?.segments || [],
+      summary: analysisResult.analysis.summary || '',
+      keywords: analysisResult.analysis.keywords || [],
+      issues: analysisResult.analysis.issues || [],
+    }
+    store.addMeeting(newMeeting)
+
+    // 2. 결정 저장
+    for (const dec of analysisResult.auto_created.decisions) {
+      store.addDecision({
+        id: dec.id || `dec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        meetingId,
+        code: dec.code || store.getNextDecisionCode(),
+        title: dec.title,
+        rationale: dec.reason || '',
+        area: (analysisResult.analysis.decisions.find(d => d.title === dec.title)?.area as any) || undefined,
+        status: (dec.status as any) || 'confirmed',
+        proposedBy: analysisResult.analysis.decisions.find(d => d.title === dec.title)?.proposed_by,
+        createdAt: now,
+      })
+    }
+
+    // 3. 할 일 저장
+    for (const task of analysisResult.auto_created.tasks) {
+      store.addTask({
+        id: task.id || `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        meetingId,
+        title: task.title,
+        assignee: task.assignee,
+        done: false,
+        createdAt: now,
+      })
+    }
+
+    // 4. 기각된 대안 저장
+    for (const rej of (analysisResult.analysis.rejected_alternatives || [])) {
+      store.addRejected({
+        id: `rej-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        meetingId,
+        title: rej.title,
+        reason: rej.reason,
+        relatedDecision: rej.related_decision,
+        proposedBy: rej.proposed_by,
+      })
+    }
+
+    setExpandedMeeting(meetingId)
+    resetForm()
+  }
+
+  const resetForm = () => {
+    setStep('idle')
+    setStepMessage('')
+    setMeetingTitle('')
+    setMeetingContent('')
+    setSourceUrl('')
+    setAudioFile(null)
+    setTranscription(null)
+    setAnalysisResult(null)
+    setError(null)
+    setRecordingStartTime(null)
+    setShowNewSheet(false)
+    setSourceType('meeting')
+    setInputMode('grid')
+  }
+
+  const formatDuration = (seconds: number) => {
+    if (!seconds) return ''
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${m}분 ${s}초`
+  }
+
+  const formatTimestamp = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = Math.floor(seconds % 60)
+    return `${m}:${String(s).padStart(2, '0')}`
+  }
+
+  const sourceLabel = (meeting: StoredMeeting) => {
+    // Prefer sourceType if available, fall back to source
+    const st = meeting.sourceType
+    if (st) {
+      switch (st) {
+        case 'meeting': return '회의'
+        case 'slack': return '슬랙'
+        case 'notion': return '노션'
+        case 'document': return '문서'
+        case 'call': return '통화'
+        case 'email': return '이메일'
+        case 'text': return '텍스트'
+        case 'manual': return '수동'
+      }
+    }
+    switch (meeting.source) {
+      case 'recording': return '녹음'
+      case 'upload': return '업로드'
+      case 'text': return '텍스트'
+    }
+  }
+
+  const sourceIcon = (meeting: StoredMeeting) => {
+    const st = meeting.sourceType
+    switch (st) {
+      case 'meeting': return Mic
+      case 'slack': return MessageSquare
+      case 'notion': return BookOpen
+      case 'document': return FileText
+      case 'call': return Phone
+      case 'email': return Mail
+      case 'text': return PenLine
+      case 'manual': return Plus
+      default:
+        // Fallback based on source field
+        switch (meeting.source) {
+          case 'recording': return Mic
+          case 'upload': return Upload
+          case 'text': return PenLine
+          default: return Mic
+        }
+    }
+  }
+
+  // ============================================================
+  // Render
+  // ============================================================
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">맥락 추가</h1>
-          <p className="text-muted-foreground mt-1">미팅, 슬랙, 문서에서 결정 맥락을 추출합니다</p>
+          <h1 className="text-2xl font-semibold tracking-tight">소스</h1>
+          <p className="text-muted-foreground mt-1">
+            회의를 녹음하거나 파일을 올리면 AI가 결정·근거·할 일을 자동 추출합니다
+          </p>
         </div>
         <Button
           className="bg-primary hover:bg-primary/90 shadow-soft"
-          onClick={() => setShowNewMeetingSheet(true)}
+          onClick={() => { resetForm(); setShowNewSheet(true) }}
         >
           <Plus className="h-4 w-4 mr-2" />
-          새 맥락
+          새 소스
         </Button>
       </div>
 
-      {/* New Context Sheet */}
-      <Sheet open={showNewMeetingSheet} onOpenChange={setShowNewMeetingSheet}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
+      {/* ========== New Source Sheet ========== */}
+      <Sheet open={showNewSheet} onOpenChange={setShowNewSheet}>
+        <SheetContent className="sm:max-w-xl overflow-y-auto">
           <SheetHeader className="mb-6">
-            <SheetTitle>새 맥락 추가</SheetTitle>
+            <SheetTitle>새 소스 추가</SheetTitle>
             <SheetDescription>
-              미팅, 슬랙 스레드, 노션 문서 등을 연결하세요. AI가 결정 사항을 자동으로 추출합니다.
+              회의를 녹음하거나 파일을 올리면 AI가 자동으로 분석합니다.
             </SheetDescription>
           </SheetHeader>
 
           <div className="space-y-6">
-            {/* 맥락 제목 */}
-            <div className="space-y-2">
-              <Label htmlFor="title">제목</Label>
-              <Input
-                id="title"
-                placeholder="예: 주간 스프린트 리뷰, 로그인 방식 논의"
-                value={meetingTitle}
-                onChange={(e) => setMeetingTitle(e.target.value)}
-              />
-            </div>
+            {/* ===== Step: Idle ===== */}
+            {step === 'idle' && (
+              <>
+                {/* 제목 */}
+                <div className="space-y-2">
+                  <Label htmlFor="title">제목 <span className="text-muted-foreground font-normal">(선택)</span></Label>
+                  <Input
+                    id="title"
+                    placeholder="비워두면 AI가 자동으로 생성합니다"
+                    value={meetingTitle}
+                    onChange={(e) => setMeetingTitle(e.target.value)}
+                  />
+                </div>
 
-            {/* 외부 서비스 연동 */}
-            <div className="space-y-3">
-              <Label>외부 서비스 연동</Label>
-              <p className="text-xs text-muted-foreground">
-                연동된 서비스의 링크를 추가하면 AI가 내용을 자동으로 분석합니다.
-              </p>
+                {/* 입력 방식 선택 그리드 */}
+                {inputMode === 'grid' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>입력 방식 선택</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* 회의 녹음 */}
+                        <button
+                          onClick={() => {
+                            setSourceType('meeting')
+                            setRecordingSource('recording')
+                            setRecordingStartTime(new Date())
+                            setStep('recording')
+                          }}
+                          className="p-4 rounded-xl border-2 border-border hover:border-red-300 dark:hover:border-red-500/30 bg-card transition-all group cursor-pointer text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <Mic className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">회의 녹음</p>
+                              <p className="text-[11px] text-muted-foreground">녹음 후 AI 분석</p>
+                            </div>
+                          </div>
+                        </button>
 
-              {/* 서비스 버튼들 */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 rounded-lg"
-                  onClick={() => addLinkInput('slack')}
-                >
-                  <SlackLogo />
-                  Slack
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 rounded-lg"
-                  onClick={() => addLinkInput('notion')}
-                >
-                  <NotionLogo />
-                  Notion
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 rounded-lg"
-                  onClick={() => addLinkInput('meet')}
-                >
-                  <GoogleMeetLogo />
-                  Meet
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 rounded-lg"
-                  onClick={() => addLinkInput('zoom')}
-                >
-                  <ZoomLogo />
-                  Zoom
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 rounded-lg"
-                  onClick={() => addLinkInput('tts')}
-                >
-                  <Mic className="h-4 w-4" />
-                  음성
-                </Button>
-              </div>
+                        {/* 실시간 회의 */}
+                        <button
+                          onClick={() => {
+                            setSourceType('meeting')
+                            setRecordingStartTime(new Date())
+                            setShowNewSheet(false)
+                            setStep('live_meeting')
+                          }}
+                          className="p-4 rounded-xl border-2 border-primary/20 bg-primary/5 hover:border-primary/40 transition-all group cursor-pointer text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <Sparkles className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-medium text-sm">실시간 회의</p>
+                                <Badge className="text-[9px] bg-primary/10 text-primary border-0 px-1 py-0">LIVE</Badge>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground">실시간 변환 + 분석</p>
+                            </div>
+                          </div>
+                        </button>
 
-              {/* 추가된 링크 입력 필드들 */}
-              {linkInputs.length > 0 && (
-                <div className="space-y-2 mt-3">
-                  {linkInputs.map((link, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="flex items-center gap-2 px-3 py-2 bg-secondary/50 rounded-lg min-w-[120px]">
-                        {getLinkIcon(link.type)}
-                        <span className="text-sm">{getLinkLabel(link.type)}</span>
+                        {/* 파일 업로드 */}
+                        <button
+                          onClick={() => {
+                            setSourceType('meeting')
+                            setInputMode('upload')
+                          }}
+                          className="p-4 rounded-xl border-2 border-border hover:border-primary/30 bg-card transition-all group cursor-pointer text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <Upload className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">파일 업로드</p>
+                              <p className="text-[11px] text-muted-foreground">MP3, WAV, M4A 등</p>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* 슬랙 대화 */}
+                        <button
+                          onClick={() => {
+                            setSourceType('slack')
+                            setRecordingSource('text')
+                            setInputMode('text')
+                          }}
+                          className="p-4 rounded-xl border-2 border-border hover:border-purple-300 dark:hover:border-purple-500/30 bg-card transition-all group cursor-pointer text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <MessageSquare className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">슬랙 대화</p>
+                              <p className="text-[11px] text-muted-foreground">복사 붙여넣기</p>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* 텍스트 입력 */}
+                        <button
+                          onClick={() => {
+                            setSourceType('text')
+                            setRecordingSource('text')
+                            setInputMode('text')
+                          }}
+                          className="p-4 rounded-xl border-2 border-border hover:border-emerald-300 dark:hover:border-emerald-500/30 bg-card transition-all group cursor-pointer text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <PenLine className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">텍스트 입력</p>
+                              <p className="text-[11px] text-muted-foreground">직접 입력</p>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* 노션/문서 */}
+                        <button
+                          onClick={() => {
+                            setSourceType('notion')
+                            setRecordingSource('text')
+                            setInputMode('text')
+                          }}
+                          className="p-4 rounded-xl border-2 border-border hover:border-gray-400 dark:hover:border-gray-500/30 bg-card transition-all group cursor-pointer text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <BookOpen className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">노션/문서</p>
+                              <p className="text-[11px] text-muted-foreground">URL + 내용</p>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* 전화/통화 */}
+                        <button
+                          onClick={() => {
+                            setSourceType('call')
+                            setRecordingSource('text')
+                            setInputMode('text')
+                          }}
+                          className="p-4 rounded-xl border-2 border-border hover:border-amber-300 dark:hover:border-amber-500/30 bg-card transition-all group cursor-pointer text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <Phone className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">전화/통화</p>
+                              <p className="text-[11px] text-muted-foreground">통화 내용 요약</p>
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* 이메일 */}
+                        <button
+                          onClick={() => {
+                            setSourceType('email')
+                            setRecordingSource('text')
+                            setInputMode('text')
+                          }}
+                          className="p-4 rounded-xl border-2 border-border hover:border-sky-300 dark:hover:border-sky-500/30 bg-card transition-all group cursor-pointer text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-sky-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <Mail className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">이메일</p>
+                              <p className="text-[11px] text-muted-foreground">이메일 내용 붙여넣기</p>
+                            </div>
+                          </div>
+                        </button>
                       </div>
-                      <Input
-                        placeholder="URL을 붙여넣으세요"
-                        value={link.url}
-                        onChange={(e) => updateLinkUrl(index, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0"
-                        onClick={() => removeLinkInput(index)}
-                      >
-                        <X className="h-4 w-4" />
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <Button variant="outline" className="w-full" onClick={() => setShowNewSheet(false)}>
+                        취소
                       </Button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </>
+                )}
 
-            {/* 파일 업로드 */}
-            <div className="space-y-2">
-              <Label>파일 업로드</Label>
-              <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-emerald-300 transition-colors cursor-pointer">
-                <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm text-slate-600">음성 파일 또는 문서를 드래그하거나 클릭하세요</p>
-                <p className="text-xs text-slate-400 mt-1">MP3, WAV, PDF, DOCX 지원</p>
-              </div>
-            </div>
+                {/* 파일 업로드 모드 */}
+                {inputMode === 'upload' && (
+                  <>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setInputMode('grid'); setAudioFile(null) }}>
+                        <ChevronRight className="h-3.5 w-3.5 rotate-180 mr-1" />
+                        돌아가기
+                      </Button>
+                    </div>
 
-            {/* 내용 직접 입력 */}
-            <div className="space-y-2">
-              <Label htmlFor="content">내용 직접 입력</Label>
-              <Textarea
-                id="content"
-                placeholder="미팅 내용, 논의 사항 등을 직접 입력하거나 복사-붙여넣기 하세요..."
-                value={meetingContent}
-                onChange={(e) => setMeetingContent(e.target.value)}
-                rows={6}
+                    <div className="space-y-2">
+                      <Label>녹음 파일 업로드</Label>
+                      <div
+                        className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer
+                          ${audioFile
+                            ? 'border-primary/50 bg-primary/5'
+                            : 'border-border hover:border-primary/30 hover:bg-primary/5'
+                          }`}
+                        onClick={() => fileInputRef.current?.click()}
+                        onDrop={handleDrop}
+                        onDragOver={(e) => e.preventDefault()}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="audio/*"
+                          className="hidden"
+                          onChange={handleFileSelect}
+                        />
+                        {audioFile ? (
+                          <div className="space-y-2">
+                            <Mic className="h-6 w-6 text-primary mx-auto" />
+                            <p className="text-sm font-medium">{audioFile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(audioFile.size / (1024 * 1024)).toFixed(1)} MB
+                            </p>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs"
+                              onClick={(e) => { e.stopPropagation(); setAudioFile(null) }}
+                            >
+                              <X className="h-3 w-3 mr-1" /> 제거
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <Upload className="h-6 w-6 text-muted-foreground mx-auto" />
+                            <p className="text-sm text-muted-foreground">파일을 드래그하거나 클릭</p>
+                            <p className="text-xs text-muted-foreground/70">MP3, WAV, M4A, WebM · 최대 120분</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {error && (
+                      <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                        {error}
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 pt-4">
+                      <Button variant="outline" className="flex-1" onClick={() => setShowNewSheet(false)}>
+                        취소
+                      </Button>
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-primary to-orange-600 hover:opacity-90 text-white"
+                        onClick={startFullPipeline}
+                        disabled={!audioFile}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        AI 분석 시작
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                {/* 텍스트 입력 모드 (텍스트, 슬랙, 노션, 통화, 이메일) */}
+                {inputMode === 'text' && (
+                  <>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setInputMode('grid'); setMeetingContent(''); setSourceUrl('') }}>
+                        <ChevronRight className="h-3.5 w-3.5 rotate-180 mr-1" />
+                        돌아가기
+                      </Button>
+                      <Badge variant="outline" className="text-xs">
+                        {sourceType === 'slack' && '슬랙 대화'}
+                        {sourceType === 'text' && '텍스트 입력'}
+                        {sourceType === 'notion' && '노션/문서'}
+                        {sourceType === 'call' && '전화/통화'}
+                        {sourceType === 'email' && '이메일'}
+                      </Badge>
+                    </div>
+
+                    {/* 노션/문서일 때 URL 입력 */}
+                    {sourceType === 'notion' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="sourceUrl">문서 URL <span className="text-muted-foreground font-normal">(선택)</span></Label>
+                        <Input
+                          id="sourceUrl"
+                          placeholder="https://notion.so/... 또는 문서 링크"
+                          value={sourceUrl}
+                          onChange={(e) => setSourceUrl(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="content">내용</Label>
+                      <Textarea
+                        id="content"
+                        placeholder={
+                          sourceType === 'slack' ? '슬랙 대화를 복사해서 붙여넣기하세요...' :
+                          sourceType === 'notion' ? '노션/문서 내용을 붙여넣기하세요...' :
+                          sourceType === 'call' ? '통화 내용을 요약해서 입력하세요...' :
+                          sourceType === 'email' ? '이메일 내용을 붙여넣기하세요...' :
+                          '회의 내용, 슬랙 대화, 노션 회의록 등을 붙여넣기하세요...'
+                        }
+                        value={meetingContent}
+                        onChange={(e) => setMeetingContent(e.target.value)}
+                        rows={8}
+                      />
+                    </div>
+
+                    {error && (
+                      <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                        {error}
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 pt-4">
+                      <Button variant="outline" className="flex-1" onClick={() => setShowNewSheet(false)}>
+                        취소
+                      </Button>
+                      <Button
+                        className="flex-1 bg-gradient-to-r from-primary to-orange-600 hover:opacity-90 text-white"
+                        onClick={startFullPipeline}
+                        disabled={!meetingContent.trim()}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        AI 분석 시작
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {/* ===== Step: Recording ===== */}
+            {step === 'recording' && (
+              <AudioRecorder
+                onRecordingComplete={(file) => {
+                  setAudioFile(file)
+                  runSTTAndAnalyze(file)
+                }}
+                onCancel={() => setStep('idle')}
               />
-            </div>
+            )}
 
-            {/* 버튼 */}
-            <div className="flex gap-3 pt-4">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowNewMeetingSheet(false)}
-              >
-                취소
-              </Button>
-              <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600">
-                <Sparkles className="h-4 w-4 mr-2" />
-                AI 분석 시작
-              </Button>
-            </div>
+            {/* ===== Step: Processing ===== */}
+            {(step === 'uploading' || step === 'transcribing' || step === 'analyzing' || step === 'creating_tickets') && (
+              <div className="py-8 space-y-6">
+                <div className="text-center space-y-3">
+                  <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto" />
+                  <p className="font-medium">{stepMessage}</p>
+                </div>
+                <div className="space-y-3 max-w-sm mx-auto">
+                  <ProgressStep
+                    label="음성 → 텍스트 + 화자 분리 (다국어 자동 감지)"
+                    status={step === 'uploading' || step === 'transcribing' ? 'active' : step === 'analyzing' || step === 'creating_tickets' ? 'done' : 'pending'}
+                  />
+                  <ProgressStep
+                    label="5종 맥락 추출 + 화자 구분"
+                    status={step === 'analyzing' ? 'active' : step === 'creating_tickets' ? 'done' : 'pending'}
+                  />
+                  <ProgressStep
+                    label="티켓 자동 생성 + 충돌 감지"
+                    status={step === 'creating_tickets' ? 'active' : 'pending'}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* ===== Step: Done ===== */}
+            {step === 'done' && analysisResult && (
+              <div className="space-y-6">
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+                  <h3 className="font-medium">분석 완료</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{analysisResult.summary}</p>
+                </div>
+
+                {/* 추출 요약 카드 */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 text-center">
+                    <p className="text-2xl font-semibold text-primary">{analysisResult.auto_created.decisions.length}</p>
+                    <p className="text-xs text-muted-foreground mt-1">결정</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-center">
+                    <p className="text-2xl font-semibold text-emerald-600">{analysisResult.auto_created.tasks.length}</p>
+                    <p className="text-xs text-muted-foreground mt-1">할 일</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 text-center">
+                    <p className="text-2xl font-semibold text-amber-600">{analysisResult.analysis.rejected_alternatives?.length || 0}</p>
+                    <p className="text-xs text-muted-foreground mt-1">기각</p>
+                  </div>
+                </div>
+
+                {/* 추출된 결정 미리보기 */}
+                <div>
+                  <h4 className="font-medium mb-2 text-sm">추출된 결정</h4>
+                  <div className="space-y-2">
+                    {analysisResult.auto_created.decisions.map((dec) => (
+                      <div key={dec.id} className="p-3 rounded-xl border bg-card">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Badge className="bg-primary/10 text-primary text-xs shrink-0">{dec.code}</Badge>
+                            <span className="text-sm truncate">{dec.title}</span>
+                          </div>
+                          <Badge className="bg-emerald-500/10 text-emerald-600 text-xs shrink-0">
+                            {dec.status === 'confirmed' ? 'Done' : 'Pending'}
+                          </Badge>
+                        </div>
+                        {dec.reason && (
+                          <p className="text-xs text-muted-foreground mt-2 pl-1">
+                            왜? {dec.reason}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 추출된 할 일 */}
+                {analysisResult.auto_created.tasks.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2 text-sm">할 일</h4>
+                    <div className="space-y-1.5">
+                      {analysisResult.auto_created.tasks.map((task) => (
+                        <div key={task.id} className="flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-card text-sm">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                            <span>{task.title}</span>
+                          </div>
+                          {task.assignee && (
+                            <Badge variant="outline" className="text-xs shrink-0">{task.assignee}</Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 충돌 경고 */}
+                {analysisResult.conflicts.length > 0 && (
+                  <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <h4 className="font-medium text-destructive flex items-center gap-2 text-sm mb-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      {analysisResult.conflicts.length}건의 충돌이 감지되었습니다
+                    </h4>
+                  </div>
+                )}
+
+                {/* 키워드 */}
+                {analysisResult.analysis.keywords?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {analysisResult.analysis.keywords.map((kw, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">{kw}</Badge>
+                    ))}
+                  </div>
+                )}
+
+                {/* 저장 버튼 */}
+                <Button
+                  className="w-full bg-gradient-to-r from-primary to-orange-600 hover:opacity-90 text-white"
+                  onClick={saveMeetingToList}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  회의록 저장
+                </Button>
+              </div>
+            )}
+
+            {/* ===== Step: Error ===== */}
+            {step === 'error' && (
+              <div className="py-8 space-y-4 text-center">
+                <AlertTriangle className="h-10 w-10 text-destructive mx-auto" />
+                <p className="font-medium text-destructive">{error || '분석 중 오류 발생'}</p>
+                <Button variant="outline" onClick={() => setStep('idle')}>
+                  다시 시도
+                </Button>
+              </div>
+            )}
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Empty State */}
-      {isEmpty && (
-        <div className="empty-state rounded-2xl bg-secondary/30">
-          <Calendar className="empty-state-icon" />
-          <h3 className="text-lg font-medium mb-2">아직 맥락이 없습니다</h3>
-          <p className="text-muted-foreground max-w-sm">
-            미팅, 슬랙, 문서를 추가하면 AI가 결정 사항과 액션 아이템을 자동으로 추출합니다.
-          </p>
-          <Button
-            className="mt-6 bg-primary hover:bg-primary/90"
-            onClick={() => setShowNewMeetingSheet(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            첫 번째 맥락 추가
-          </Button>
+      {/* ========== Live Meeting Overlay ========== */}
+      {step === 'live_meeting' && (
+        <LiveMeeting
+          onComplete={handleLiveMeetingComplete}
+          onCancel={handleLiveMeetingCancel}
+        />
+      )}
+
+      {/* ========== Search + Meeting List ========== */}
+      {store.meetings.length > 0 && (
+        <div className="flex items-center gap-3">
+          <Input
+            placeholder="회의 검색 (제목, 키워드, 요약)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+          {searchQuery && (
+            <Button variant="ghost" size="sm" onClick={() => setSearchQuery("")}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       )}
 
-      {/* Meeting List */}
-      {!isEmpty && (
-        <div className="space-y-4">
-          {mockMeetings.map((meeting) => {
+      {(() => {
+        const filtered = searchQuery
+          ? store.meetings.filter(m =>
+              m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              m.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              m.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()))
+            )
+          : store.meetings
+        return filtered
+      })().length === 0 && !searchQuery ? (
+        <div className="text-center py-16 space-y-4">
+          <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto">
+            <Mic className="h-8 w-8 text-primary/40" />
+          </div>
+          <div>
+            <h3 className="text-lg font-medium mb-1">아직 소스가 없습니다</h3>
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+              회의를 녹음하거나 파일을 올려보세요.{'\n'}
+              AI가 결정사항, 근거, 할 일을 자동으로 추출합니다.
+            </p>
+          </div>
+          <Button
+            className="mt-2 bg-primary hover:bg-primary/90"
+            onClick={() => { resetForm(); setShowNewSheet(true) }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            첫 번째 소스 추가
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {(() => {
+            const filtered = searchQuery
+              ? store.meetings.filter(m =>
+                  m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  m.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  m.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()))
+                )
+              : store.meetings
+            return filtered
+          })().map((meeting) => {
             const isExpanded = expandedMeeting === meeting.id
+            const meetingDecisions = store.decisions.filter(d => d.meetingId === meeting.id)
+            const meetingTasks = store.tasks.filter(t => t.meetingId === meeting.id)
+            const meetingRejected = store.rejected.filter(r => r.meetingId === meeting.id)
+            const duration = formatDuration(meeting.duration_seconds)
 
             return (
               <div
                 key={meeting.id}
-                className={`card-soft overflow-hidden transition-all duration-200 ${
-                  isExpanded ? "ring-1 ring-primary/30" : ""
+                className={`rounded-xl border bg-card overflow-hidden transition-all duration-200 ${
+                  isExpanded ? "ring-1 ring-primary/30 shadow-sm" : "hover:border-primary/20"
                 }`}
               >
-                {/* Header */}
+                {/* Card Header */}
                 <div
                   className="p-5 cursor-pointer group"
-                  onClick={() => setExpandedMeeting(isExpanded ? null : meeting.id)}
+                  onClick={() => { setExpandedMeeting(isExpanded ? null : meeting.id); setActiveTab('summary') }}
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                      {/* Expand icon */}
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className="p-1 mt-0.5">
                         {isExpanded ? (
                           <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -365,114 +1020,298 @@ export default function MeetingsPage() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        {/* Meta */}
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-xs font-mono text-primary font-medium">
                             {meeting.code}
                           </span>
+                          <Badge variant="outline" className="text-xs flex items-center gap-1">
+                            {(() => { const Icon = sourceIcon(meeting); return <Icon className="h-3 w-3" /> })()}
+                            {sourceLabel(meeting)}
+                          </Badge>
+                          {meeting.language && meeting.language !== 'ko' && (
+                            <Badge variant="outline" className="text-xs">
+                              {meeting.language.toUpperCase()}
+                            </Badge>
+                          )}
                         </div>
 
-                        {/* Title */}
                         <h3 className="font-medium text-base group-hover:text-primary transition-colors">
                           {meeting.title}
                         </h3>
 
-                        {/* Info */}
                         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5" />
                             {meeting.date}
                           </span>
-                          <span className="flex items-center gap-1.5">
-                            <Users className="h-3.5 w-3.5" />
-                            {meeting.attendees.length}명 참석
+                          {duration && (
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="h-3.5 w-3.5" />
+                              {duration}
+                            </span>
+                          )}
+                          {(() => {
+                            const speakerCount = new Set(meeting.transcriptSegments.map(s => s.speaker).filter(Boolean)).size
+                            return speakerCount > 0 ? (
+                              <span className="flex items-center gap-1.5">
+                                <Mic className="h-3.5 w-3.5" />
+                                {speakerCount}명
+                              </span>
+                            ) : null
+                          })()}
+                        </div>
+
+                        <div className="flex items-center gap-3 mt-2.5">
+                          <span className="text-xs text-muted-foreground">
+                            결정 {meetingDecisions.length}건
                           </span>
+                          {meetingRejected.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              · 기각 {meetingRejected.length}건
+                            </span>
+                          )}
+                          {meetingTasks.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              · 할 일 {meetingTasks.length}건
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    {/* AI Badge */}
-                    {meeting.ai_summary && (
-                      <Badge className="bg-accent/10 text-accent border-0 gap-1.5 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge className="bg-accent/10 text-accent border-0 gap-1.5">
                         <Sparkles className="h-3 w-3" />
-                        AI 요약
+                        5종 추출
                       </Badge>
-                    )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (confirm('이 회의록을 삭제하시겠습니까? 관련 결정, 할 일도 함께 삭제됩니다.')) {
+                            store.removeMeeting(meeting.id)
+                          }
+                        }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="border-t border-border/50 p-5 bg-secondary/20">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {/* Original Content */}
-                      <div>
-                        <h4 className="font-medium mb-3 flex items-center gap-2 text-sm">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          미팅 노트
-                        </h4>
-                        <div className="text-sm text-muted-foreground whitespace-pre-wrap bg-background/50 p-4 rounded-xl border border-border/50">
-                          {meeting.content}
-                        </div>
-                      </div>
+                  <div className="border-t border-border/50">
+                    {/* 탭 헤더 */}
+                    <div className="flex border-b border-border/50">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setActiveTab('summary') }}
+                        className={`px-5 py-3 text-sm font-medium transition-colors relative ${
+                          activeTab === 'summary'
+                            ? 'text-primary'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        요약 · 추출
+                        {activeTab === 'summary' && (
+                          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                        )}
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setActiveTab('transcript') }}
+                        className={`px-5 py-3 text-sm font-medium transition-colors relative ${
+                          activeTab === 'transcript'
+                            ? 'text-primary'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        스크립트 원본
+                        {activeTab === 'transcript' && (
+                          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                        )}
+                      </button>
+                    </div>
 
-                      {/* AI Summary */}
-                      {meeting.ai_summary && (
-                        <div className="space-y-5">
-                          {/* Decisions */}
+                    {/* 탭: 요약 · 추출 */}
+                    {activeTab === 'summary' && (
+                      <div className="p-5 bg-secondary/20 space-y-6">
+                        {/* 요약 */}
+                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                          <p className="text-sm">{meeting.summary}</p>
+                        </div>
+
+                        {/* 결정 + 근거 */}
+                        {meetingDecisions.length > 0 && (
                           <div>
                             <h4 className="font-medium mb-3 flex items-center gap-2 text-sm">
-                              <Sparkles className="h-4 w-4 text-accent" />
-                              추출된 결정 사항
+                              <Sparkles className="h-4 w-4 text-primary" />
+                              결정 ({meetingDecisions.length}건)
                             </h4>
-                            <ul className="space-y-2">
-                              {meeting.ai_summary.decisions.map((decision, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm">
-                                  <div className="h-1.5 w-1.5 rounded-full bg-accent mt-2 shrink-0" />
-                                  {decision}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          {/* Action Items */}
-                          <div>
-                            <h4 className="font-medium mb-3 text-sm">액션 아이템</h4>
-                            <ul className="space-y-2">
-                              {meeting.ai_summary.todos.map((todo, i) => (
-                                <li key={i} className="flex items-center justify-between gap-3 text-sm p-2 rounded-lg bg-background/50">
-                                  <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                                    <span>{todo.task}</span>
+                            <div className="space-y-3">
+                              {meetingDecisions.map((dec) => (
+                                  <div key={dec.id} className="p-4 rounded-xl border border-border/50 bg-card">
+                                    <div className="flex items-start justify-between gap-3 mb-2">
+                                      <h5 className="font-medium text-sm">{dec.title}</h5>
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        <Badge className={`text-xs ${
+                                          dec.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-600' :
+                                          dec.status === 'pending' ? 'bg-amber-500/10 text-amber-600' :
+                                          dec.status === 'changed' ? 'bg-blue-500/10 text-blue-600' :
+                                          'bg-destructive/10 text-destructive'
+                                        }`}>
+                                          {dec.code}
+                                        </Badge>
+                                        {dec.area && (
+                                          <Badge variant="outline" className="text-xs">{dec.area}</Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="mt-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-500/5 border border-amber-200/50 dark:border-amber-500/10">
+                                      <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-1">
+                                        왜? (자동 추출)
+                                      </p>
+                                      <p className="text-sm text-amber-900 dark:text-amber-300/90">
+                                        {dec.rationale}
+                                      </p>
+                                    </div>
+                                    {dec.proposedBy && (
+                                      <p className="text-xs text-muted-foreground mt-2">제안: {dec.proposedBy}</p>
+                                    )}
                                   </div>
-                                  <Badge variant="outline" className="shrink-0 text-xs">
-                                    {todo.assignee}
-                                  </Badge>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          {/* Keywords */}
-                          <div>
-                            <h4 className="font-medium mb-3 text-sm">키워드</h4>
-                            <div className="flex flex-wrap gap-1.5">
-                              {meeting.ai_summary.keywords.map((keyword, i) => (
-                                <Badge key={i} variant="secondary" className="text-xs bg-secondary/80">
-                                  {keyword}
-                                </Badge>
                               ))}
                             </div>
                           </div>
+                        )}
 
-                          {/* Action Button */}
-                          <Button variant="outline" className="w-full mt-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10">
-                            <Plus className="h-4 w-4 mr-2" />
-                            요약에서 결정 만들기
-                          </Button>
+                        {/* 기각된 대안 */}
+                        {meetingRejected.length > 0 && (
+                          <div>
+                            <h4 className="font-medium mb-3 flex items-center gap-2 text-sm">
+                              <Ban className="h-4 w-4 text-muted-foreground" />
+                              기각된 대안 ({meetingRejected.length}건)
+                            </h4>
+                            <div className="space-y-2">
+                              {meetingRejected.map((rej) => (
+                                <div key={rej.id} className="p-3 rounded-xl border border-border/50 bg-card/50">
+                                  <p className="text-sm font-medium line-through text-muted-foreground">{rej.title}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">사유: {rej.reason}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 할 일 */}
+                        {meetingTasks.length > 0 && (
+                          <div>
+                            <h4 className="font-medium mb-3 flex items-center gap-2 text-sm">
+                              <ListChecks className="h-4 w-4 text-emerald-500" />
+                              할 일 ({meetingTasks.length}건)
+                            </h4>
+                            <div className="space-y-2">
+                              {meetingTasks.map((task) => (
+                                <div key={task.id} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border/50 bg-card">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); store.editTask(task.id, { done: !task.done }) }}
+                                      className="shrink-0"
+                                    >
+                                      <CheckCircle2 className={`h-4 w-4 ${task.done ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+                                    </button>
+                                    <span className={`text-sm ${task.done ? 'line-through text-muted-foreground' : ''}`}>{task.title}</span>
+                                  </div>
+                                  <Badge variant="outline" className="shrink-0 text-xs">
+                                    {task.assignee || '미지정'}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 키워드 */}
+                        {meeting.keywords?.length > 0 && (
+                          <div>
+                            <h4 className="font-medium mb-3 text-sm">키워드</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {meeting.keywords.map((kw, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">{kw}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 탭: 스크립트 원본 */}
+                    {activeTab === 'transcript' && (
+                      <div className="p-5 bg-secondary/20 space-y-4">
+                        {/* 메타 정보 */}
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          {meeting.language && (
+                            <span>감지 언어: {meeting.language.toUpperCase()}</span>
+                          )}
+                          {meeting.duration_seconds > 0 && (
+                            <span>길이: {formatDuration(meeting.duration_seconds)}</span>
+                          )}
                         </div>
-                      )}
-                    </div>
+
+                        {/* 세그먼트가 있으면 타임스탬프와 함께 표시 */}
+                        {meeting.transcriptSegments.length > 0 ? (
+                          <div className="space-y-1">
+                            {meeting.transcriptSegments.map((seg, i) => {
+                              const prevSpeaker = i > 0 ? meeting.transcriptSegments[i - 1].speaker : null
+                              const showSpeaker = seg.speaker && seg.speaker !== prevSpeaker
+
+                              // 화자별 색상
+                              const speakerColors: Record<string, string> = {
+                                'Speaker A': 'text-blue-600 dark:text-blue-400',
+                                'Speaker B': 'text-emerald-600 dark:text-emerald-400',
+                                'Speaker C': 'text-purple-600 dark:text-purple-400',
+                                'Speaker D': 'text-amber-600 dark:text-amber-400',
+                                'Speaker E': 'text-pink-600 dark:text-pink-400',
+                              }
+                              const speakerColor = seg.speaker ? (speakerColors[seg.speaker] || 'text-primary') : ''
+
+                              return (
+                                <div key={i}>
+                                  {showSpeaker && (
+                                    <div className={`text-xs font-medium mt-3 mb-1 pl-16 ${speakerColor}`}>
+                                      {seg.speaker}
+                                    </div>
+                                  )}
+                                  <div className="flex gap-3 p-2.5 rounded-lg hover:bg-secondary/50 transition-colors">
+                                    <span className="text-xs font-mono text-muted-foreground shrink-0 pt-0.5 w-12 text-right tabular-nums">
+                                      {formatTimestamp(seg.start)}
+                                    </span>
+                                    <p className="text-sm leading-relaxed flex-1">
+                                      {seg.text}
+                                    </p>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          /* 세그먼트 없으면 전체 텍스트 표시 */
+                          <div className="p-4 rounded-xl border bg-card">
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                              {meeting.transcriptText}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* 범례 */}
+                        <div className="flex items-center gap-4 pt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Sparkles className="h-3 w-3 text-primary" />
+                            AI가 추출한 구간
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -480,6 +1319,37 @@ export default function MeetingsPage() {
           })}
         </div>
       )}
+    </div>
+  )
+}
+
+// ============================================================
+// Sub-components
+// ============================================================
+
+function ProgressStep({ label, status }: { label: string; status: 'pending' | 'active' | 'done' }) {
+  return (
+    <div className="flex items-center gap-3">
+      {status === 'done' && (
+        <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center">
+          <Check className="h-3.5 w-3.5 text-white" />
+        </div>
+      )}
+      {status === 'active' && (
+        <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center">
+          <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
+        </div>
+      )}
+      {status === 'pending' && (
+        <div className="h-6 w-6 rounded-full border-2 border-border" />
+      )}
+      <span className={`text-sm ${
+        status === 'done' ? 'text-emerald-600 font-medium' :
+        status === 'active' ? 'text-foreground font-medium' :
+        'text-muted-foreground'
+      }`}>
+        {label}
+      </span>
     </div>
   )
 }

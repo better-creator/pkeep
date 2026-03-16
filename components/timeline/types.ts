@@ -65,9 +65,17 @@ export type TimelineItem = {
   title: string
   date: string
   description?: string
-  status?: 'confirmed' | 'changed' | 'pending' | 'superseded' | 'deprecated' | 'disabled' | 'draft'
+  status?: 'confirmed' | 'changed' | 'pending' | 'superseded' | 'deprecated' | 'disabled' | 'draft' | 'hold'
   event_type?: 'pr' | 'commit' | 'issue'
   url?: string
+
+  // 영역 (기획/디자인/개발)
+  area?: string
+  // 충돌/블로커 플래그
+  hasConflict?: boolean
+  hasBlocker?: boolean
+  // 소스 타입 (meeting, slack, notion 등)
+  sourceType?: string
 
   // 작업자 정보
   owner?: Person
@@ -168,6 +176,7 @@ export const statusConfig: Record<string, { bg: string; text: string; label: str
   deprecated: { bg: 'bg-red-500/20', text: 'text-red-400', label: '폐기', color: '#ef4444' },
   disabled: { bg: 'bg-slate-500/20', text: 'text-slate-400', label: '비활성', color: '#94a3b8' },
   draft: { bg: 'bg-gray-500/20', text: 'text-gray-400', label: '초안', color: '#6b7280' },
+  hold: { bg: 'bg-gray-400/20', text: 'text-gray-400', label: '보류중', color: '#9ca3af' },
 }
 
 // 관계별 한국어 텍스트
