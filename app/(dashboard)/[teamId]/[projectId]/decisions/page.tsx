@@ -12,7 +12,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { CircleDot, FileText, List, Network } from 'lucide-react'
-import { FlowListView, FlowMapView } from '@/components/timeline/FlowView'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { FlowMapView } from '@/components/timeline/FlowView'
 import type { TimelineItem as TLItem } from '@/components/timeline/types'
 
 // ---------------------------------------------------------------------------
@@ -155,6 +157,10 @@ function ListView({
   setAreaFilter: (v: string) => void
   onStatusChange: (id: string, status: string) => void
 }) {
+  const params = useParams()
+  const teamId = params.teamId as string
+  const projectId = params.projectId as string
+
   return (
     <>
       {/* Filter Bar */}
@@ -258,10 +264,13 @@ function ListView({
                     </div>
                   )}
                   <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
+                    <Link
+                      href={`/${teamId}/${projectId}/meetings`}
+                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
                       <FileText className="h-3 w-3" />
-                      {getMeetingCode(decision.meetingId)}에서 추출
-                    </span>
+                      {getMeetingCode(decision.meetingId)}에서 추출 →
+                    </Link>
                     {decision.proposedBy && (
                       <span>제안: {decision.proposedBy}</span>
                     )}
@@ -449,13 +458,6 @@ function buildTimelineItems(meetings: Meeting[], decisions: Decision[]): TLItem[
   return items
 }
 
-/** List View Wrapper — 미팅별 그룹 리스트 */
-function ListViewWrapper({ decisions, meetings }: { decisions: Decision[]; meetings: Meeting[] }) {
-  const timelineItems = useMemo(() => buildTimelineItems(meetings, decisions), [meetings, decisions])
-  if (decisions.length === 0) return <div className="flex-1 overflow-auto p-6"><EmptyState /></div>
-  return <div className="flex-1 overflow-hidden"><FlowListView items={timelineItems} /></div>
-}
-
 /** Map View Wrapper — ReactFlow 노드 맵 */
 function MapViewWrapper({ decisions, meetings }: { decisions: Decision[]; meetings: Meeting[] }) {
   const timelineItems = useMemo(() => buildTimelineItems(meetings, decisions), [meetings, decisions])
@@ -484,6 +486,9 @@ function EmptyState() {
 // ---------------------------------------------------------------------------
 
 export default function DecisionsPage() {
+  const params = useParams()
+  const teamId = params.teamId as string
+  const projectId = params.projectId as string
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [statusFilter, setStatusFilter] = useState('all')
@@ -572,7 +577,15 @@ export default function DecisionsPage() {
 
       {/* View content */}
       {viewMode === 'list' ? (
-        <ListViewWrapper decisions={decisions} meetings={meetings} />
+        <ListView
+          decisions={decisions}
+          filtered={filtered}
+          statusFilter={statusFilter}
+          areaFilter={areaFilter}
+          setStatusFilter={setStatusFilter}
+          setAreaFilter={setAreaFilter}
+          onStatusChange={handleStatusChange}
+        />
       ) : (
         <MapViewWrapper decisions={decisions} meetings={meetings} />
       )}

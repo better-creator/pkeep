@@ -3,57 +3,25 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import {
-  GitBranch,
-  AlertTriangle,
-  ListChecks,
-  Mic,
-  ArrowRight,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  CircleDot,
-  MessageSquare,
-  BookOpen,
-  Figma,
-  FolderOpen,
-  Phone,
-  Mail,
-  ChevronRight,
-  Circle,
-  CheckCircle2,
+  GitBranch, AlertTriangle, ListChecks, Mic, CheckCircle2,
+  Clock, AlertCircle, CircleDot, MessageSquare, BookOpen, Phone, Mail,
+  ChevronRight, Circle, ArrowRight, FileText, Sparkles,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import type { StoredMeeting, StoredDecision, StoredTask, StoredRejected } from '@/lib/store/types'
-import { detectConflicts, getSeverityConfig, getConflictTypeLabel, type Conflict } from '@/lib/conflicts'
+import { detectConflicts, type Conflict } from '@/lib/conflicts'
 
 // ─── Config ───
-const statusConfig: Record<string, { icon: typeof CheckCircle; color: string; bg: string; label: string }> = {
-  confirmed: { icon: CheckCircle, color: 'text-emerald-500', bg: 'status-confirmed', label: '확정' },
-  changed: { icon: AlertCircle, color: 'text-blue-500', bg: 'status-changed', label: '변경' },
-  pending: { icon: Clock, color: 'text-amber-500', bg: 'status-pending', label: '보류' },
-  hold: { icon: AlertTriangle, color: 'text-amber-500', bg: 'status-pending', label: '보류' },
-}
 const areaLabel: Record<string, string> = { planning: '기획', design: '디자인', dev: '개발' }
-const areaColor: Record<string, string> = {
-  planning: 'bg-violet-100 text-violet-700',
-  design: 'bg-pink-100 text-pink-700',
-  dev: 'bg-sky-100 text-sky-700',
+const areaColor: Record<string, string> = { planning: 'text-violet-600', design: 'text-pink-600', dev: 'text-sky-600' }
+const areaDot: Record<string, string> = { planning: 'bg-violet-500', design: 'bg-pink-500', dev: 'bg-sky-500' }
+const statusLabel: Record<string, string> = { confirmed: '확정', changed: '변경', pending: '보류', hold: '보류', rejected: '기각' }
+const statusColor: Record<string, string> = { confirmed: 'text-emerald-600', changed: 'text-amber-600', pending: 'text-zinc-500', hold: 'text-zinc-500' }
+
+const sourceIcon: Record<string, typeof Mic> = {
+  meeting: Mic, slack: MessageSquare, notion: BookOpen, call: Phone, email: Mail, document: FileText, text: FileText,
 }
-const sourceTypeCfg: Record<string, { icon: typeof Mic; label: string; bg: string; text: string }> = {
-  meeting: { icon: Mic, label: '회의', bg: 'bg-red-50', text: 'text-red-600' },
-  slack: { icon: MessageSquare, label: 'Slack', bg: 'bg-purple-50', text: 'text-purple-600' },
-  notion: { icon: BookOpen, label: 'Notion', bg: 'bg-stone-100', text: 'text-stone-600' },
-  call: { icon: Phone, label: '통화', bg: 'bg-green-50', text: 'text-green-600' },
-  email: { icon: Mail, label: '이메일', bg: 'bg-rose-50', text: 'text-rose-600' },
-}
-const integrations = [
-  { name: 'Notion', icon: BookOpen, connected: true, color: 'text-stone-700', bg: 'bg-stone-100' },
-  { name: 'Slack', icon: MessageSquare, connected: true, color: 'text-purple-600', bg: 'bg-purple-100' },
-  { name: 'Figma', icon: Figma, connected: true, color: 'text-pink-600', bg: 'bg-pink-100' },
-  { name: 'Drive', icon: FolderOpen, connected: false, color: 'text-blue-600', bg: 'bg-blue-100' },
-]
 
 export default function DashboardPage() {
   const params = useParams()
@@ -66,351 +34,291 @@ export default function DashboardPage() {
   const [conflicts, setConflicts] = useState<Conflict[]>([])
 
   useEffect(() => {
-    const m = JSON.parse(localStorage.getItem('pkeep-meetings') || '[]')
+    const m: StoredMeeting[] = JSON.parse(localStorage.getItem('pkeep-meetings') || '[]')
     const d: StoredDecision[] = JSON.parse(localStorage.getItem('pkeep-decisions') || '[]')
-    const t = JSON.parse(localStorage.getItem('pkeep-tasks') || '[]')
+    const t: StoredTask[] = JSON.parse(localStorage.getItem('pkeep-tasks') || '[]')
     const r: StoredRejected[] = JSON.parse(localStorage.getItem('pkeep-rejected') || '[]')
-    setMeetings(m)
-    setDecisions(d)
-    setTasks(t)
+    setMeetings(m); setDecisions(d); setTasks(t)
 
     const detected = detectConflicts(d, r)
-    // Merge saved resolution state
     const saved: Conflict[] | null = JSON.parse(localStorage.getItem('pkeep-conflicts') || 'null')
     if (saved) {
       for (const det of detected) {
-        const s = saved.find(
-          sv => sv.newDecision.id === det.newDecision.id && sv.existingDecision.id === det.existingDecision.id && sv.type === det.type
-        )
+        const s = saved.find(sv => sv.newDecision.id === det.newDecision.id && sv.existingDecision.id === det.existingDecision.id && sv.type === det.type)
         if (s?.resolved) { det.resolved = true; det.resolution = s.resolution }
       }
     }
     setConflicts(detected)
   }, [])
 
-  const totalDecisions = decisions.length
-  const issueCount = decisions.filter(d => d.status === 'changed' || d.status === 'hold').length
   const tasksDone = tasks.filter(t => t.done).length
-  const tasksTotal = tasks.length
-  const pendingDecisions = decisions.filter(d => d.status === 'pending' || d.status === 'hold')
+  const unresolvedConflicts = conflicts.filter(c => !c.resolved)
+  const getMeeting = (id: string) => meetings.find(m => m.id === id)
 
-  const areaCounts = decisions.reduce<Record<string, number>>((acc, d) => {
-    const area = d.area || 'planning'
-    acc[area] = (acc[area] || 0) + 1
-    return acc
-  }, {})
+  // ─── 주의 필요 아이템 ───
+  type AttentionItem = { type: string; label: string; title: string; color: string; link: string; priority: number }
+  const attentionItems: AttentionItem[] = []
 
-  // Build unified activity feed: decisions + tasks sorted by date
-  const activityFeed = [
-    ...decisions.map(d => ({
-      type: 'decision' as const,
-      id: d.id,
-      code: d.code,
-      title: d.title,
-      status: d.status,
-      area: d.area,
-      meetingId: d.meetingId,
-      proposedBy: d.proposedBy,
-      date: d.createdAt,
-    })),
-    ...tasks.map(t => ({
-      type: 'task' as const,
-      id: t.id,
-      code: '',
+  // 충돌
+  unresolvedConflicts.forEach(c => {
+    attentionItems.push({
+      type: 'conflict', label: '충돌', priority: 1, color: 'text-red-600',
+      title: `${c.newDecision.code} vs ${c.existingDecision.code}`,
+      link: `/${teamId}/${projectId}/conflicts`,
+    })
+  })
+  // 변경된 결정
+  decisions.filter(d => d.status === 'changed').forEach(d => {
+    attentionItems.push({
+      type: 'changed', label: '변경', priority: 2, color: 'text-amber-600',
+      title: `${d.code} ${d.title}`,
+      link: `/${teamId}/${projectId}/decisions`,
+    })
+  })
+  // 미팅 이슈
+  meetings.forEach(m => {
+    (m.issues || []).forEach(issue => {
+      attentionItems.push({
+        type: 'issue', label: '이슈', priority: 3, color: 'text-orange-600',
+        title: issue.title,
+        link: `/${teamId}/${projectId}/meetings`,
+      })
+    })
+  })
+  // 미완료 태스크 (오래된 순)
+  tasks.filter(t => !t.done).slice(0, 5).forEach(t => {
+    attentionItems.push({
+      type: 'task', label: '할일', priority: 4, color: 'text-blue-600',
       title: t.title,
-      status: t.done ? 'done' : 'todo',
-      area: '' as string | undefined,
-      meetingId: t.meetingId,
-      proposedBy: t.assignee,
-      date: t.createdAt,
-    })),
-  ]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 8)
+      link: `/${teamId}/${projectId}/tasks`,
+    })
+  })
+  // 보류 결정
+  decisions.filter(d => d.status === 'pending' || d.status === 'hold').forEach(d => {
+    attentionItems.push({
+      type: 'pending', label: '보류', priority: 5, color: 'text-zinc-500',
+      title: `${d.code} ${d.title}`,
+      link: `/${teamId}/${projectId}/decisions`,
+    })
+  })
 
-  const getMeeting = (meetingId: string) => meetings.find(m => m.id === meetingId)
-  const getDecisionForTask = (task: StoredTask) => {
-    // Find decisions from same meeting
-    return decisions.find(d => d.meetingId === task.meetingId)
-  }
+  attentionItems.sort((a, b) => a.priority - b.priority)
 
   return (
-    <div className="space-y-6">
-      {/* Header + Integration strip */}
-      <div className="flex items-end justify-between">
+    <div className="space-y-8 max-w-5xl">
+      {/* ─── 헤더 + 요약 스트립 ─── */}
+      <div>
+        <h1 className="text-2xl font-bold">대시보드</h1>
+        <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Mic className="h-4 w-4" />
+            미팅 <strong className="text-foreground">{meetings.length}</strong>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <GitBranch className="h-4 w-4" />
+            결정 <strong className="text-foreground">{decisions.length}</strong>
+            <span className="text-xs">({decisions.filter(d => d.status === 'confirmed').length} 확정)</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <ListChecks className="h-4 w-4" />
+            할 일 <strong className="text-foreground">{tasksDone}/{tasks.length}</strong>
+          </span>
+          {unresolvedConflicts.length > 0 && (
+            <span className="flex items-center gap-1.5 text-red-600">
+              <AlertTriangle className="h-4 w-4" />
+              이슈 <strong>{unresolvedConflicts.length}</strong>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ─── 주의 필요 ─── */}
+      {attentionItems.length > 0 && (
         <div>
-          <h1 className="text-2xl font-bold text-stone-800">대시보드</h1>
-          <p className="text-sm text-stone-500 mt-1">프로젝트 현황을 한눈에 확인하세요</p>
-        </div>
-        {/* Compact integration pills */}
-        <div className="flex items-center gap-1.5">
-          {integrations.map(tool => (
-            <div
-              key={tool.name}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${
-                tool.connected
-                  ? 'bg-white border border-stone-200 text-stone-600'
-                  : 'bg-stone-50 border border-dashed border-stone-200 text-stone-400'
-              }`}
-            >
-              <tool.icon className={`h-3 w-3 ${tool.connected ? tool.color : 'text-stone-400'}`} />
-              {tool.name}
-              {tool.connected && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: '결정', value: totalDecisions, icon: GitBranch, color: 'text-emerald-500', bg: 'bg-emerald-50', sub: `확정 ${decisions.filter(d => d.status === 'confirmed').length}건` },
-          { label: '이슈', value: issueCount, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-50', sub: issueCount > 0 ? '확인 필요' : '없음' },
-          { label: '할 일', value: `${tasksDone}/${tasksTotal}`, icon: ListChecks, color: 'text-blue-500', bg: 'bg-blue-50', sub: tasksTotal > 0 ? `${Math.round(tasksDone / tasksTotal * 100)}%` : '-' },
-          { label: '소스', value: meetings.length, icon: Mic, color: 'text-purple-500', bg: 'bg-purple-50', sub: `${meetings.filter(m => m.sourceType === 'meeting').length} 회의` },
-        ].map(kpi => (
-          <div key={kpi.label} className="card-soft p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-stone-400">{kpi.label}</p>
-                <p className="text-2xl font-bold text-stone-800 mt-0.5">{kpi.value}</p>
-                <p className="text-[11px] text-stone-400">{kpi.sub}</p>
-              </div>
-              <div className={`p-2 rounded-xl ${kpi.bg}`}>
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Conflict Detection */}
-      {(() => {
-        const unresolvedConflicts = conflicts.filter(c => !c.resolved && c.type !== 'rejected_alternative')
-        if (unresolvedConflicts.length === 0) return null
-        return (
-          <div className="card-soft p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-red-100">
-                  <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
-                </div>
-                <h3 className="text-sm font-semibold text-stone-800">충돌 감지</h3>
-                <Badge variant="secondary" className="text-[10px] bg-red-100 text-red-700">
-                  {unresolvedConflicts.length}건
-                </Badge>
-              </div>
+          <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-orange-500" />
+            주의 필요
+          </h2>
+          <div className="space-y-1.5">
+            {attentionItems.slice(0, 8).map((item, i) => (
               <Link
-                href={`/${teamId}/${projectId}/conflicts`}
-                className="text-xs text-orange-600 font-medium hover:underline"
+                key={`${item.type}-${i}`}
+                href={item.link}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-border/40 bg-card hover:bg-muted/30 transition-colors"
               >
-                모두 보기 →
+                <span className={`text-xs font-semibold w-8 ${item.color}`}>{item.label}</span>
+                <span className="text-sm flex-1 truncate">{item.title}</span>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
               </Link>
-            </div>
-            <div className="space-y-1.5">
-              {unresolvedConflicts.slice(0, 4).map(conflict => {
-                const sev = getSeverityConfig(conflict.severity)
-                return (
-                  <div
-                    key={conflict.id}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-[3px] ${sev.border} ${sev.bg}`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${sev.dot}`} />
-                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                      <Badge variant="outline" className="text-[9px] font-mono px-1 py-0">
-                        {conflict.newDecision.code}
-                      </Badge>
-                      <span className="text-[10px] text-stone-400">vs</span>
-                      <Badge variant="outline" className="text-[9px] font-mono px-1 py-0">
-                        {conflict.existingDecision.code}
-                      </Badge>
-                      <span className="text-[10px] text-stone-500 truncate">
-                        {getConflictTypeLabel(conflict.type)}
-                      </span>
-                    </div>
-                    <Link
-                      href={`/${teamId}/${projectId}/conflicts`}
-                      className="text-[10px] text-orange-600 font-medium hover:underline flex-shrink-0"
-                    >
-                      해결하기 →
-                    </Link>
-                  </div>
-                )
-              })}
-            </div>
+            ))}
           </div>
-        )
-      })()}
-
-      {/* AI Warning */}
-      {pendingDecisions.length > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200/50">
-          <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-          <p className="text-sm text-amber-800 flex-1">
-            <span className="font-medium">{pendingDecisions.length}건</span> 보류 중 — {pendingDecisions.slice(0, 2).map(d => d.code).join(', ')}
-          </p>
-          <Link href={`/${teamId}/${projectId}/decisions`} className="text-xs text-amber-700 font-medium hover:underline flex-shrink-0">
-            확인 →
-          </Link>
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* Main: Activity Feed */}
-        <div className="col-span-2 glass-card">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-100/50">
-            <h2 className="font-semibold text-stone-800 text-sm">최근 활동</h2>
-            <div className="flex gap-2">
-              <Link href={`/${teamId}/${projectId}/decisions`} className="text-xs text-stone-400 hover:text-orange-600">결정</Link>
-              <Link href={`/${teamId}/${projectId}/tasks`} className="text-xs text-stone-400 hover:text-orange-600">할 일</Link>
+      {/* ─── 최근 미팅 ─── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold flex items-center gap-2">
+            <Mic className="h-4 w-4 text-blue-500" />
+            최근 미팅
+          </h2>
+          <Link href={`/${teamId}/${projectId}/meetings`} className="text-xs text-muted-foreground hover:text-foreground">
+            모두 보기 →
+          </Link>
+        </div>
+        <div className="space-y-3">
+          {meetings.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border/50 p-8 text-center text-muted-foreground text-sm">
+              <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-30" />
+              회의를 녹음하면 AI가 자동으로 결정과 할 일을 추출합니다.
             </div>
-          </div>
-          <div className="divide-y divide-stone-100/50">
-            {activityFeed.length === 0 ? (
-              <div className="px-5 py-10 text-center text-stone-400 text-sm">
-                회의를 녹음하면 AI가 자동으로 결정과 할 일을 추출합니다.
-              </div>
-            ) : (
-              activityFeed.map(item => {
-                const meeting = getMeeting(item.meetingId)
-                const meetingSt = (meeting as any)?.sourceType || 'meeting'
-                const srcCfg = sourceTypeCfg[meetingSt] || sourceTypeCfg.meeting
-                const SrcIcon = srcCfg.icon
+          ) : (
+            meetings.slice(0, 5).map(mtg => {
+              const SrcIcon = sourceIcon[(mtg as any).sourceType || 'meeting'] || Mic
+              const mtgDecs = decisions.filter(d => d.meetingId === mtg.id)
+              const mtgTasks = tasks.filter(t => t.meetingId === mtg.id)
+              const issueCount = (mtg.issues || []).length
 
-                if (item.type === 'decision') {
-                  const st = statusConfig[item.status as string] || statusConfig.pending
-                  const StIcon = st.icon
-                  return (
-                    <div key={item.id} className="px-5 py-3.5 hover:bg-stone-50/50 transition-colors">
-                      <div className="flex items-start gap-3">
-                        <StIcon className={`h-4 w-4 mt-0.5 ${st.color}`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <Badge variant="outline" className="text-[10px] font-mono rounded-md border-stone-200/60 px-1.5 py-0">{item.code}</Badge>
-                            <Badge className={`text-[10px] rounded-md px-1.5 py-0 ${areaColor[item.area || ''] || ''}`}>{areaLabel[item.area || ''] || item.area}</Badge>
-                            <Badge variant="secondary" className={`text-[10px] rounded-md px-1.5 py-0 ${st.bg}`}>{st.label}</Badge>
-                          </div>
-                          <p className="text-sm font-medium text-stone-800 mt-1 truncate">{item.title}</p>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className={`inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium ${srcCfg.bg} ${srcCfg.text}`}>
-                              <SrcIcon className="h-2 w-2" />
-                              {meeting?.code}
-                            </span>
-                            <span className="text-[11px] text-stone-400">{item.proposedBy}</span>
-                          </div>
-                        </div>
-                      </div>
+              return (
+                <Link
+                  key={mtg.id}
+                  href={`/${teamId}/${projectId}/meetings`}
+                  className="block rounded-xl border border-border/40 bg-card p-4 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                      <SrcIcon className="h-4 w-4 text-blue-500" />
                     </div>
-                  )
-                } else {
-                  // Task item — show parent decision chain
-                  const parentDec = decisions.find(d => d.meetingId === item.meetingId)
-                  const isDone = item.status === 'done'
-                  return (
-                    <div key={item.id} className={`px-5 py-3.5 hover:bg-stone-50/50 transition-colors ${isDone ? 'opacity-60' : ''}`}>
-                      <div className="flex items-start gap-3">
-                        {isDone ? (
-                          <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-500" />
-                        ) : (
-                          <Circle className="h-4 w-4 mt-0.5 text-stone-300" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-mono font-bold text-blue-600">{mtg.code}</span>
+                        <span className="text-sm font-semibold truncate">{mtg.title}</span>
+                        <span className="text-xs text-muted-foreground ml-auto shrink-0">{mtg.date}</span>
+                      </div>
+                      {mtg.summary && (
+                        <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{mtg.summary}</p>
+                      )}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        {mtgDecs.length > 0 && (
+                          <span className="flex items-center gap-1">
+                            <GitBranch className="h-3 w-3" />
+                            결정 {mtgDecs.length}
+                          </span>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm text-stone-800 ${isDone ? 'line-through' : 'font-medium'}`}>{item.title}</p>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className={`inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium ${srcCfg.bg} ${srcCfg.text}`}>
-                              <SrcIcon className="h-2 w-2" />
-                              {meeting?.code}
-                            </span>
-                            {parentDec && (
-                              <span className="text-[10px] text-stone-400 flex items-center gap-0.5">
-                                <ChevronRight className="h-2.5 w-2.5" />
-                                {parentDec.code} {parentDec.title.slice(0, 20)}…
-                              </span>
-                            )}
-                            {item.proposedBy && (
-                              <span className="text-[11px] text-stone-400 ml-auto">{item.proposedBy}</span>
-                            )}
-                          </div>
-                        </div>
+                        {mtgTasks.length > 0 && (
+                          <span className="flex items-center gap-1">
+                            <ListChecks className="h-3 w-3" />
+                            할일 {mtgTasks.length}
+                          </span>
+                        )}
+                        {issueCount > 0 && (
+                          <span className="flex items-center gap-1 text-orange-500">
+                            <AlertTriangle className="h-3 w-3" />
+                            이슈 {issueCount}
+                          </span>
+                        )}
+                        {mtg.keywords?.length > 0 && (
+                          <span className="flex items-center gap-1 ml-auto">
+                            {mtg.keywords.slice(0, 3).map(kw => (
+                              <Badge key={kw} variant="secondary" className="text-[10px] px-1.5 py-0">{kw}</Badge>
+                            ))}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  )
-                }
-              })
-            )}
+                  </div>
+                </Link>
+              )
+            })
+          )}
+        </div>
+      </div>
+
+      {/* ─── 최근 결정 + 영역별 ─── */}
+      <div className="grid grid-cols-3 gap-6">
+        <div className="col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              <GitBranch className="h-4 w-4 text-emerald-500" />
+              최근 결정
+            </h2>
+            <Link href={`/${teamId}/${projectId}/decisions`} className="text-xs text-muted-foreground hover:text-foreground">
+              모두 보기 →
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {decisions.slice(0, 6).map(d => {
+              const meeting = getMeeting(d.meetingId)
+              return (
+                <Link
+                  key={d.id}
+                  href={`/${teamId}/${projectId}/decisions`}
+                  className="flex items-start gap-3 px-4 py-3 rounded-xl border border-border/40 bg-card hover:bg-muted/30 transition-colors"
+                >
+                  <div className={`w-1 self-stretch rounded-full shrink-0 ${
+                    d.status === 'confirmed' ? 'bg-emerald-500' :
+                    d.status === 'changed' ? 'bg-amber-500' :
+                    d.status === 'pending' || d.status === 'hold' ? 'bg-zinc-400' : 'bg-zinc-300'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-xs font-mono font-bold text-foreground/60">{d.code}</span>
+                      <span className={`text-xs font-semibold ${statusColor[d.status] || ''}`}>
+                        {statusLabel[d.status] || d.status}
+                      </span>
+                      {d.area && (
+                        <span className="flex items-center gap-0.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${areaDot[d.area] || ''}`} />
+                          <span className="text-xs text-muted-foreground">{areaLabel[d.area] || d.area}</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-medium truncate">{d.title}</p>
+                    {meeting && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <ArrowRight className="h-3 w-3" />{meeting.code}에서 추출
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
 
-        {/* Right Column */}
+        {/* 영역별 + 태스크 진행률 */}
         <div className="space-y-5">
-          {/* Area Breakdown */}
-          <div className="glass-card">
-            <div className="px-4 py-3 border-b border-stone-100/50">
-              <h2 className="font-semibold text-stone-800 text-sm">영역별</h2>
+          <div className="rounded-xl border border-border/40 bg-card p-4">
+            <h3 className="text-xs font-semibold mb-3">태스크 진행률</h3>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-2.5 rounded-full bg-secondary overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full transition-all"
+                  style={{ width: `${tasks.length > 0 ? (tasksDone / tasks.length) * 100 : 0}%` }}
+                />
+              </div>
+              <span className="text-sm font-bold">{tasks.length > 0 ? Math.round(tasksDone / tasks.length * 100) : 0}%</span>
             </div>
-            <div className="p-4 space-y-2.5">
-              {Object.entries(areaCounts).map(([area, count]) => (
+            <p className="text-xs text-muted-foreground mt-1">{tasksDone}/{tasks.length} 완료</p>
+          </div>
+
+          <div className="rounded-xl border border-border/40 bg-card p-4">
+            <h3 className="text-xs font-semibold mb-3">영역별 결정</h3>
+            <div className="space-y-2.5">
+              {Object.entries(
+                decisions.reduce<Record<string, number>>((acc, d) => {
+                  const area = d.area || 'planning'
+                  acc[area] = (acc[area] || 0) + 1
+                  return acc
+                }, {})
+              ).map(([area, count]) => (
                 <div key={area} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CircleDot className={`h-3.5 w-3.5 ${area === 'dev' ? 'text-sky-500' : area === 'design' ? 'text-pink-500' : 'text-violet-500'}`} />
-                    <span className="text-xs text-stone-600">{areaLabel[area] || area}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-16 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${area === 'dev' ? 'bg-sky-400' : area === 'design' ? 'bg-pink-400' : 'bg-violet-400'}`}
-                        style={{ width: `${totalDecisions > 0 ? (count / totalDecisions) * 100 : 0}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-medium text-stone-700 w-5 text-right">{count}</span>
-                  </div>
+                  <span className={`text-xs flex items-center gap-1.5 ${areaColor[area] || 'text-muted-foreground'}`}>
+                    <span className={`w-2 h-2 rounded-full ${areaDot[area] || 'bg-zinc-400'}`} />
+                    {areaLabel[area] || area}
+                  </span>
+                  <span className="text-xs font-medium">{count}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Source breakdown */}
-          <div className="glass-card">
-            <div className="px-4 py-3 border-b border-stone-100/50">
-              <h2 className="font-semibold text-stone-800 text-sm">출처별</h2>
-            </div>
-            <div className="p-4 space-y-2">
-              {Object.entries(sourceTypeCfg).map(([key, cfg]) => {
-                const count = meetings.filter(m => (m as any).sourceType === key).length
-                if (count === 0) return null
-                const SIcon = cfg.icon
-                return (
-                  <div key={key} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`p-1 rounded ${cfg.bg}`}>
-                        <SIcon className={`h-3 w-3 ${cfg.text}`} />
-                      </div>
-                      <span className="text-xs text-stone-600">{cfg.label}</span>
-                    </div>
-                    <span className="text-xs font-medium text-stone-700">{count}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="glass-card">
-            <div className="px-4 py-3 border-b border-stone-100/50">
-              <h2 className="font-semibold text-stone-800 text-sm">바로가기</h2>
-            </div>
-            <div className="p-2 space-y-0.5">
-              {[
-                { href: `/${teamId}/${projectId}/meetings?record=1`, icon: Mic, label: '회의 녹음', iconBg: 'bg-red-100', iconColor: 'text-red-600', hoverBg: 'hover:bg-red-50' },
-                { href: `/${teamId}/${projectId}/decisions`, icon: GitBranch, label: '결정 관리', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', hoverBg: 'hover:bg-stone-50' },
-                { href: `/${teamId}/${projectId}/tasks`, icon: ListChecks, label: '할 일', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', hoverBg: 'hover:bg-stone-50' },
-              ].map(a => (
-                <Link key={a.label} href={a.href} className={`flex items-center gap-2.5 p-2.5 rounded-lg ${a.hoverBg} transition-colors`}>
-                  <div className={`p-1.5 rounded-md ${a.iconBg}`}>
-                    <a.icon className={`h-3.5 w-3.5 ${a.iconColor}`} />
-                  </div>
-                  <span className="text-xs font-medium text-stone-700">{a.label}</span>
-                </Link>
               ))}
             </div>
           </div>
