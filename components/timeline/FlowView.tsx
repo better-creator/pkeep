@@ -344,6 +344,18 @@ export function FlowMapView({ items }: { items: TimelineItem[] }) {
 
   useEffect(() => { setNodes(initialNodes); setEdges(initialEdges) }, [initialNodes, initialEdges, setNodes, setEdges])
 
+  if (items.filter(i => i.type === 'decision').length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center text-center text-stone-400">
+        <div>
+          <GitBranch className="h-10 w-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">결정 데이터가 없습니다.</p>
+          <p className="text-xs mt-1">미팅을 분석하면 결정 맵이 생성됩니다.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="h-[calc(100vh-130px)] min-h-[400px] flex flex-col overflow-hidden">
       <FilterBar items={items} areaFilter={areaFilter} setAreaFilter={setAreaFilter}

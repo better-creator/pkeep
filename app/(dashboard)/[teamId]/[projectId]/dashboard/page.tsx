@@ -17,7 +17,7 @@ import { detectConflicts, getSeverityConfig, getConflictTypeLabel, type Conflict
 // ─── Config (이전과 동일) ───
 const statusConfig: Record<string, { icon: typeof CheckCircle; color: string; bg: string; label: string }> = {
   confirmed: { icon: CheckCircle, color: 'text-emerald-500', bg: 'status-confirmed', label: '확정' },
-  changed: { icon: AlertCircle, color: 'text-blue-500', bg: 'status-changed', label: '변경' },
+  changed: { icon: AlertCircle, color: 'text-amber-500', bg: 'status-changed', label: '변경' },
   pending: { icon: Clock, color: 'text-amber-500', bg: 'status-pending', label: '보류' },
   hold: { icon: AlertTriangle, color: 'text-amber-500', bg: 'status-pending', label: '보류' },
 }
@@ -261,53 +261,6 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* 충돌 감지 (이전과 동일) */}
-      {(() => {
-        if (unresolvedConflicts.length === 0) return null
-        return (
-          <div className="card-soft p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-red-100">
-                  <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
-                </div>
-                <h3 className="text-sm font-semibold text-stone-800">충돌 감지</h3>
-                <Badge variant="secondary" className="text-[10px] bg-red-100 text-red-700">{unresolvedConflicts.length}건</Badge>
-              </div>
-              <Link href={`/${teamId}/${projectId}/conflicts`} className="text-xs text-orange-600 font-medium hover:underline">모두 보기 →</Link>
-            </div>
-            <div className="space-y-1.5">
-              {unresolvedConflicts.slice(0, 4).map(conflict => {
-                const sev = getSeverityConfig(conflict.severity)
-                return (
-                  <div key={conflict.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border-l-[3px] ${sev.border} ${sev.bg}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${sev.dot}`} />
-                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                      <Badge variant="outline" className="text-[9px] font-mono px-1 py-0">{conflict.newDecision.code}</Badge>
-                      <span className="text-[10px] text-stone-400">vs</span>
-                      <Badge variant="outline" className="text-[9px] font-mono px-1 py-0">{conflict.existingDecision.code}</Badge>
-                      <span className="text-[10px] text-stone-500 truncate">{getConflictTypeLabel(conflict.type)}</span>
-                    </div>
-                    <Link href={`/${teamId}/${projectId}/conflicts`} className="text-[10px] text-orange-600 font-medium hover:underline flex-shrink-0">해결하기 →</Link>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )
-      })()}
-
-      {/* 보류 경고 (이전과 동일) */}
-      {pendingDecisions.length > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200/50">
-          <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-          <p className="text-sm text-amber-800 flex-1">
-            <span className="font-medium">{pendingDecisions.length}건</span> 보류 중 — {pendingDecisions.slice(0, 2).map(d => d.code).join(', ')}
-          </p>
-          <Link href={`/${teamId}/${projectId}/decisions`} className="text-xs text-amber-700 font-medium hover:underline flex-shrink-0">확인 →</Link>
         </div>
       )}
 

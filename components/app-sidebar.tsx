@@ -6,19 +6,15 @@ import {
   CircleDot,
   ListChecks,
   LayoutDashboard,
-  FolderOutput,
   Bot,
   Settings,
   FolderKanban,
   ChevronDown,
   Plus,
-  AlertTriangle,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import type { StoredDecision, StoredRejected } from "@/lib/store/types"
-import { detectConflicts, countUnresolved, type Conflict } from "@/lib/conflicts"
 import { loadProjects, saveProject, type StoredProject } from "@/lib/store"
 
 import {
@@ -62,34 +58,12 @@ export function AppSidebar() {
   const projectId = params.projectId as string
 
   const [projects, setProjects] = useState<StoredProject[]>([])
-  const [unresolvedCount, setUnresolvedCount] = useState(0)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [newProjectName, setNewProjectName] = useState("")
 
   // Load projects from localStorage
   useEffect(() => {
     setProjects(loadProjects())
-  }, [])
-
-  // Load conflict count
-  useEffect(() => {
-    try {
-      const decisions: StoredDecision[] = JSON.parse(localStorage.getItem('pkeep-decisions') || '[]')
-      const rejected: StoredRejected[] = JSON.parse(localStorage.getItem('pkeep-rejected') || '[]')
-      const detected = detectConflicts(decisions, rejected)
-      const saved: Conflict[] | null = JSON.parse(localStorage.getItem('pkeep-conflicts') || 'null')
-      if (saved) {
-        for (const d of detected) {
-          const s = saved.find(
-            sv => sv.newDecision.id === d.newDecision.id && sv.existingDecision.id === d.existingDecision.id && sv.type === d.type
-          )
-          if (s?.resolved) { d.resolved = true; d.resolution = s.resolution }
-        }
-      }
-      setUnresolvedCount(countUnresolved(detected))
-    } catch {
-      // localStorage may not be available during SSR
-    }
   }, [])
 
   const handleCreateProject = () => {
@@ -128,20 +102,9 @@ export function AppSidebar() {
       href: `/${teamId}/${projectId}/decisions`,
     },
     {
-      title: "이슈",
-      icon: AlertTriangle,
-      href: `/${teamId}/${projectId}/conflicts`,
-      badge: unresolvedCount,
-    },
-    {
       title: "할 일",
       icon: ListChecks,
       href: `/${teamId}/${projectId}/tasks`,
-    },
-    {
-      title: "결과물",
-      icon: FolderOutput,
-      href: `/${teamId}/${projectId}/outputs`,
     },
     {
       title: "AI 진단",

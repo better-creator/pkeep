@@ -93,7 +93,7 @@ function getStatusBadgeClass(status: string) {
     case 'pending':
       return 'bg-amber-500/10 text-amber-600 border-amber-500/20'
     case 'changed':
-      return 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+      return 'bg-amber-500/10 text-amber-600 border-amber-500/20'
     case 'rejected':
       return 'bg-red-500/10 text-red-600 border-red-500/20'
     default:
