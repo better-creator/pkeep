@@ -314,10 +314,10 @@ export function FlowMapView({ items }: { items: TimelineItem[] }) {
   useEffect(() => { setNodes(initialNodes); setEdges(initialEdges) }, [initialNodes, initialEdges, setNodes, setEdges])
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-[calc(100vh-130px)] min-h-[400px] flex flex-col overflow-hidden">
       <FilterBar items={items} areaFilter={areaFilter} setAreaFilter={setAreaFilter}
         statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         <ReactFlow
           nodes={nodes} edges={edges}
           onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}

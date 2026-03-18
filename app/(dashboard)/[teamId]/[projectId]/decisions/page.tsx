@@ -460,7 +460,7 @@ function ListViewWrapper({ decisions, meetings }: { decisions: Decision[]; meeti
 function MapViewWrapper({ decisions, meetings }: { decisions: Decision[]; meetings: Meeting[] }) {
   const timelineItems = useMemo(() => buildTimelineItems(meetings, decisions), [meetings, decisions])
   if (decisions.length === 0) return <div className="flex-1 overflow-auto p-6"><EmptyState /></div>
-  return <div className="flex-1 overflow-hidden"><FlowMapView items={timelineItems} /></div>
+  return <div className="flex-1 overflow-hidden h-full"><FlowMapView items={timelineItems} /></div>
 }
 
 function EmptyState() {
