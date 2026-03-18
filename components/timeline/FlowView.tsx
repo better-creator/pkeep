@@ -5,7 +5,6 @@ import ReactFlow, {
   Node, Edge, Controls, Background, BackgroundVariant,
   useNodesState, useEdgesState, MarkerType,
 } from 'reactflow'
-import dagre from 'dagre'
 import 'reactflow/dist/style.css'
 import {
   Filter, Calendar, GitBranch, Mic, BookOpen, Phone, Mail, FileText, X,
@@ -217,22 +216,54 @@ const EDGE_LABELS: Record<string, string> = {
   discussed_in: '논의', affects: '적용',
 }
 
-function layoutDagre(nodes: Node[], edges: Edge[]) {
-  const g = new dagre.graphlib.Graph()
-  g.setDefaultEdgeLabel(() => ({}))
-  g.setGraph({ rankdir: 'TB', nodesep: 60, ranksep: 90 })
-  nodes.forEach(n => {
-    const isMtg = n.type === 'meeting'
-    g.setNode(n.id, { width: isMtg ? 240 : 260, height: isMtg ? 50 : 90 })
+// 세로 스택 레이아웃 — 미팅별로 결정을 세로로 쌓음, 가로 확산 없음
+function layoutVerticalStack(nodes: Node[], edges: Edge[], items: TimelineItem[]) {
+  const meetings = items.filter(i => i.type === 'meeting')
+  const codeToId = new Map<string, string>()
+  items.forEach(i => codeToId.set(i.code, i.id))
+
+  const COL_WIDTH = 320
+  const MTG_HEIGHT = 50
+  const DEC_HEIGHT = 80
+  const GAP_Y = 24
+  const COL_GAP = 40
+
+  const posMap = new Map<string, { x: number; y: number }>()
+
+  let colX = 0
+
+  meetings.forEach((mtg) => {
+    const mtgDecs = items.filter(i =>
+      i.type === 'decision' && i.connections.sources.some(s => s.code === mtg.code)
+    )
+
+    // 미팅 위치
+    posMap.set(mtg.id, { x: colX + (COL_WIDTH - 240) / 2, y: 0 })
+
+    // 결정들을 세로로 쌓기
+    let y = MTG_HEIGHT + GAP_Y
+    mtgDecs.forEach(dec => {
+      posMap.set(dec.id, { x: colX, y })
+      y += DEC_HEIGHT + GAP_Y
+    })
+
+    colX += COL_WIDTH + COL_GAP
   })
-  edges.forEach(e => g.setEdge(e.source, e.target))
-  dagre.layout(g)
+
+  // 미팅에 연결 안 된 고아 노드
+  let orphanY = 0
+  nodes.forEach(n => {
+    if (!posMap.has(n.id)) {
+      posMap.set(n.id, { x: colX, y: orphanY })
+      orphanY += DEC_HEIGHT + GAP_Y
+    }
+  })
+
   return {
-    nodes: nodes.map(n => {
-      const p = g.node(n.id)
-      const isMtg = n.type === 'meeting'
-      return { ...n, position: { x: p.x - (isMtg ? 120 : 130), y: p.y - (isMtg ? 25 : 45) } }
-    }),
+    nodes: nodes.map(n => ({
+      ...n,
+      position: posMap.get(n.id) || { x: 0, y: 0 },
+    })),
     edges,
   }
 }
@@ -304,7 +335,7 @@ export function FlowMapView({ items }: { items: TimelineItem[] }) {
 
   const { initialNodes, initialEdges } = useMemo(() => {
     const { nodes, edges } = buildFlowElements(items, highlightedIds)
-    const laid = layoutDagre(nodes, edges)
+    const laid = layoutVerticalStack(nodes, edges, items)
     return { initialNodes: laid.nodes, initialEdges: laid.edges }
   }, [items, highlightedIds])
 
