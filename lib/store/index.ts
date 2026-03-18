@@ -4,6 +4,7 @@ import type {
   StoredTask,
   TeamMember,
   StoredRejected,
+  StoredProject,
 } from './types'
 
 // ---------------------------------------------------------------------------
@@ -11,6 +12,7 @@ import type {
 // ---------------------------------------------------------------------------
 
 const KEYS = {
+  projects: 'pkeep-projects',
   meetings: 'pkeep-meetings',
   decisions: 'pkeep-decisions',
   tasks: 'pkeep-tasks',
@@ -47,6 +49,30 @@ function parseCode(prefix: string, code: string): number {
 
 function padCode(prefix: string, n: number): string {
   return `${prefix}-${String(n).padStart(3, '0')}`
+}
+
+// ---------------------------------------------------------------------------
+// Projects
+// ---------------------------------------------------------------------------
+
+export function loadProjects(): StoredProject[] {
+  return read<StoredProject>(KEYS.projects)
+}
+
+export function saveProject(project: StoredProject): void {
+  const projects = loadProjects()
+  const idx = projects.findIndex((p) => p.id === project.id)
+  if (idx >= 0) {
+    projects[idx] = project
+  } else {
+    projects.push(project)
+  }
+  write(KEYS.projects, projects)
+}
+
+export function deleteProject(id: string): void {
+  const projects = loadProjects().filter((p) => p.id !== id)
+  write(KEYS.projects, projects)
 }
 
 // ---------------------------------------------------------------------------
@@ -246,6 +272,7 @@ export function nextDecisionCode(): string {
 
 // Re-export types for convenience
 export type {
+  StoredProject,
   StoredMeeting,
   StoredDecision,
   StoredTask,

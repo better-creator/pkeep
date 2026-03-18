@@ -1,5 +1,12 @@
 export type SourceType = 'meeting' | 'text' | 'slack' | 'notion' | 'document' | 'call' | 'email' | 'manual'
 
+export interface StoredProject {
+  id: string
+  name: string
+  description?: string
+  createdAt: string
+}
+
 export interface TeamMember {
   id: string
   name: string

@@ -114,8 +114,10 @@ export default function MeetingsPage() {
       })
 
       if (!analyzeRes.ok) {
-        const err = await analyzeRes.json()
-        throw new Error(err.error || 'Analysis failed')
+        const errText = await analyzeRes.text().catch(() => '')
+        let errorMessage = 'Analysis failed'
+        try { errorMessage = JSON.parse(errText).error || errorMessage } catch { errorMessage = errText || `Server error: ${analyzeRes.status}` }
+        throw new Error(errorMessage)
       }
 
       setStep('creating_tickets')
@@ -169,19 +171,54 @@ export default function MeetingsPage() {
   const runSTTAndAnalyze = async (file: File) => {
     try {
       setStep('transcribing')
-      setStepMessage('음성 → 텍스트 변환 중... (다국어 자동 감지)')
+      setStepMessage('음성 파일 업로드 중...')
 
-      const formData = new FormData()
-      formData.append('audio', file)
-
-      const transcribeRes = await fetch('/api/meetings/transcribe', {
+      // Step 1: Stream audio to AssemblyAI via upload proxy (no body size limit)
+      console.log('[PKEEP] Step 1: Uploading audio...', { size: file.size, type: file.type })
+      const uploadRes = await fetch('/api/meetings/upload-audio', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: file,
       })
 
+      console.log('[PKEEP] Upload response:', { status: uploadRes.status, contentType: uploadRes.headers.get('content-type') })
+
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text().catch(() => 'Upload failed')
+        console.error('[PKEEP] Upload failed:', errText)
+        throw new Error(`음성 업로드 실패: ${errText}`)
+      }
+
+      const uploadData = await uploadRes.json()
+      console.log('[PKEEP] Upload success:', uploadData)
+      const audioUrl = uploadData.upload_url
+
+      setStepMessage('음성 → 텍스트 변환 중... (다국어 자동 감지)')
+
+      // Step 2: Request transcription using the uploaded URL (small JSON body)
+      console.log('[PKEEP] Step 2: Requesting transcription...', { audioUrl })
+      const transcribeRes = await fetch('/api/meetings/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audioUrl }),
+      })
+      console.log('[PKEEP] Transcribe response:', { status: transcribeRes.status, contentType: transcribeRes.headers.get('content-type') })
+
       if (!transcribeRes.ok) {
-        const err = await transcribeRes.json()
-        throw new Error(err.error || 'Transcription failed')
+        let errorMessage = 'Transcription failed'
+        try {
+          const contentType = transcribeRes.headers.get('content-type')
+          if (contentType?.includes('application/json')) {
+            const err = await transcribeRes.json()
+            errorMessage = err.error || errorMessage
+          } else {
+            const text = await transcribeRes.text()
+            errorMessage = text || `Server error: ${transcribeRes.status}`
+          }
+        } catch {
+          errorMessage = `Server error: ${transcribeRes.status}`
+        }
+        throw new Error(errorMessage)
       }
 
       const transcribeData = await transcribeRes.json()
@@ -206,8 +243,10 @@ export default function MeetingsPage() {
       })
 
       if (!analyzeRes.ok) {
-        const err = await analyzeRes.json()
-        throw new Error(err.error || 'Analysis failed')
+        const errText = await analyzeRes.text().catch(() => '')
+        let errorMessage = 'Analysis failed'
+        try { errorMessage = JSON.parse(errText).error || errorMessage } catch { errorMessage = errText || `Server error: ${analyzeRes.status}` }
+        throw new Error(errorMessage)
       }
 
       setStep('creating_tickets')
@@ -234,8 +273,10 @@ export default function MeetingsPage() {
       })
 
       if (!analyzeRes.ok) {
-        const err = await analyzeRes.json()
-        throw new Error(err.error || 'Analysis failed')
+        const errText = await analyzeRes.text().catch(() => '')
+        let errorMessage = 'Analysis failed'
+        try { errorMessage = JSON.parse(errText).error || errorMessage } catch { errorMessage = errText || `Server error: ${analyzeRes.status}` }
+        throw new Error(errorMessage)
       }
 
       setStep('creating_tickets')

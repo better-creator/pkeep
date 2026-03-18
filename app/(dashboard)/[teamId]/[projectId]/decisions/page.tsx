@@ -360,7 +360,9 @@ function buildTimelineItems(meetings: Meeting[], decisions: Decision[]): TLItem[
   // 결정 노드 — 회의 연결 + 변경 결정 간 연결 + 소스타입 반영
   for (const dec of decisions) {
     const meeting = meetings.find(m => m.id === dec.meetingId)
-    const decTasks = storedTasks.filter(t => t.meetingId === dec.meetingId)
+    const decTasks = storedTasks.filter(t =>
+      (t.decisionId && t.decisionId === dec.id) || t.meetingId === dec.meetingId
+    )
     const meetingSourceType = (meeting as any)?.sourceType || 'meeting'
 
     const sources: TLItem['connections']['sources'] = []

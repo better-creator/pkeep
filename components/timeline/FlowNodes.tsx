@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
-import { GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare, Users, Mic, BookOpen, Phone, Mail, FileText, AlertTriangle } from 'lucide-react'
+import { GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare, Users, Mic, BookOpen, Phone, Mail, FileText, AlertTriangle, ListChecks } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Person, Task } from './types'
@@ -18,8 +18,8 @@ export interface FlowNodeData {
   owner?: Person
   contributors?: Person[]
   tasks?: Task[]
-  area?: string           // 'planning' | 'design' | 'dev' | '기획' | '디자인' | '개발'
-  sourceType?: string     // 'meeting' | 'slack' | 'notion' | 'call' | etc
+  area?: string
+  sourceType?: string
   hasConflict?: boolean
   hasBlocker?: boolean
 }
@@ -163,7 +163,6 @@ const statusStyles: Record<string, {
   },
 }
 
-// 영역 뱃지 색상
 function getAreaBadgeStyle(area?: string): { bg: string; text: string; label: string } | null {
   if (!area) return null
   switch (area) {
@@ -181,7 +180,6 @@ function getAreaBadgeStyle(area?: string): { bg: string; text: string; label: st
   }
 }
 
-// 소스 타입 아이콘 + 스타일 매핑
 const sourceTypeConfig: Record<string, { icon: React.ElementType; label: string; bg: string; text: string }> = {
   meeting: { icon: Mic, label: '회의', bg: 'bg-blue-500/15', text: 'text-blue-500' },
   slack: { icon: MessageSquare, label: 'Slack', bg: 'bg-amber-500/15', text: 'text-amber-500' },
@@ -191,16 +189,12 @@ const sourceTypeConfig: Record<string, { icon: React.ElementType; label: string;
   document: { icon: FileText, label: '문서', bg: 'bg-indigo-500/15', text: 'text-indigo-500' },
   text: { icon: FileText, label: '텍스트', bg: 'bg-stone-500/15', text: 'text-stone-500' },
 }
-const sourceTypeIcons: Record<string, React.ElementType> = Object.fromEntries(
-  Object.entries(sourceTypeConfig).map(([k, v]) => [k, v.icon])
-)
 
 function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
   const nodeType = data.type
   const style = nodeStyles[nodeType]
   const Icon = style.icon
 
-  // Decision 노드는 상태에 따라 스타일 변경
   const isDecision = nodeType === 'decision'
   const statusStyle = isDecision && data.status ? statusStyles[data.status] : null
 
@@ -210,7 +204,6 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
   const glowClass = statusStyle?.glow || ''
   const handleColor = statusStyle?.handleColor || style.handleColor
 
-  // 태스크 진행률 계산
   const taskProgress = data.tasks?.length
     ? {
         total: data.tasks.length,
@@ -219,51 +212,52 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
       }
     : null
 
+  // Conflict: 붉은색 정적 표시 (애니메이션 제거)
   const conflictRingClass = data.hasConflict
     ? data.hasBlocker
-      ? 'ring-2 ring-red-500/70 shadow-[0_0_12px_rgba(239,68,68,0.4)] animate-pulse'
-      : 'ring-2 ring-amber-500/70 shadow-[0_0_12px_rgba(245,158,11,0.4)] animate-pulse'
+      ? 'ring-3 ring-red-500 shadow-[0_0_16px_rgba(239,68,68,0.3)]'
+      : 'ring-3 ring-red-400/60 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
     : ''
 
   return (
     <div
       className={`
-        relative px-5 py-4 rounded-xl border-2 min-w-[240px] max-w-[300px]
+        relative px-6 py-5 rounded-2xl border-2 min-w-[360px] max-w-[420px]
         transition-all duration-200 cursor-pointer backdrop-blur-sm
         ${bgClass} ${borderClass}
         ${conflictRingClass}
-        ${selected ? `ring-2 ring-primary shadow-xl scale-105 ${glowClass}` : 'hover:shadow-lg hover:scale-[1.02]'}
+        ${selected ? `ring-2 ring-primary shadow-xl scale-105 ${glowClass}` : 'hover:shadow-lg hover:scale-[1.01]'}
       `}
     >
       {/* 그라데이션 배경 */}
-      <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${style.gradient} pointer-events-none`} />
+      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${style.gradient} pointer-events-none`} />
 
       {/* 입력 핸들 */}
       <Handle
         type="target"
         position={Position.Top}
-        className={`!w-3 !h-3 !border-2 !border-background ${handleColor}`}
+        className={`!w-4 !h-4 !border-2 !border-background ${handleColor}`}
       />
 
-      {/* 충돌/블로커 인디케이터 */}
+      {/* 충돌/블로커 인디케이터 — 붉은색 정적 */}
       {(data.hasConflict || data.hasBlocker) && (
-        <div className="absolute -top-1.5 -right-1.5 z-10">
-          <div className={`relative flex items-center justify-center w-6 h-6 rounded-full ${data.hasBlocker ? 'bg-red-500' : 'bg-amber-500'} shadow-md`}>
-            <AlertTriangle className="h-3.5 w-3.5 text-white" />
+        <div className="absolute -top-2 -right-2 z-10">
+          <div className={`relative flex items-center justify-center w-8 h-8 rounded-full ${data.hasBlocker ? 'bg-red-500' : 'bg-red-400'} shadow-md`}>
+            <AlertTriangle className="h-4.5 w-4.5 text-white" />
           </div>
         </div>
       )}
 
       {/* 소스 타입 뱃지 */}
       {data.sourceType && sourceTypeConfig[data.sourceType] && !(data.hasConflict || data.hasBlocker) && (
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-3 right-3 z-10">
           {(() => {
             const cfg = sourceTypeConfig[data.sourceType!]
             const SourceIcon = cfg.icon
             return (
-              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md ${cfg.bg}`}>
-                <SourceIcon className={`h-3 w-3 ${cfg.text}`} />
-                <span className={`text-[9px] font-medium ${cfg.text}`}>{cfg.label}</span>
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${cfg.bg}`}>
+                <SourceIcon className={`h-4 w-4 ${cfg.text}`} />
+                <span className={`text-xs font-medium ${cfg.text}`}>{cfg.label}</span>
               </div>
             )
           })()}
@@ -271,30 +265,30 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
       )}
 
       {/* 노드 내용 */}
-      <div className="relative flex items-start gap-3">
-        {/* 아이콘 */}
-        <div className={`p-2.5 rounded-lg ${iconBgClass} shadow-sm`}>
-          <Icon className={`h-5 w-5 ${style.iconColor}`} />
+      <div className="relative flex items-start gap-4">
+        {/* 아이콘 — 2배 크기 */}
+        <div className={`p-3.5 rounded-xl ${iconBgClass} shadow-sm`}>
+          <Icon className={`h-7 w-7 ${style.iconColor}`} />
         </div>
 
         <div className="flex-1 min-w-0">
           {/* 코드 및 상태 */}
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-mono font-bold text-primary">
+          <div className="flex items-center gap-2.5 mb-1.5">
+            <span className="text-base font-mono font-bold text-primary">
               {data.code}
             </span>
             {isDecision && data.status && statusStyle && (
               <Badge
                 variant="outline"
-                className={`text-xs px-2 py-0.5 h-5 border ${statusStyle.badge}`}
+                className={`text-sm px-3 py-0.5 h-6 border ${statusStyle.badge}`}
               >
                 {statusStyle.label}
               </Badge>
             )}
           </div>
 
-          {/* 제목 */}
-          <p className="text-base font-medium leading-tight line-clamp-2" title={data.title}>
+          {/* 제목 — 2배 크기 */}
+          <p className="text-lg font-semibold leading-snug line-clamp-2" title={data.title}>
             {data.title}
           </p>
 
@@ -302,7 +296,7 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
           {(() => {
             const areaBadge = getAreaBadgeStyle(data.area)
             return areaBadge ? (
-              <div className={`inline-flex items-center rounded-full px-2 py-0.5 mt-1.5 text-[10px] font-medium ${areaBadge.bg} ${areaBadge.text}`}>
+              <div className={`inline-flex items-center rounded-full px-3 py-1 mt-2 text-sm font-medium ${areaBadge.bg} ${areaBadge.text}`}>
                 {areaBadge.label}
               </div>
             ) : null
@@ -310,23 +304,23 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
 
           {/* 작업자 정보 */}
           {(data.owner || (data.contributors && data.contributors.length > 0)) && (
-            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/30">
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
               {data.owner && (
-                <div className="flex items-center gap-1.5">
-                  <Avatar className="h-6 w-6 ring-2 ring-primary/30">
-                    <AvatarFallback className="text-xs bg-primary/20 text-primary">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-7 w-7 ring-2 ring-primary/30">
+                    <AvatarFallback className="text-sm bg-primary/20 text-primary">
                       {data.owner.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs text-muted-foreground font-medium">
+                  <span className="text-sm text-muted-foreground font-medium">
                     {data.owner.name}
                   </span>
                 </div>
               )}
               {data.contributors && data.contributors.length > 0 && (
                 <div className="flex items-center gap-1 ml-auto">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
                     +{data.contributors.length}
                   </span>
                 </div>
@@ -334,25 +328,28 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
             </div>
           )}
 
-          {/* 태스크 진행률 */}
+          {/* 태스크 진행률 — 크게 */}
           {taskProgress && (
-            <div className="mt-2 pt-2 border-t border-border/30">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">태스크</span>
-                <span className="text-xs font-medium">
+            <div className="mt-3 pt-3 border-t border-border/30">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <ListChecks className="h-4 w-4" />
+                  태스크
+                </span>
+                <span className="text-sm font-semibold">
                   {taskProgress.done}/{taskProgress.total}
                 </span>
               </div>
-              <div className="flex gap-0.5 h-2 rounded-full overflow-hidden bg-secondary/50">
+              <div className="flex gap-0.5 h-3 rounded-full overflow-hidden bg-secondary/50">
                 {taskProgress.done > 0 && (
                   <div
-                    className="bg-emerald-500 transition-all"
+                    className="bg-emerald-500 transition-all rounded-full"
                     style={{ width: `${(taskProgress.done / taskProgress.total) * 100}%` }}
                   />
                 )}
                 {taskProgress.inProgress > 0 && (
                   <div
-                    className="bg-blue-500 transition-all"
+                    className="bg-blue-500 transition-all rounded-full"
                     style={{ width: `${(taskProgress.inProgress / taskProgress.total) * 100}%` }}
                   />
                 )}
@@ -366,43 +363,37 @@ function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
       <Handle
         type="source"
         position={Position.Bottom}
-        className={`!w-3 !h-3 !border-2 !border-background ${handleColor}`}
+        className={`!w-4 !h-4 !border-2 !border-background ${handleColor}`}
       />
     </div>
   )
 }
 
-// Meeting 노드
 export const MeetingNode = memo((props: NodeProps<FlowNodeData>) => (
   <BaseNode {...props} />
 ))
 MeetingNode.displayName = 'MeetingNode'
 
-// Decision 노드
 export const DecisionNode = memo((props: NodeProps<FlowNodeData>) => (
   <BaseNode {...props} />
 ))
 DecisionNode.displayName = 'DecisionNode'
 
-// Screen 노드
 export const ScreenNode = memo((props: NodeProps<FlowNodeData>) => (
   <BaseNode {...props} />
 ))
 ScreenNode.displayName = 'ScreenNode'
 
-// Github 노드
 export const GithubNode = memo((props: NodeProps<FlowNodeData>) => (
   <BaseNode {...props} />
 ))
 GithubNode.displayName = 'GithubNode'
 
-// Slack 노드
 export const SlackNode = memo((props: NodeProps<FlowNodeData>) => (
   <BaseNode {...props} />
 ))
 SlackNode.displayName = 'SlackNode'
 
-// 노드 타입 맵핑
 export const nodeTypes = {
   meeting: MeetingNode,
   decision: DecisionNode,

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'nodejs'
+export const maxDuration = 300
+
 const ASSEMBLYAI_BASE_URL = 'https://api.assemblyai.com/v2'
 
 interface TranscriptSegment {
@@ -9,26 +12,7 @@ interface TranscriptSegment {
   end: number
 }
 
-// Step 1: Upload audio to AssemblyAI
-async function uploadAudio(audioBuffer: Buffer, apiKey: string): Promise<string> {
-  const res = await fetch(`${ASSEMBLYAI_BASE_URL}/upload`, {
-    method: 'POST',
-    headers: {
-      'Authorization': apiKey,
-      'Content-Type': 'application/octet-stream',
-    },
-    body: new Uint8Array(audioBuffer),
-  })
-  if (!res.ok) {
-    const errBody = await res.text()
-    console.error('[transcribe] AssemblyAI upload error:', errBody)
-    throw new Error(`Upload failed: ${errBody}`)
-  }
-  const data = await res.json()
-  return data.upload_url
-}
-
-// Step 2: Request transcription with speaker diarization
+// Request transcription with speaker diarization
 async function requestTranscription(audioUrl: string, apiKey: string): Promise<string> {
   const res = await fetch(`${ASSEMBLYAI_BASE_URL}/transcript`, {
     method: 'POST',
@@ -52,9 +36,9 @@ async function requestTranscription(audioUrl: string, apiKey: string): Promise<s
   return data.id
 }
 
-// Step 3: Poll for result
+// Poll for result
 async function pollTranscription(transcriptId: string, apiKey: string) {
-  const maxAttempts = 120 // 10 minutes max (5s * 120)
+  const maxAttempts = 720 // 1 hour max (5s * 720)
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const res = await fetch(`${ASSEMBLYAI_BASE_URL}/transcript/${transcriptId}`, {
@@ -101,19 +85,17 @@ async function pollTranscription(transcriptId: string, apiKey: string) {
 }
 
 // POST /api/meetings/transcribe
+// Accepts JSON body: { audioUrl: string, meetingId?: string }
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData()
-    const audioFile = formData.get('audio') as File | null
-    const meetingId = formData.get('meetingId') as string | null
+    const { audioUrl, meetingId } = await request.json()
 
-    if (!audioFile) {
-      return NextResponse.json({ error: 'audio file is required' }, { status: 400 })
+    if (!audioUrl) {
+      return NextResponse.json({ error: 'audioUrl is required' }, { status: 400 })
     }
 
     const apiKey = process.env.ASSEMBLYAI_API_KEY
     if (!apiKey) {
-      // Mock fallback
       console.log('[transcribe] ASSEMBLYAI_API_KEY not set — using mock')
       await new Promise(resolve => setTimeout(resolve, 1500))
       return NextResponse.json({
@@ -132,11 +114,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const arrayBuffer = await audioFile.arrayBuffer()
-    const audioBuffer = Buffer.from(arrayBuffer)
-
-    const uploadUrl = await uploadAudio(audioBuffer, apiKey)
-    const transcriptId = await requestTranscription(uploadUrl, apiKey)
+    const transcriptId = await requestTranscription(audioUrl, apiKey)
     const result = await pollTranscription(transcriptId, apiKey)
 
     return NextResponse.json({
