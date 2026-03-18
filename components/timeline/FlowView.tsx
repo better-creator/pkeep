@@ -318,26 +318,44 @@ function buildFlowElements(items: TimelineItem[], highlightedIds?: Set<string>) 
 export function FlowMapView({ items }: { items: TimelineItem[] }) {
   const [areaFilter, setAreaFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [sourceFilter, setSourceFilter] = useState<string>('all') // 소스(미팅) 선택
+
+  // 소스(미팅) 목록
+  const meetings = useMemo(() => items.filter(i => i.type === 'meeting'), [items])
+
+  // 소스 필터 적용 — 선택된 미팅 + 그 미팅의 결정만 표시
+  const filteredItems = useMemo(() => {
+    if (sourceFilter === 'all') return items
+    const mtg = items.find(i => i.id === sourceFilter)
+    if (!mtg) return items
+    const relatedDecIds = new Set<string>()
+    items.forEach(item => {
+      if (item.connections.sources.some(s => s.code === mtg.code)) {
+        relatedDecIds.add(item.id)
+      }
+    })
+    return items.filter(i => i.id === sourceFilter || relatedDecIds.has(i.id))
+  }, [items, sourceFilter])
 
   const hasFilter = areaFilter !== 'all' || statusFilter !== 'all'
 
   const highlightedIds = useMemo(() => {
     if (!hasFilter) return undefined
     const ids = new Set<string>()
-    items.forEach(item => {
+    filteredItems.forEach(item => {
       let ok = true
       if (areaFilter !== 'all' && norm(item.area) !== areaFilter && item.type !== 'meeting') ok = false
       if (statusFilter !== 'all' && item.status !== statusFilter && item.type !== 'meeting') ok = false
       if (ok) ids.add(item.id)
     })
     return ids
-  }, [items, areaFilter, statusFilter, hasFilter])
+  }, [filteredItems, areaFilter, statusFilter, hasFilter])
 
   const { initialNodes, initialEdges } = useMemo(() => {
-    const { nodes, edges } = buildFlowElements(items, highlightedIds)
-    const laid = layoutVerticalStack(nodes, edges, items)
+    const { nodes, edges } = buildFlowElements(filteredItems, highlightedIds)
+    const laid = layoutVerticalStack(nodes, edges, filteredItems)
     return { initialNodes: laid.nodes, initialEdges: laid.edges }
-  }, [items, highlightedIds])
+  }, [filteredItems, highlightedIds])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -358,8 +376,37 @@ export function FlowMapView({ items }: { items: TimelineItem[] }) {
 
   return (
     <div className="h-[calc(100vh-130px)] min-h-[400px] flex flex-col overflow-hidden">
-      <FilterBar items={items} areaFilter={areaFilter} setAreaFilter={setAreaFilter}
-        statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
+      {/* 소스 선택 + 필터 */}
+      <div className="shrink-0 border-b border-border/30 bg-muted/10">
+        {meetings.length > 0 && (
+          <div className="flex items-center gap-1.5 px-5 py-2 overflow-x-auto">
+            <span className="text-xs text-muted-foreground font-medium shrink-0 mr-1">소스</span>
+            <button
+              onClick={() => setSourceFilter('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0
+                ${sourceFilter === 'all' ? 'bg-foreground text-background' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
+            >
+              전체
+            </button>
+            {meetings.map(mtg => {
+              const decCount = items.filter(i => i.connections.sources.some(s => s.code === mtg.code)).length
+              return (
+                <button
+                  key={mtg.id}
+                  onClick={() => setSourceFilter(sourceFilter === mtg.id ? 'all' : mtg.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0
+                    ${sourceFilter === mtg.id ? 'bg-foreground text-background' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
+                >
+                  {mtg.code} {mtg.title.length > 12 ? mtg.title.slice(0, 12) + '…' : mtg.title}
+                  <span className="opacity-60">({decCount})</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+        <FilterBar items={filteredItems} areaFilter={areaFilter} setAreaFilter={setAreaFilter}
+          statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
+      </div>
       <div className="flex-1 min-h-0">
         <ReactFlow
           nodes={nodes} edges={edges}
