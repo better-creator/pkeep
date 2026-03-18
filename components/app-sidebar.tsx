@@ -212,9 +212,30 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
 
+          {/* 녹음 버튼 */}
+          {projectId && (
+            <SidebarGroup className="mt-2">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className="h-11 rounded-xl px-3 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm"
+                    >
+                      <Link href={`/${teamId}/${projectId}/meetings`} className="flex items-center gap-2.5">
+                        <Mic className="h-4 w-4" />
+                        <span className="text-sm">새 녹음</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
           {/* Navigation */}
           {projectId && (
-            <SidebarGroup className="mt-4">
+            <SidebarGroup className="mt-2">
               <SidebarGroupLabel className="text-xs text-muted-foreground px-2 mb-1">메뉴</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>

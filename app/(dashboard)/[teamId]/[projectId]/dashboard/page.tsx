@@ -129,15 +129,28 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards (이전과 동일) */}
+      {/* 태스크 진행률 (상단 배치) */}
+      {tasksTotal > 0 && (
+        <Link href={`/${teamId}/${projectId}/tasks`} className="block card-soft p-4 hover:bg-stone-50 transition-colors">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-stone-800">태스크 진행률</h3>
+            <span className="text-sm font-bold text-stone-800">{tasksDone}/{tasksTotal} ({tasksTotal > 0 ? Math.round(tasksDone / tasksTotal * 100) : 0}%)</span>
+          </div>
+          <div className="h-2.5 bg-stone-100 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${tasksTotal > 0 ? (tasksDone / tasksTotal) * 100 : 0}%` }} />
+          </div>
+        </Link>
+      )}
+
+      {/* KPI Cards — 클릭 시 상세 페이지 이동 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: '결정', value: totalDecisions, icon: GitBranch, color: 'text-emerald-500', bg: 'bg-emerald-50', sub: `확정 ${decisions.filter(d => d.status === 'confirmed').length}건` },
-          { label: '이슈', value: unresolvedConflicts.length + changedDecisions.length, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-50', sub: attentionItems.length > 0 ? '확인 필요' : '없음' },
-          { label: '할 일', value: `${tasksDone}/${tasksTotal}`, icon: ListChecks, color: 'text-blue-500', bg: 'bg-blue-50', sub: tasksTotal > 0 ? `${Math.round(tasksDone / tasksTotal * 100)}%` : '-' },
-          { label: '미팅', value: meetings.length, icon: Mic, color: 'text-purple-500', bg: 'bg-purple-50', sub: `최근 ${meetings.slice(0, 1).map(m => m.code).join('')}` },
+          { label: '결정', value: totalDecisions, icon: GitBranch, color: 'text-emerald-500', bg: 'bg-emerald-50', sub: `확정 ${decisions.filter(d => d.status === 'confirmed').length}건`, href: `/${teamId}/${projectId}/decisions` },
+          { label: '이슈', value: unresolvedConflicts.length + changedDecisions.length, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-50', sub: attentionItems.length > 0 ? '확인 필요' : '없음', href: `/${teamId}/${projectId}/conflicts` },
+          { label: '할 일', value: `${tasksDone}/${tasksTotal}`, icon: ListChecks, color: 'text-blue-500', bg: 'bg-blue-50', sub: tasksTotal > 0 ? `${Math.round(tasksDone / tasksTotal * 100)}%` : '-', href: `/${teamId}/${projectId}/tasks` },
+          { label: '미팅', value: meetings.length, icon: Mic, color: 'text-purple-500', bg: 'bg-purple-50', sub: `최근 ${meetings.slice(0, 1).map(m => m.code).join('')}`, href: `/${teamId}/${projectId}/meetings` },
         ].map(kpi => (
-          <div key={kpi.label} className="card-soft p-4">
+          <Link key={kpi.label} href={kpi.href} className="card-soft p-4 hover:bg-stone-50 transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-stone-400">{kpi.label}</p>
@@ -148,7 +161,7 @@ export default function DashboardPage() {
                 <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -348,23 +361,6 @@ export default function DashboardPage() {
 
         {/* Right Column (이전과 동일 구조) */}
         <div className="space-y-5">
-          {/* 태스크 진행률 (새로 추가) */}
-          <div className="glass-card">
-            <div className="px-4 py-3 border-b border-stone-100/50">
-              <h2 className="font-semibold text-stone-800 text-sm">태스크 진행률</h2>
-            </div>
-            <div className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full transition-all"
-                    style={{ width: `${tasksTotal > 0 ? (tasksDone / tasksTotal) * 100 : 0}%` }} />
-                </div>
-                <span className="text-sm font-bold text-stone-800">{tasksTotal > 0 ? Math.round(tasksDone / tasksTotal * 100) : 0}%</span>
-              </div>
-              <p className="text-[11px] text-stone-400 mt-1.5">{tasksDone}/{tasksTotal} 완료</p>
-            </div>
-          </div>
-
           {/* 영역별 (이전과 동일) */}
           <div className="glass-card">
             <div className="px-4 py-3 border-b border-stone-100/50">
