@@ -2,9 +2,10 @@
 
 import { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
-import { GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare, Users, Mic, BookOpen, Phone, Mail, FileText, AlertTriangle, ListChecks } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare,
+  Mic, BookOpen, Phone, Mail, FileText, AlertTriangle,
+} from 'lucide-react'
 import { Person, Task } from './types'
 
 export type FlowNodeType = 'meeting' | 'decision' | 'screen' | 'github' | 'slack'
@@ -24,374 +25,203 @@ export interface FlowNodeData {
   hasBlocker?: boolean
 }
 
-const nodeStyles: Record<FlowNodeType, {
-  bg: string
-  border: string
-  iconBg: string
-  iconColor: string
-  icon: React.ElementType
-  gradient: string
-  handleColor: string
-}> = {
-  meeting: {
-    bg: 'bg-blue-500/5',
-    border: 'border-blue-500/40',
-    iconBg: 'bg-blue-500',
-    iconColor: 'text-white',
-    icon: Calendar,
-    gradient: 'from-blue-500/20 to-transparent',
-    handleColor: '!bg-blue-500',
-  },
-  decision: {
-    bg: 'bg-teal-500/5',
-    border: 'border-teal-500/40',
-    iconBg: 'bg-teal-500',
-    iconColor: 'text-white',
-    icon: GitBranch,
-    gradient: 'from-teal-500/20 to-transparent',
-    handleColor: '!bg-teal-500',
-  },
-  screen: {
-    bg: 'bg-purple-500/5',
-    border: 'border-purple-500/40',
-    iconBg: 'bg-purple-500',
-    iconColor: 'text-white',
-    icon: MonitorSmartphone,
-    gradient: 'from-purple-500/20 to-transparent',
-    handleColor: '!bg-purple-500',
-  },
-  github: {
-    bg: 'bg-zinc-500/5',
-    border: 'border-zinc-500/40',
-    iconBg: 'bg-zinc-700',
-    iconColor: 'text-white',
-    icon: Github,
-    gradient: 'from-zinc-500/20 to-transparent',
-    handleColor: '!bg-zinc-500',
-  },
-  slack: {
-    bg: 'bg-amber-500/5',
-    border: 'border-amber-500/40',
-    iconBg: 'bg-amber-500',
-    iconColor: 'text-white',
-    icon: MessageSquare,
-    gradient: 'from-amber-500/20 to-transparent',
-    handleColor: '!bg-amber-500',
-  },
+// ─── 상태 색상 (좌측 바 + 텍스트) ───
+const STATUS_COLORS: Record<string, { bar: string; text: string; label: string }> = {
+  confirmed: { bar: 'bg-emerald-500', text: 'text-emerald-500', label: '확정' },
+  changed:   { bar: 'bg-amber-500',   text: 'text-amber-500',   label: '변경' },
+  pending:   { bar: 'bg-zinc-400',     text: 'text-zinc-400',    label: '보류' },
+  rejected:  { bar: 'bg-red-500',      text: 'text-red-500',     label: '기각' },
+  hold:      { bar: 'bg-zinc-400',     text: 'text-zinc-400',    label: '보류' },
 }
 
-const statusStyles: Record<string, {
-  bg: string
-  border: string
-  iconBg: string
-  badge: string
-  label: string
-  glow: string
-  handleColor: string
-}> = {
-  confirmed: {
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500',
-    iconBg: 'bg-emerald-500',
-    badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    label: '확정',
-    glow: 'shadow-emerald-500/20',
-    handleColor: '!bg-emerald-500',
-  },
-  changed: {
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500',
-    iconBg: 'bg-amber-500',
-    badge: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    label: '변경됨',
-    glow: 'shadow-amber-500/20',
-    handleColor: '!bg-amber-500',
-  },
-  pending: {
-    bg: 'bg-zinc-500/10',
-    border: 'border-zinc-500/50',
-    iconBg: 'bg-zinc-500',
-    badge: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
-    label: '검토중',
-    glow: 'shadow-zinc-500/20',
-    handleColor: '!bg-zinc-500',
-  },
-  superseded: {
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/50',
-    iconBg: 'bg-purple-500',
-    badge: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-    label: '대체됨',
-    glow: 'shadow-purple-500/20',
-    handleColor: '!bg-purple-500',
-  },
-  deprecated: {
-    bg: 'bg-red-500/10',
-    border: 'border-red-500/50',
-    iconBg: 'bg-red-500',
-    badge: 'bg-red-500/20 text-red-400 border-red-500/30',
-    label: '폐기',
-    glow: 'shadow-red-500/20',
-    handleColor: '!bg-red-500',
-  },
-  disabled: {
-    bg: 'bg-slate-500/10',
-    border: 'border-slate-500/50',
-    iconBg: 'bg-slate-500',
-    badge: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
-    label: '비활성',
-    glow: 'shadow-slate-500/20',
-    handleColor: '!bg-slate-500',
-  },
-  draft: {
-    bg: 'bg-gray-500/10',
-    border: 'border-gray-500/50',
-    iconBg: 'bg-gray-500',
-    badge: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
-    label: '초안',
-    glow: 'shadow-gray-500/20',
-    handleColor: '!bg-gray-500',
-  },
-  hold: {
-    bg: 'bg-gray-400/10',
-    border: 'border-gray-400/50',
-    iconBg: 'bg-gray-400',
-    badge: 'bg-gray-400/20 text-gray-400 border-gray-400/30',
-    label: '보류중',
-    glow: 'shadow-gray-400/20',
-    handleColor: '!bg-gray-400',
-  },
+// ─── 영역 색상 ───
+const AREA_COLORS: Record<string, { dot: string; label: string }> = {
+  planning: { dot: 'bg-purple-500', label: '기획' },
+  '기획':   { dot: 'bg-purple-500', label: '기획' },
+  design:   { dot: 'bg-pink-500',   label: '디자인' },
+  '디자인': { dot: 'bg-pink-500',   label: '디자인' },
+  dev:      { dot: 'bg-sky-500',    label: '개발' },
+  '개발':   { dot: 'bg-sky-500',    label: '개발' },
 }
 
-function getAreaBadgeStyle(area?: string): { bg: string; text: string; label: string } | null {
-  if (!area) return null
-  switch (area) {
-    case 'planning':
-    case '기획':
-      return { bg: 'bg-purple-500/15', text: 'text-purple-400', label: '기획' }
-    case 'design':
-    case '디자인':
-      return { bg: 'bg-pink-500/15', text: 'text-pink-400', label: '디자인' }
-    case 'dev':
-    case '개발':
-      return { bg: 'bg-sky-500/15', text: 'text-sky-400', label: '개발' }
-    default:
-      return null
-  }
+// ─── 소스 아이콘 ───
+const SOURCE_ICONS: Record<string, React.ElementType> = {
+  meeting: Mic, slack: MessageSquare, notion: BookOpen,
+  call: Phone, email: Mail, document: FileText, text: FileText,
 }
 
-const sourceTypeConfig: Record<string, { icon: React.ElementType; label: string; bg: string; text: string }> = {
-  meeting: { icon: Mic, label: '회의', bg: 'bg-blue-500/15', text: 'text-blue-500' },
-  slack: { icon: MessageSquare, label: 'Slack', bg: 'bg-amber-500/15', text: 'text-amber-500' },
-  notion: { icon: BookOpen, label: 'Notion', bg: 'bg-stone-500/15', text: 'text-stone-500' },
-  call: { icon: Phone, label: '통화', bg: 'bg-green-500/15', text: 'text-green-500' },
-  email: { icon: Mail, label: '이메일', bg: 'bg-rose-500/15', text: 'text-rose-500' },
-  document: { icon: FileText, label: '문서', bg: 'bg-indigo-500/15', text: 'text-indigo-500' },
-  text: { icon: FileText, label: '텍스트', bg: 'bg-stone-500/15', text: 'text-stone-500' },
-}
-
-function BaseNode({ data, selected }: NodeProps<FlowNodeData>) {
-  const nodeType = data.type
-  const style = nodeStyles[nodeType]
-  const Icon = style.icon
-
-  const isDecision = nodeType === 'decision'
-  const statusStyle = isDecision && data.status ? statusStyles[data.status] : null
-
-  const bgClass = statusStyle?.bg || style.bg
-  const borderClass = statusStyle?.border || style.border
-  const iconBgClass = statusStyle?.iconBg || style.iconBg
-  const glowClass = statusStyle?.glow || ''
-  const handleColor = statusStyle?.handleColor || style.handleColor
-
-  const taskProgress = data.tasks?.length
-    ? {
-        total: data.tasks.length,
-        done: data.tasks.filter(t => t.status === 'done').length,
-        inProgress: data.tasks.filter(t => t.status === 'in_progress').length,
-      }
-    : null
-
-  // Conflict: 붉은색 정적 표시 (애니메이션 제거)
-  const conflictRingClass = data.hasConflict
-    ? data.hasBlocker
-      ? 'ring-3 ring-red-500 shadow-[0_0_16px_rgba(239,68,68,0.3)]'
-      : 'ring-3 ring-red-400/60 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
-    : ''
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 미팅 노드 — 컴팩트 원형 + 라벨
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function MeetingNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
+  const SourceIcon = (data.sourceType && SOURCE_ICONS[data.sourceType]) || Calendar
 
   return (
-    <div
-      className={`
-        relative px-6 py-5 rounded-2xl border-2 min-w-[360px] max-w-[420px]
-        transition-all duration-200 cursor-pointer backdrop-blur-sm
-        ${bgClass} ${borderClass}
-        ${conflictRingClass}
-        ${selected ? `ring-2 ring-primary shadow-xl scale-105 ${glowClass}` : 'hover:shadow-lg hover:scale-[1.01]'}
-      `}
-    >
-      {/* 그라데이션 배경 */}
-      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${style.gradient} pointer-events-none`} />
+    <div className="flex flex-col items-center gap-2">
+      <Handle type="target" position={Position.Top} className="!w-3 !h-3 !border-2 !border-background !bg-blue-500" />
 
-      {/* 입력 핸들 */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        className={`!w-4 !h-4 !border-2 !border-background ${handleColor}`}
-      />
-
-      {/* 충돌/블로커 인디케이터 — 붉은색 정적 */}
-      {(data.hasConflict || data.hasBlocker) && (
-        <div className="absolute -top-2 -right-2 z-10">
-          <div className={`relative flex items-center justify-center w-8 h-8 rounded-full ${data.hasBlocker ? 'bg-red-500' : 'bg-red-400'} shadow-md`}>
-            <AlertTriangle className="h-4.5 w-4.5 text-white" />
-          </div>
-        </div>
-      )}
-
-      {/* 소스 타입 뱃지 */}
-      {data.sourceType && sourceTypeConfig[data.sourceType] && !(data.hasConflict || data.hasBlocker) && (
-        <div className="absolute top-3 right-3 z-10">
-          {(() => {
-            const cfg = sourceTypeConfig[data.sourceType!]
-            const SourceIcon = cfg.icon
-            return (
-              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${cfg.bg}`}>
-                <SourceIcon className={`h-4 w-4 ${cfg.text}`} />
-                <span className={`text-xs font-medium ${cfg.text}`}>{cfg.label}</span>
-              </div>
-            )
-          })()}
-        </div>
-      )}
-
-      {/* 노드 내용 */}
-      <div className="relative flex items-start gap-4">
-        {/* 아이콘 — 2배 크기 */}
-        <div className={`p-3.5 rounded-xl ${iconBgClass} shadow-sm`}>
-          <Icon className={`h-7 w-7 ${style.iconColor}`} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {/* 코드 및 상태 */}
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <span className="text-base font-mono font-bold text-primary">
-              {data.code}
-            </span>
-            {isDecision && data.status && statusStyle && (
-              <Badge
-                variant="outline"
-                className={`text-sm px-3 py-0.5 h-6 border ${statusStyle.badge}`}
-              >
-                {statusStyle.label}
-              </Badge>
-            )}
-          </div>
-
-          {/* 제목 — 2배 크기 */}
-          <p className="text-lg font-semibold leading-snug line-clamp-2" title={data.title}>
-            {data.title}
-          </p>
-
-          {/* 영역 뱃지 */}
-          {(() => {
-            const areaBadge = getAreaBadgeStyle(data.area)
-            return areaBadge ? (
-              <div className={`inline-flex items-center rounded-full px-3 py-1 mt-2 text-sm font-medium ${areaBadge.bg} ${areaBadge.text}`}>
-                {areaBadge.label}
-              </div>
-            ) : null
-          })()}
-
-          {/* 작업자 정보 */}
-          {(data.owner || (data.contributors && data.contributors.length > 0)) && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
-              {data.owner && (
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-7 w-7 ring-2 ring-primary/30">
-                    <AvatarFallback className="text-sm bg-primary/20 text-primary">
-                      {data.owner.name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm text-muted-foreground font-medium">
-                    {data.owner.name}
-                  </span>
-                </div>
-              )}
-              {data.contributors && data.contributors.length > 0 && (
-                <div className="flex items-center gap-1 ml-auto">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    +{data.contributors.length}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 태스크 진행률 — 크게 */}
-          {taskProgress && (
-            <div className="mt-3 pt-3 border-t border-border/30">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-                  <ListChecks className="h-4 w-4" />
-                  태스크
-                </span>
-                <span className="text-sm font-semibold">
-                  {taskProgress.done}/{taskProgress.total}
-                </span>
-              </div>
-              <div className="flex gap-0.5 h-3 rounded-full overflow-hidden bg-secondary/50">
-                {taskProgress.done > 0 && (
-                  <div
-                    className="bg-emerald-500 transition-all rounded-full"
-                    style={{ width: `${(taskProgress.done / taskProgress.total) * 100}%` }}
-                  />
-                )}
-                {taskProgress.inProgress > 0 && (
-                  <div
-                    className="bg-blue-500 transition-all rounded-full"
-                    style={{ width: `${(taskProgress.inProgress / taskProgress.total) * 100}%` }}
-                  />
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+      {/* 원형 아이콘 */}
+      <div
+        className={`
+          relative w-16 h-16 rounded-full flex items-center justify-center
+          bg-blue-500/10 border-2 border-blue-500/50
+          transition-all duration-150 cursor-pointer
+          ${selected ? 'ring-3 ring-blue-500 shadow-lg scale-110' : 'hover:shadow-md hover:scale-105'}
+        `}
+      >
+        <SourceIcon className="h-7 w-7 text-blue-500" />
       </div>
 
-      {/* 출력 핸들 */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className={`!w-4 !h-4 !border-2 !border-background ${handleColor}`}
-      />
+      {/* 라벨 */}
+      <div className="text-center max-w-[160px]">
+        <p className="text-xs font-mono font-bold text-blue-500">{data.code}</p>
+        <p className="text-sm font-medium leading-tight line-clamp-2 mt-0.5">{data.title}</p>
+      </div>
+
+      <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !border-2 !border-background !bg-blue-500" />
     </div>
   )
 }
 
-export const MeetingNode = memo((props: NodeProps<FlowNodeData>) => (
-  <BaseNode {...props} />
-))
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 결정 노드 — 카드형, 좌측 상태 바
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
+  const statusColor = data.status ? STATUS_COLORS[data.status] : null
+  const areaColor = data.area ? AREA_COLORS[data.area] : null
+  const barColor = statusColor?.bar || 'bg-zinc-300'
+
+  const taskProgress = data.tasks?.length
+    ? { total: data.tasks.length, done: data.tasks.filter(t => t.status === 'done').length }
+    : null
+
+  // 충돌: 붉은 좌측 바 + 아이콘
+  const hasIssue = data.hasConflict || data.hasBlocker
+  const conflictClass = hasIssue ? 'ring-2 ring-red-500/50' : ''
+
+  return (
+    <div
+      className={`
+        relative flex rounded-xl border border-border/60 bg-card
+        min-w-[280px] max-w-[340px] overflow-hidden
+        transition-all duration-150 cursor-pointer
+        ${conflictClass}
+        ${selected ? 'ring-2 ring-primary shadow-xl scale-[1.03]' : 'hover:shadow-md hover:border-border'}
+      `}
+    >
+      <Handle type="target" position={Position.Top} className={`!w-3 !h-3 !border-2 !border-background ${hasIssue ? '!bg-red-500' : '!bg-teal-500'}`} />
+
+      {/* 좌측 상태 컬러 바 */}
+      <div className={`w-1.5 shrink-0 ${hasIssue ? 'bg-red-500' : barColor}`} />
+
+      {/* 내용 */}
+      <div className="flex-1 px-4 py-3.5 min-w-0">
+        {/* 상단: 코드 + 상태 + 영역 */}
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-sm font-mono font-bold text-foreground/80">{data.code}</span>
+
+          {statusColor && (
+            <span className={`text-xs font-semibold ${statusColor.text}`}>
+              {statusColor.label}
+            </span>
+          )}
+
+          {areaColor && (
+            <span className="flex items-center gap-1 ml-auto">
+              <span className={`w-2 h-2 rounded-full ${areaColor.dot}`} />
+              <span className="text-xs text-muted-foreground">{areaColor.label}</span>
+            </span>
+          )}
+
+          {/* 충돌 아이콘 */}
+          {hasIssue && (
+            <AlertTriangle className="h-4 w-4 text-red-500 ml-auto shrink-0" />
+          )}
+        </div>
+
+        {/* 제목 */}
+        <p className="text-base font-semibold leading-snug line-clamp-2">{data.title}</p>
+
+        {/* 하단: 제안자 + 태스크 */}
+        <div className="flex items-center gap-3 mt-2.5 text-xs text-muted-foreground">
+          {data.owner && (
+            <span className="flex items-center gap-1">
+              <span className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold">
+                {data.owner.name.charAt(0)}
+              </span>
+              {data.owner.name}
+            </span>
+          )}
+
+          {taskProgress && (
+            <span className="flex items-center gap-1.5 ml-auto">
+              <span className="font-medium">{taskProgress.done}/{taskProgress.total}</span>
+              <div className="w-12 h-1.5 rounded-full bg-secondary overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full"
+                  style={{ width: `${taskProgress.total > 0 ? (taskProgress.done / taskProgress.total) * 100 : 0}%` }}
+                />
+              </div>
+            </span>
+          )}
+        </div>
+      </div>
+
+      <Handle type="source" position={Position.Bottom} className={`!w-3 !h-3 !border-2 !border-background ${hasIssue ? '!bg-red-500' : '!bg-teal-500'}`} />
+    </div>
+  )
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 기타 노드 (screen, github, slack) — 컴팩트 카드
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const OTHER_STYLES: Record<string, { icon: React.ElementType; color: string; border: string; handle: string }> = {
+  screen: { icon: MonitorSmartphone, color: 'text-purple-500', border: 'border-purple-500/40', handle: '!bg-purple-500' },
+  github: { icon: Github,           color: 'text-zinc-500',   border: 'border-zinc-500/40',   handle: '!bg-zinc-500' },
+  slack:  { icon: MessageSquare,     color: 'text-amber-500',  border: 'border-amber-500/40',  handle: '!bg-amber-500' },
+}
+
+function OtherNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
+  const s = OTHER_STYLES[data.type] || OTHER_STYLES.github
+  const Icon = s.icon
+
+  return (
+    <div
+      className={`
+        relative flex items-center gap-3 px-4 py-3 rounded-xl border bg-card
+        min-w-[200px] max-w-[280px]
+        transition-all duration-150 cursor-pointer
+        ${s.border}
+        ${selected ? 'ring-2 ring-primary shadow-lg scale-[1.03]' : 'hover:shadow-md'}
+      `}
+    >
+      <Handle type="target" position={Position.Top} className={`!w-3 !h-3 !border-2 !border-background ${s.handle}`} />
+      <Icon className={`h-5 w-5 ${s.color} shrink-0`} />
+      <div className="min-w-0">
+        <p className="text-xs font-mono font-bold text-muted-foreground">{data.code}</p>
+        <p className="text-sm font-medium leading-tight line-clamp-1">{data.title}</p>
+      </div>
+      <Handle type="source" position={Position.Bottom} className={`!w-3 !h-3 !border-2 !border-background ${s.handle}`} />
+    </div>
+  )
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Exports
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export const MeetingNode = memo(MeetingNodeInner)
 MeetingNode.displayName = 'MeetingNode'
 
-export const DecisionNode = memo((props: NodeProps<FlowNodeData>) => (
-  <BaseNode {...props} />
-))
+export const DecisionNode = memo(DecisionNodeInner)
 DecisionNode.displayName = 'DecisionNode'
 
-export const ScreenNode = memo((props: NodeProps<FlowNodeData>) => (
-  <BaseNode {...props} />
-))
+export const ScreenNode = memo(OtherNodeInner)
 ScreenNode.displayName = 'ScreenNode'
 
-export const GithubNode = memo((props: NodeProps<FlowNodeData>) => (
-  <BaseNode {...props} />
-))
+export const GithubNode = memo(OtherNodeInner)
 GithubNode.displayName = 'GithubNode'
 
-export const SlackNode = memo((props: NodeProps<FlowNodeData>) => (
-  <BaseNode {...props} />
-))
+export const SlackNode = memo(OtherNodeInner)
 SlackNode.displayName = 'SlackNode'
 
 export const nodeTypes = {

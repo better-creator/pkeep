@@ -112,9 +112,9 @@ export default function ConflictsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-stone-800">충돌 감지</h1>
+        <h1 className="text-2xl font-bold text-stone-800">이슈 감지</h1>
         <p className="text-sm text-stone-500 mt-1">
-          결정 간 충돌을 확인하고 해결하세요
+          결정 간 이슈을 확인하고 해결하세요
         </p>
       </div>
 
@@ -126,7 +126,7 @@ export default function ConflictsPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-stone-800">{unresolvedCount}</p>
-            <p className="text-[11px] text-stone-400">미해결 충돌</p>
+            <p className="text-[11px] text-stone-400">미해결 이슈</p>
           </div>
         </div>
         <div className="card-soft px-4 py-3 flex items-center gap-3">
@@ -146,18 +146,18 @@ export default function ConflictsPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-stone-800">{activeConflicts.length}</p>
-            <p className="text-[11px] text-stone-400">전체 충돌</p>
+            <p className="text-[11px] text-stone-400">전체 이슈</p>
           </div>
         </div>
       </div>
 
       {/* Active Conflicts */}
       <div className="space-y-4">
-        <h2 className="font-semibold text-stone-700 text-sm">활성 충돌</h2>
+        <h2 className="font-semibold text-stone-700 text-sm">활성 이슈</h2>
 
         {activeConflicts.length === 0 ? (
           <div className="card-soft p-8 text-center text-stone-400 text-sm">
-            감지된 충돌이 없습니다.
+            감지된 이슈이 없습니다.
           </div>
         ) : (
           activeConflicts.map(conflict => {

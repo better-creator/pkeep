@@ -128,7 +128,7 @@ export function AppSidebar() {
       href: `/${teamId}/${projectId}/decisions`,
     },
     {
-      title: "충돌",
+      title: "이슈",
       icon: AlertTriangle,
       href: `/${teamId}/${projectId}/conflicts`,
       badge: unresolvedCount,

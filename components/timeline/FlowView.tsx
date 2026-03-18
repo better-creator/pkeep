@@ -12,158 +12,131 @@ import ReactFlow, {
   MarkerType,
   Panel,
 } from 'reactflow'
+import dagre from 'dagre'
 import 'reactflow/dist/style.css'
 import {
   Filter, Calendar, GitBranch, MonitorSmartphone, Github as GithubIcon,
   MessageSquare, Mic, BookOpen, Phone, Mail, FileText, X,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
 import { nodeTypes, FlowNodeData, FlowNodeType } from './FlowNodes'
 import { ContextCard, ContextCardData } from '@/components/context-card'
-import { TimelineItem, relationColors, ConnectionRelation, Task } from './types'
+import { TimelineItem, relationColors, ConnectionRelation } from './types'
 
 interface FlowViewProps {
   items: TimelineItem[]
 }
 
-// 바둑판(그리드) 레이아웃 — 노드를 격자형으로 배치
-const nodeWidth = 380
-const nodeHeight = 220
+// ─── Dagre 레이아웃 (TB: 위→아래 흐름) ───
+function getLayoutedElements(nodes: Node[], edges: Edge[]) {
+  const g = new dagre.graphlib.Graph()
+  g.setDefaultEdgeLabel(() => ({}))
+  g.setGraph({ rankdir: 'TB', nodesep: 80, ranksep: 100, align: 'UL' })
 
-function getGridLayout(nodes: Node[], edges: Edge[], columns = 3) {
-  const gap = 60
-  const layoutedNodes = nodes.map((node, index) => {
-    const col = index % columns
-    const row = Math.floor(index / columns)
-    return {
-      ...node,
-      position: {
-        x: col * (nodeWidth + gap),
-        y: row * (nodeHeight + gap),
-      },
-    }
+  nodes.forEach((node) => {
+    // 미팅 노드는 작게, 결정 노드는 카드 크기
+    const isMeeting = node.type === 'meeting'
+    g.setNode(node.id, {
+      width: isMeeting ? 180 : 320,
+      height: isMeeting ? 120 : 140,
+    })
   })
-  return { nodes: layoutedNodes, edges }
-}
 
-// 관계별 엣지 스타일
-function getEdgeStyle(relation: ConnectionRelation) {
-  const color = relationColors[relation] || '#888'
-  return { stroke: color, strokeWidth: 2 }
-}
+  edges.forEach((edge) => g.setEdge(edge.source, edge.target))
+  dagre.layout(g)
 
-function getEdgeLabel(relation: string): string {
-  const labels: Record<string, string> = {
-    created_from: '생성',
-    changed_by: '변경',
-    implemented_in: '구현',
-    discussed_in: '논의',
-    affects: '적용',
+  return {
+    nodes: nodes.map((node) => {
+      const pos = g.node(node.id)
+      const isMeeting = node.type === 'meeting'
+      const w = isMeeting ? 180 : 320
+      const h = isMeeting ? 120 : 140
+      return { ...node, position: { x: pos.x - w / 2, y: pos.y - h / 2 } }
+    }),
+    edges,
   }
-  return labels[relation] || relation
 }
 
-// TimelineItem을 Flow 노드/엣지로 변환
+// ─── 엣지 스타일 ───
+function getEdgeStyle(relation: ConnectionRelation) {
+  return { stroke: relationColors[relation] || '#888', strokeWidth: 2 }
+}
+
+const EDGE_LABELS: Record<string, string> = {
+  created_from: '생성', changed_by: '변경', implemented_in: '구현',
+  discussed_in: '논의', affects: '적용',
+}
+
+// ─── 변환 ───
 function convertToFlowElements(items: TimelineItem[], highlightedIds?: Set<string>) {
   const nodes: Node<FlowNodeData>[] = []
   const edges: Edge[] = []
-  const nodeMap = new Map<string, string>()
+  const codeToId = new Map<string, string>()
 
   items.forEach((item) => {
-    const nodeId = item.id
-    nodeMap.set(item.code, nodeId)
-
-    const isHighlighted = !highlightedIds || highlightedIds.has(nodeId)
+    codeToId.set(item.code, item.id)
+    const on = !highlightedIds || highlightedIds.has(item.id)
 
     nodes.push({
-      id: nodeId,
+      id: item.id,
       type: item.type as FlowNodeType,
       data: {
-        code: item.code,
-        title: item.title,
-        description: item.description,
-        status: item.status,
-        type: item.type as FlowNodeType,
-        owner: item.owner,
-        contributors: item.contributors,
-        tasks: item.tasks,
-        area: item.area,
-        sourceType: item.sourceType,
-        hasConflict: item.hasConflict,
-        hasBlocker: item.hasBlocker,
+        code: item.code, title: item.title, description: item.description,
+        status: item.status, type: item.type as FlowNodeType,
+        owner: item.owner, contributors: item.contributors,
+        tasks: item.tasks, area: item.area, sourceType: item.sourceType,
+        hasConflict: item.hasConflict, hasBlocker: item.hasBlocker,
       },
       position: { x: 0, y: 0 },
-      style: isHighlighted ? {} : { opacity: 0.15 },
+      style: on ? {} : { opacity: 0.15 },
     })
   })
 
   items.forEach((item) => {
-    const sourceId = item.id
+    item.connections.sources.forEach((src) => {
+      const from = codeToId.get(src.code)
+      if (!from) return
+      const id = `e-${from}-${item.id}`
+      if (edges.find(e => e.id === id)) return
 
-    item.connections.sources.forEach((source) => {
-      const targetNodeId = nodeMap.get(source.code)
-      if (targetNodeId) {
-        const edgeId = `e-${targetNodeId}-${sourceId}`
-        if (!edges.find(e => e.id === edgeId)) {
-          const edgeStyle = getEdgeStyle(source.relation)
-          const isHighlighted = !highlightedIds || (highlightedIds.has(sourceId) && highlightedIds.has(targetNodeId))
+      const style = getEdgeStyle(src.relation)
+      const on = !highlightedIds || (highlightedIds.has(item.id) && highlightedIds.has(from))
 
-          edges.push({
-            id: edgeId,
-            source: targetNodeId,
-            target: sourceId,
-            label: getEdgeLabel(source.relation),
-            animated: source.relation === 'implemented_in' || source.relation === 'affects',
-            style: {
-              ...edgeStyle,
-              opacity: isHighlighted ? 1 : 0.1,
-            },
-            labelStyle: {
-              fontSize: 12,
-              fill: edgeStyle.stroke,
-              fontWeight: 600,
-              opacity: isHighlighted ? 1 : 0.2,
-            },
-            labelBgStyle: {
-              fill: 'hsl(var(--background))',
-              fillOpacity: isHighlighted ? 0.9 : 0.2,
-            },
-            labelBgPadding: [8, 5] as [number, number],
-            labelBgBorderRadius: 6,
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              color: edgeStyle.stroke,
-              width: 20,
-              height: 20,
-            },
-          })
-        }
-      }
+      edges.push({
+        id, source: from, target: item.id,
+        label: EDGE_LABELS[src.relation] || src.relation,
+        animated: src.relation === 'changed_by',
+        style: { ...style, opacity: on ? 0.7 : 0.1 },
+        labelStyle: { fontSize: 11, fill: style.stroke, fontWeight: 600, opacity: on ? 1 : 0.2 },
+        labelBgStyle: { fill: 'hsl(var(--background))', fillOpacity: on ? 0.85 : 0.2 },
+        labelBgPadding: [6, 3] as [number, number],
+        labelBgBorderRadius: 4,
+        markerEnd: { type: MarkerType.ArrowClosed, color: style.stroke, width: 16, height: 16 },
+      })
     })
   })
 
   return { nodes, edges }
 }
 
-// 필터 옵션 타입
+// ─── 필터 타입 ───
 type NodeTypeFilter = 'all' | FlowNodeType
 type AreaFilter = 'all' | '기획' | '디자인' | '개발'
 type SourceTypeFilter = 'all' | 'meeting' | 'slack' | 'notion' | 'call' | 'email' | 'document' | 'text'
 
-const NODE_TYPE_OPTIONS: { value: NodeTypeFilter; label: string; icon: React.ElementType; color: string }[] = [
-  { value: 'meeting', label: '미팅', icon: Calendar, color: 'bg-blue-500' },
-  { value: 'decision', label: '결정', icon: GitBranch, color: 'bg-teal-500' },
-  { value: 'screen', label: '화면', icon: MonitorSmartphone, color: 'bg-purple-500' },
-  { value: 'github', label: 'Github', icon: GithubIcon, color: 'bg-zinc-600' },
-  { value: 'slack', label: 'Slack', icon: MessageSquare, color: 'bg-amber-500' },
+const NODE_TYPE_OPTIONS: { value: NodeTypeFilter; label: string; icon: React.ElementType }[] = [
+  { value: 'meeting', label: '미팅', icon: Calendar },
+  { value: 'decision', label: '결정', icon: GitBranch },
+  { value: 'screen', label: '화면', icon: MonitorSmartphone },
+  { value: 'github', label: 'Github', icon: GithubIcon },
+  { value: 'slack', label: 'Slack', icon: MessageSquare },
 ]
 
-const AREA_OPTIONS: { value: AreaFilter; label: string; color: string }[] = [
-  { value: '기획', label: '기획', color: 'bg-purple-500' },
-  { value: '디자인', label: '디자인', color: 'bg-pink-500' },
-  { value: '개발', label: '개발', color: 'bg-sky-500' },
+const AREA_OPTIONS: { value: AreaFilter; label: string; dot: string }[] = [
+  { value: '기획', label: '기획', dot: 'bg-purple-500' },
+  { value: '디자인', label: '디자인', dot: 'bg-pink-500' },
+  { value: '개발', label: '개발', dot: 'bg-sky-500' },
 ]
 
 const SOURCE_TYPE_OPTIONS: { value: SourceTypeFilter; label: string; icon: React.ElementType }[] = [
@@ -176,75 +149,58 @@ const SOURCE_TYPE_OPTIONS: { value: SourceTypeFilter; label: string; icon: React
   { value: 'text', label: '텍스트', icon: FileText },
 ]
 
-const normalizeArea = (area?: string) => {
-  switch (area) {
-    case 'planning': return '기획'
-    case 'design': return '디자인'
-    case 'dev': return '개발'
-    default: return area || ''
-  }
+const norm = (a?: string) => {
+  if (a === 'planning') return '기획'
+  if (a === 'design') return '디자인'
+  if (a === 'dev') return '개발'
+  return a || ''
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FlowView
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export function FlowView({ items }: FlowViewProps) {
   const [nodeTypeFilter, setNodeTypeFilter] = useState<NodeTypeFilter>('all')
   const [areaFilter, setAreaFilter] = useState<AreaFilter>('all')
   const [sourceTypeFilter, setSourceTypeFilter] = useState<SourceTypeFilter>('all')
-
   const [contextCardOpen, setContextCardOpen] = useState(false)
   const [contextCardData, setContextCardData] = useState<ContextCardData | null>(null)
 
-  // 존재하는 필터 옵션만 표시
-  const existingNodeTypes = useMemo(() => {
+  const existing = useMemo(() => {
     const types = new Set<string>(items.map(i => i.type))
-    return NODE_TYPE_OPTIONS.filter(opt => types.has(opt.value))
-  }, [items])
-
-  const existingAreas = useMemo(() => {
-    const areas = new Set(items.map(i => normalizeArea(i.area)).filter(Boolean))
-    return AREA_OPTIONS.filter(opt => areas.has(opt.value))
-  }, [items])
-
-  const existingSourceTypes = useMemo(() => {
+    const areas = new Set(items.map(i => norm(i.area)).filter(Boolean))
     const sources = new Set(items.map(i => i.sourceType).filter(Boolean))
-    return SOURCE_TYPE_OPTIONS.filter(opt => sources.has(opt.value))
+    return {
+      nodeTypes: NODE_TYPE_OPTIONS.filter(o => types.has(o.value)),
+      areas: AREA_OPTIONS.filter(o => areas.has(o.value)),
+      sources: SOURCE_TYPE_OPTIONS.filter(o => sources.has(o.value as string)),
+    }
   }, [items])
 
-  const hasActiveFilter = nodeTypeFilter !== 'all' || areaFilter !== 'all' || sourceTypeFilter !== 'all'
+  const hasFilter = nodeTypeFilter !== 'all' || areaFilter !== 'all' || sourceTypeFilter !== 'all'
 
-  // 필터링된 하이라이트 ID
   const highlightedIds = useMemo(() => {
-    if (!hasActiveFilter) return undefined
-
+    if (!hasFilter) return undefined
     const ids = new Set<string>()
     items.forEach(item => {
-      let match = true
-      if (nodeTypeFilter !== 'all' && item.type !== nodeTypeFilter) match = false
-      if (areaFilter !== 'all' && normalizeArea(item.area) !== areaFilter && item.type !== 'meeting') match = false
-      if (sourceTypeFilter !== 'all' && item.sourceType !== sourceTypeFilter) match = false
-      if (match) ids.add(item.id)
+      let ok = true
+      if (nodeTypeFilter !== 'all' && item.type !== nodeTypeFilter) ok = false
+      if (areaFilter !== 'all' && norm(item.area) !== areaFilter && item.type !== 'meeting') ok = false
+      if (sourceTypeFilter !== 'all' && item.sourceType !== sourceTypeFilter) ok = false
+      if (ok) ids.add(item.id)
     })
     return ids
-  }, [items, nodeTypeFilter, areaFilter, sourceTypeFilter, hasActiveFilter])
+  }, [items, nodeTypeFilter, areaFilter, sourceTypeFilter, hasFilter])
 
-  // 그리드 컬럼 수 계산
-  const columns = useMemo(() => {
-    const count = items.length
-    if (count <= 2) return 2
-    if (count <= 6) return 3
-    return 4
-  }, [items.length])
-
-  // 노드와 엣지 생성 및 그리드 레이아웃
   const { initialNodes, initialEdges } = useMemo(() => {
-    const { nodes, edges } = convertToFlowElements(items, highlightedIds)
-    const layouted = getGridLayout(nodes, edges, columns)
-    return { initialNodes: layouted.nodes, initialEdges: layouted.edges }
-  }, [items, highlightedIds, columns])
+    const { nodes: rawNodes, edges: rawEdges } = convertToFlowElements(items, highlightedIds)
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rawNodes, rawEdges)
+    return { initialNodes: layoutedNodes, initialEdges: layoutedEdges }
+  }, [items, highlightedIds])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-  // initialNodes/initialEdges가 바뀌면 동기화
   useEffect(() => {
     setNodes(initialNodes)
     setEdges(initialEdges)
@@ -252,175 +208,96 @@ export function FlowView({ items }: FlowViewProps) {
 
   const loadContextData = useCallback(async (itemId: string) => {
     try {
-      const response = await fetch(`/api/items/${itemId}/context`)
-      if (response.ok) {
-        const data = await response.json()
-        setContextCardData(data)
-        setContextCardOpen(true)
-      }
-    } catch (error) {
-      console.error('Error loading context data:', error)
-    }
+      const res = await fetch(`/api/items/${itemId}/context`)
+      if (res.ok) { setContextCardData(await res.json()); setContextCardOpen(true) }
+    } catch {}
   }, [])
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node<FlowNodeData>) => {
     loadContextData(node.id)
   }, [loadContextData])
 
-  const handleContextNavigate = useCallback((itemId: string) => {
-    loadContextData(itemId)
-  }, [loadContextData])
-
-  const handleViewInFlow = useCallback((itemId: string) => {
-    console.log('Focus on node:', itemId)
-  }, [])
+  // ─── 필터 버튼 컴포넌트 ───
+  const FilterBtn = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors
+        ${active ? 'bg-foreground text-background' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
+    >
+      {children}
+    </button>
+  )
 
   return (
     <div className="h-[calc(100vh-120px)] min-h-[500px] flex flex-col overflow-hidden">
-      {/* 상단 필터바 */}
-      <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-border/30 bg-muted/20 flex-wrap">
-        <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+      {/* ─── 상단 필터바 ─── */}
+      <div className="shrink-0 flex items-center gap-2.5 px-4 py-2.5 border-b border-border/30 bg-muted/10 flex-wrap">
+        <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
 
-        {/* 노드 타입 필터 */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground font-medium mr-1">타입</span>
-          {existingNodeTypes.map((opt) => {
-            const active = nodeTypeFilter === opt.value
-            const OptIcon = opt.icon
-            return (
-              <button
-                key={opt.value}
-                onClick={() => setNodeTypeFilter(active ? 'all' : opt.value)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
-                  ${active
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
-                  }`}
-              >
-                <OptIcon className="h-3.5 w-3.5" />
-                {opt.label}
-              </button>
-            )
-          })}
-        </div>
+        {existing.nodeTypes.map(o => (
+          <FilterBtn key={o.value} active={nodeTypeFilter === o.value} onClick={() => setNodeTypeFilter(nodeTypeFilter === o.value ? 'all' : o.value)}>
+            <o.icon className="h-3.5 w-3.5" />{o.label}
+          </FilterBtn>
+        ))}
 
-        <div className="w-px h-5 bg-border/50" />
-
-        {/* 영역 필터 */}
-        {existingAreas.length > 0 && (
+        {existing.areas.length > 0 && (
           <>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground font-medium mr-1">영역</span>
-              {existingAreas.map((opt) => {
-                const active = areaFilter === opt.value
-                return (
-                  <button
-                    key={opt.value}
-                    onClick={() => setAreaFilter(active ? 'all' : opt.value)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
-                      ${active
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
-                      }`}
-                  >
-                    <div className={`w-2.5 h-2.5 rounded-full ${opt.color}`} />
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="w-px h-5 bg-border/50" />
+            <div className="w-px h-4 bg-border/40" />
+            {existing.areas.map(o => (
+              <FilterBtn key={o.value} active={areaFilter === o.value} onClick={() => setAreaFilter(areaFilter === o.value ? 'all' : o.value)}>
+                <span className={`w-2 h-2 rounded-full ${o.dot}`} />{o.label}
+              </FilterBtn>
+            ))}
           </>
         )}
 
-        {/* 소스 타입 필터 */}
-        {existingSourceTypes.length > 0 && (
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground font-medium mr-1">소스</span>
-            {existingSourceTypes.map((opt) => {
-              const active = sourceTypeFilter === opt.value
-              const OptIcon = opt.icon
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setSourceTypeFilter(active ? 'all' : opt.value)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
-                    ${active
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
-                    }`}
-                >
-                  <OptIcon className="h-3.5 w-3.5" />
-                  {opt.label}
-                </button>
-              )
-            })}
-          </div>
+        {existing.sources.length > 0 && (
+          <>
+            <div className="w-px h-4 bg-border/40" />
+            {existing.sources.map(o => (
+              <FilterBtn key={o.value} active={sourceTypeFilter === o.value} onClick={() => setSourceTypeFilter(sourceTypeFilter === o.value ? 'all' : o.value)}>
+                <o.icon className="h-3.5 w-3.5" />{o.label}
+              </FilterBtn>
+            ))}
+          </>
         )}
 
-        {/* 필터 초기화 */}
-        {hasActiveFilter && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs text-muted-foreground ml-auto"
-            onClick={() => {
-              setNodeTypeFilter('all')
-              setAreaFilter('all')
-              setSourceTypeFilter('all')
-            }}
-          >
-            <X className="h-3.5 w-3.5 mr-1" />
-            초기화
+        {hasFilter && (
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground ml-auto"
+            onClick={() => { setNodeTypeFilter('all'); setAreaFilter('all'); setSourceTypeFilter('all') }}>
+            <X className="h-3 w-3 mr-1" />초기화
           </Button>
         )}
       </div>
 
-      {/* ReactFlow 캔버스 */}
+      {/* ─── 캔버스 ─── */}
       <div className="flex-1">
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
+          nodes={nodes} edges={edges}
+          onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.3 }}
-          minZoom={0.2}
-          maxZoom={1.5}
+          fitView fitViewOptions={{ padding: 0.4 }}
+          minZoom={0.15} maxZoom={2}
           attributionPosition="bottom-left"
           proOptions={{ hideAttribution: true }}
         >
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={24}
-            size={1}
-            color="hsl(var(--border))"
-          />
-          <Controls
-            className="!bg-secondary/80 !border-border/50 !rounded-xl overflow-hidden"
-            showInteractive={false}
-          />
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="hsl(var(--border) / 0.5)" />
+          <Controls className="!bg-secondary/80 !border-border/50 !rounded-xl overflow-hidden" showInteractive={false} />
 
-          {/* 안내 */}
-          <Panel position="bottom-right" className="!m-4">
-            <div className="bg-background/95 backdrop-blur-sm rounded-xl border border-border/50 px-4 py-2.5 shadow-lg">
-              <p className="text-xs text-muted-foreground">
-                노드 클릭 → 상세 정보 • 드래그 → 이동 • 스크롤 → 확대/축소
-              </p>
+          <Panel position="bottom-right" className="!m-3">
+            <div className="bg-background/90 backdrop-blur rounded-lg border border-border/40 px-3 py-1.5 shadow">
+              <p className="text-[11px] text-muted-foreground">클릭 → 상세 • 드래그 → 이동 • 스크롤 → 줌</p>
             </div>
           </Panel>
         </ReactFlow>
       </div>
 
-      {/* 맥락 카드 */}
       <ContextCard
-        open={contextCardOpen}
-        onOpenChange={setContextCardOpen}
+        open={contextCardOpen} onOpenChange={setContextCardOpen}
         data={contextCardData}
-        onNavigate={handleContextNavigate}
-        onViewInFlow={handleViewInFlow}
+        onNavigate={(id) => loadContextData(id)}
+        onViewInFlow={() => {}}
       />
     </div>
   )
