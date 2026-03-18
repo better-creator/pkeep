@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { CircleDot, FileText, List, Network } from 'lucide-react'
-import { FlowView as FlowViewComponent } from '@/components/timeline/FlowView'
+import { FlowListView, FlowMapView } from '@/components/timeline/FlowView'
 import type { TimelineItem as TLItem } from '@/components/timeline/types'
 
 // ---------------------------------------------------------------------------
@@ -449,27 +449,18 @@ function buildTimelineItems(meetings: Meeting[], decisions: Decision[]): TLItem[
   return items
 }
 
-/** Map View — renders the FlowView component directly */
-function MapView({
-  decisions,
-  meetings,
-}: {
-  decisions: Decision[]
-  meetings: Meeting[]
-}) {
+/** List View Wrapper — 미팅별 그룹 리스트 */
+function ListViewWrapper({ decisions, meetings }: { decisions: Decision[]; meetings: Meeting[] }) {
   const timelineItems = useMemo(() => buildTimelineItems(meetings, decisions), [meetings, decisions])
+  if (decisions.length === 0) return <div className="flex-1 overflow-auto p-6"><EmptyState /></div>
+  return <div className="flex-1 overflow-hidden"><FlowListView items={timelineItems} /></div>
+}
 
-  if (decisions.length === 0) {
-    return <div className="flex-1 overflow-auto p-6"><EmptyState /></div>
-  }
-
-  return (
-    <div className="flex-1 overflow-hidden">
-      <div className="h-full">
-        <FlowViewComponent items={timelineItems} />
-      </div>
-    </div>
-  )
+/** Map View Wrapper — ReactFlow 노드 맵 */
+function MapViewWrapper({ decisions, meetings }: { decisions: Decision[]; meetings: Meeting[] }) {
+  const timelineItems = useMemo(() => buildTimelineItems(meetings, decisions), [meetings, decisions])
+  if (decisions.length === 0) return <div className="flex-1 overflow-auto p-6"><EmptyState /></div>
+  return <div className="flex-1 overflow-hidden"><FlowMapView items={timelineItems} /></div>
 }
 
 function EmptyState() {
@@ -581,20 +572,9 @@ export default function DecisionsPage() {
 
       {/* View content */}
       {viewMode === 'list' ? (
-        <ListView
-          decisions={decisions}
-          filtered={filtered}
-          statusFilter={statusFilter}
-          areaFilter={areaFilter}
-          setStatusFilter={setStatusFilter}
-          setAreaFilter={setAreaFilter}
-          onStatusChange={handleStatusChange}
-        />
+        <ListViewWrapper decisions={decisions} meetings={meetings} />
       ) : (
-        <MapView
-          decisions={decisions}
-          meetings={meetings}
-        />
+        <MapViewWrapper decisions={decisions} meetings={meetings} />
       )}
     </div>
   )

@@ -1,22 +1,23 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
+import ReactFlow, {
+  Node, Edge, Controls, Background, BackgroundVariant,
+  useNodesState, useEdgesState, MarkerType,
+} from 'reactflow'
+import dagre from 'dagre'
+import 'reactflow/dist/style.css'
 import {
-  Filter, Calendar, GitBranch, MonitorSmartphone, Github as GithubIcon,
-  MessageSquare, Mic, BookOpen, Phone, Mail, FileText, X,
-  AlertTriangle, ChevronRight, ListChecks, ArrowRight,
+  Filter, Calendar, GitBranch, Mic, BookOpen, Phone, Mail, FileText, X,
+  AlertTriangle, ListChecks, ArrowRight, MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { TimelineItem } from './types'
+import { nodeTypes, FlowNodeData, FlowNodeType } from './FlowNodes'
+import { TimelineItem, relationColors, ConnectionRelation } from './types'
 
-interface FlowViewProps {
-  items: TimelineItem[]
-}
-
-// ─── 필터 ───
-type NodeTypeFilter = 'all' | string
-type AreaFilter = 'all' | '기획' | '디자인' | '개발'
-
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Shared filter logic
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const norm = (a?: string) => {
   if (a === 'planning') return '기획'
   if (a === 'design') return '디자인'
@@ -24,21 +25,24 @@ const norm = (a?: string) => {
   return a || ''
 }
 
-const STATUS: Record<string, { color: string; bg: string; label: string }> = {
-  confirmed: { color: 'text-emerald-600', bg: 'bg-emerald-500', label: '확정' },
-  changed:   { color: 'text-amber-600',   bg: 'bg-amber-500',   label: '변경' },
-  pending:   { color: 'text-zinc-500',     bg: 'bg-zinc-400',    label: '보류' },
-  rejected:  { color: 'text-red-600',      bg: 'bg-red-500',     label: '기각' },
-  hold:      { color: 'text-zinc-500',     bg: 'bg-zinc-400',    label: '보류' },
+const STATUS: Record<string, { bg: string; color: string; label: string }> = {
+  confirmed: { bg: 'bg-emerald-500', color: 'text-emerald-600', label: '확정' },
+  changed:   { bg: 'bg-amber-500',   color: 'text-amber-600',   label: '변경' },
+  pending:   { bg: 'bg-zinc-400',     color: 'text-zinc-500',    label: '보류' },
+  rejected:  { bg: 'bg-red-500',      color: 'text-red-600',     label: '기각' },
+  hold:      { bg: 'bg-zinc-400',     color: 'text-zinc-500',    label: '보류' },
 }
 
+const AREA_OPTIONS: { value: string; label: string; dot: string }[] = [
+  { value: '기획', label: '기획', dot: 'bg-purple-500' },
+  { value: '디자인', label: '디자인', dot: 'bg-pink-500' },
+  { value: '개발', label: '개발', dot: 'bg-sky-500' },
+]
+
 const AREA_STYLE: Record<string, { dot: string; label: string }> = {
-  planning: { dot: 'bg-purple-500', label: '기획' },
-  '기획':   { dot: 'bg-purple-500', label: '기획' },
-  design:   { dot: 'bg-pink-500',   label: '디자인' },
-  '디자인': { dot: 'bg-pink-500',   label: '디자인' },
-  dev:      { dot: 'bg-sky-500',    label: '개발' },
-  '개발':   { dot: 'bg-sky-500',    label: '개발' },
+  planning: { dot: 'bg-purple-500', label: '기획' }, '기획': { dot: 'bg-purple-500', label: '기획' },
+  design: { dot: 'bg-pink-500', label: '디자인' }, '디자인': { dot: 'bg-pink-500', label: '디자인' },
+  dev: { dot: 'bg-sky-500', label: '개발' }, '개발': { dot: 'bg-sky-500', label: '개발' },
 }
 
 const SOURCE_ICON: Record<string, React.ElementType> = {
@@ -46,247 +50,292 @@ const SOURCE_ICON: Record<string, React.ElementType> = {
   call: Phone, email: Mail, document: FileText, text: FileText,
 }
 
-const AREA_OPTIONS: { value: AreaFilter; label: string; dot: string }[] = [
-  { value: '기획', label: '기획', dot: 'bg-purple-500' },
-  { value: '디자인', label: '디자인', dot: 'bg-pink-500' },
-  { value: '개발', label: '개발', dot: 'bg-sky-500' },
-]
+type AreaFilter = 'all' | string
+type StatusFilter = 'all' | string
 
-export function FlowView({ items }: FlowViewProps) {
-  const [areaFilter, setAreaFilter] = useState<AreaFilter>('all')
+function FilterBar({ areaFilter, setAreaFilter, statusFilter, setStatusFilter, items }: {
+  areaFilter: string; setAreaFilter: (v: string) => void
+  statusFilter: string; setStatusFilter: (v: string) => void
+  items: TimelineItem[]
+}) {
+  const decisions = items.filter(i => i.type === 'decision')
+  const existingAreas = useMemo(() => {
+    const s = new Set(decisions.map(d => norm(d.area)).filter(Boolean))
+    return AREA_OPTIONS.filter(o => s.has(o.value))
+  }, [decisions])
+  const existingStatuses = useMemo(() => {
+    const s = new Set<string>(decisions.map(d => d.status).filter(Boolean) as string[])
+    return Object.entries(STATUS).filter(([k]) => s.has(k))
+  }, [decisions])
+  const hasFilter = areaFilter !== 'all' || statusFilter !== 'all'
+
+  return (
+    <div className="shrink-0 flex items-center gap-2 px-5 py-2.5 border-b border-border/30 bg-muted/10 flex-wrap">
+      <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+      {existingStatuses.map(([k, s]) => (
+        <button key={k} onClick={() => setStatusFilter(statusFilter === k ? 'all' : k)}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors
+            ${statusFilter === k ? 'bg-foreground text-background' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}>
+          <span className={`w-2 h-2 rounded-full ${s.bg}`} />{s.label}
+        </button>
+      ))}
+      {existingAreas.length > 0 && <div className="w-px h-4 bg-border/40" />}
+      {existingAreas.map(o => (
+        <button key={o.value} onClick={() => setAreaFilter(areaFilter === o.value ? 'all' : o.value)}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors
+            ${areaFilter === o.value ? 'bg-foreground text-background' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}>
+          <span className={`w-2 h-2 rounded-full ${o.dot}`} />{o.label}
+        </button>
+      ))}
+      {hasFilter && (
+        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground ml-auto"
+          onClick={() => { setAreaFilter('all'); setStatusFilter('all') }}>
+          <X className="h-3 w-3 mr-1" />초기화
+        </Button>
+      )}
+    </div>
+  )
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LIST VIEW — 미팅별 그룹 + 결정 카드
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export function FlowListView({ items }: { items: TimelineItem[] }) {
+  const [areaFilter, setAreaFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
-  // 미팅과 결정 분리
   const meetings = useMemo(() => items.filter(i => i.type === 'meeting'), [items])
   const decisions = useMemo(() => items.filter(i => i.type === 'decision'), [items])
 
-  // 미팅별 결정 그룹
   const grouped = useMemo(() => {
-    return meetings.map(mtg => {
-      const relatedDecs = decisions.filter(d =>
+    return meetings.map(mtg => ({
+      meeting: mtg,
+      decisions: decisions.filter(d =>
         d.connections.sources.some(s => s.code === mtg.code)
-      )
-      return { meeting: mtg, decisions: relatedDecs }
-    })
-  }, [meetings, decisions])
-
-  // 존재하는 영역/상태
-  const existingAreas = useMemo(() => {
-    const areas = new Set(decisions.map(d => norm(d.area)).filter(Boolean))
-    return AREA_OPTIONS.filter(o => areas.has(o.value))
-  }, [decisions])
-
-  const existingStatuses = useMemo(() => {
-    const statuses = new Set<string>(decisions.map(d => d.status).filter(Boolean) as string[])
-    return Object.entries(STATUS).filter(([k]) => statuses.has(k))
-  }, [decisions])
-
-  // 필터 적용
-  const filteredGrouped = useMemo(() => {
-    return grouped.map(g => ({
-      ...g,
-      decisions: g.decisions.filter(d => {
+      ).filter(d => {
         if (areaFilter !== 'all' && norm(d.area) !== areaFilter) return false
         if (statusFilter !== 'all' && d.status !== statusFilter) return false
         return true
       }),
     })).filter(g => g.decisions.length > 0 || (areaFilter === 'all' && statusFilter === 'all'))
-  }, [grouped, areaFilter, statusFilter])
-
-  const hasFilter = areaFilter !== 'all' || statusFilter !== 'all'
-  const totalDecisions = decisions.length
-  const filteredCount = filteredGrouped.reduce((sum, g) => sum + g.decisions.length, 0)
+  }, [meetings, decisions, areaFilter, statusFilter])
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* ─── 필터바 ─── */}
-      <div className="shrink-0 flex items-center gap-2.5 px-5 py-3 border-b border-border/30 bg-muted/10 flex-wrap">
-        <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-
-        {/* 상태 필터 */}
-        {existingStatuses.map(([key, s]) => (
-          <button
-            key={key}
-            onClick={() => setStatusFilter(statusFilter === key ? 'all' : key)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors
-              ${statusFilter === key ? 'bg-foreground text-background' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
-          >
-            <span className={`w-2 h-2 rounded-full ${s.bg}`} />
-            {s.label}
-          </button>
-        ))}
-
-        {existingAreas.length > 0 && <div className="w-px h-4 bg-border/40" />}
-
-        {/* 영역 필터 */}
-        {existingAreas.map(o => (
-          <button
-            key={o.value}
-            onClick={() => setAreaFilter(areaFilter === o.value ? 'all' : o.value)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors
-              ${areaFilter === o.value ? 'bg-foreground text-background' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
-          >
-            <span className={`w-2 h-2 rounded-full ${o.dot}`} />
-            {o.label}
-          </button>
-        ))}
-
-        {hasFilter && (
-          <>
-            <span className="text-xs text-muted-foreground ml-2">{filteredCount}/{totalDecisions}</span>
-            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground ml-auto"
-              onClick={() => { setAreaFilter('all'); setStatusFilter('all') }}>
-              <X className="h-3 w-3 mr-1" />초기화
-            </Button>
-          </>
-        )}
-      </div>
-
-      {/* ─── 메인 콘텐츠 ─── */}
+      <FilterBar items={items} areaFilter={areaFilter} setAreaFilter={setAreaFilter}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-6 py-8 space-y-10">
-          {filteredGrouped.length === 0 ? (
+        <div className="max-w-4xl mx-auto px-6 py-8 space-y-10">
+          {grouped.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">
               <GitBranch className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p>필터에 해당하는 결정이 없습니다.</p>
+              <p>결정이 없습니다.</p>
             </div>
-          ) : (
-            filteredGrouped.map(({ meeting, decisions: decs }) => (
-              <MeetingGroup key={meeting.id} meeting={meeting} decisions={decs} />
-            ))
-          )}
+          ) : grouped.map(({ meeting, decisions: decs }) => (
+            <div key={meeting.id}>
+              {/* 미팅 헤더 */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
+                  {(() => { const I = (meeting.sourceType && SOURCE_ICON[meeting.sourceType]) || Calendar; return <I className="h-4 w-4 text-blue-500" /> })()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-blue-600">{meeting.code}</span>
+                    <span className="text-sm font-semibold truncate">{meeting.title}</span>
+                  </div>
+                  {meeting.date && <p className="text-xs text-muted-foreground">{meeting.date}</p>}
+                </div>
+                <span className="text-xs text-muted-foreground">{decs.length}건</span>
+              </div>
+
+              {/* 결정 카드 */}
+              <div className="ml-[18px] border-l-2 border-blue-200 pl-7 space-y-2.5">
+                {decs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">추출된 결정이 없습니다.</p>
+                ) : decs.map(dec => <ListDecisionCard key={dec.id} item={dec} />)}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   )
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 미팅 그룹
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function MeetingGroup({ meeting, decisions }: { meeting: TimelineItem; decisions: TimelineItem[] }) {
-  const SourceIcon = (meeting.sourceType && SOURCE_ICON[meeting.sourceType]) || Calendar
-
-  return (
-    <div>
-      {/* 미팅 헤더 */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30">
-          <SourceIcon className="h-5 w-5 text-blue-500" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-mono font-bold text-blue-600">{meeting.code}</span>
-            <span className="text-base font-semibold">{meeting.title}</span>
-          </div>
-          {meeting.date && (
-            <p className="text-xs text-muted-foreground">{meeting.date}</p>
-          )}
-        </div>
-        <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-          <GitBranch className="h-3.5 w-3.5" />
-          {decisions.length}건
-        </div>
-      </div>
-
-      {/* 연결선 */}
-      <div className="ml-5 border-l-2 border-blue-500/20 pl-8 space-y-3">
-        {decisions.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-2">추출된 결정이 없습니다.</p>
-        ) : (
-          decisions.map(dec => (
-            <DecisionCard key={dec.id} item={dec} />
-          ))
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 결정 카드
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function DecisionCard({ item }: { item: TimelineItem }) {
+function ListDecisionCard({ item }: { item: TimelineItem }) {
   const status = item.status ? STATUS[item.status] : null
   const area = item.area ? AREA_STYLE[item.area] : null
   const hasIssue = item.hasConflict || item.hasBlocker
-
   const taskProgress = item.tasks?.length
     ? { total: item.tasks.length, done: item.tasks.filter(t => t.status === 'done').length }
     : null
-
-  // changed_by 연결 찾기
   const changedFrom = item.connections.sources.find(s => s.relation === 'changed_by')
 
   return (
-    <div
-      className={`
-        relative rounded-xl border bg-card p-4 transition-colors hover:border-border
-        ${hasIssue ? 'border-red-500/40 bg-red-500/[0.02]' : 'border-border/50'}
-      `}
-    >
-      {/* 좌측 상태 바 */}
+    <div className={`relative rounded-xl border bg-card p-4 transition-colors hover:border-border
+      ${hasIssue ? 'border-red-500/40 bg-red-500/[0.02]' : 'border-border/50'}`}>
       <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-full ${hasIssue ? 'bg-red-500' : (status?.bg || 'bg-zinc-300')}`} />
-
       <div className="pl-3">
-        {/* 상단: 코드 + 상태 + 영역 + 이슈 */}
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
           <span className="text-sm font-mono font-bold text-foreground/70">{item.code}</span>
-
-          {status && (
-            <span className={`text-xs font-semibold ${hasIssue ? 'text-red-500' : status.color}`}>
-              {hasIssue ? '이슈' : status.label}
-            </span>
-          )}
-
-          {area && (
-            <span className="flex items-center gap-1">
-              <span className={`w-1.5 h-1.5 rounded-full ${area.dot}`} />
-              <span className="text-xs text-muted-foreground">{area.label}</span>
-            </span>
-          )}
-
-          {hasIssue && (
-            <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
-          )}
-
-          {/* 태스크 진행 */}
+          {status && <span className={`text-xs font-semibold ${hasIssue ? 'text-red-500' : status.color}`}>{hasIssue ? '이슈' : status.label}</span>}
+          {area && <span className="flex items-center gap-1"><span className={`w-1.5 h-1.5 rounded-full ${area.dot}`} /><span className="text-xs text-muted-foreground">{area.label}</span></span>}
+          {hasIssue && <AlertTriangle className="h-3.5 w-3.5 text-red-500" />}
           {taskProgress && (
             <span className="flex items-center gap-1.5 ml-auto text-xs text-muted-foreground">
-              <ListChecks className="h-3.5 w-3.5" />
-              {taskProgress.done}/{taskProgress.total}
+              <ListChecks className="h-3.5 w-3.5" />{taskProgress.done}/{taskProgress.total}
               <span className="w-8 h-1.5 rounded-full bg-secondary overflow-hidden inline-block">
-                <span
-                  className="block h-full bg-emerald-500 rounded-full"
-                  style={{ width: `${taskProgress.total > 0 ? (taskProgress.done / taskProgress.total) * 100 : 0}%` }}
-                />
+                <span className="block h-full bg-emerald-500 rounded-full" style={{ width: `${taskProgress.total > 0 ? (taskProgress.done / taskProgress.total) * 100 : 0}%` }} />
               </span>
             </span>
           )}
         </div>
-
-        {/* 제목 */}
         <p className="text-base font-semibold leading-snug">{item.title}</p>
-
-        {/* 하단: 제안자 + changed_by 연결 */}
         <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
           {item.owner && (
             <span className="flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground/60">
-                {item.owner.name.charAt(0)}
-              </span>
+              <span className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground/60">{item.owner.name.charAt(0)}</span>
               {item.owner.name}
             </span>
           )}
-
           {changedFrom && (
             <span className="flex items-center gap-1 text-amber-600">
-              <ArrowRight className="h-3 w-3" />
-              <span className="font-medium">{changedFrom.code}</span>에서 변경됨
+              <ArrowRight className="h-3 w-3" /><span className="font-medium">{changedFrom.code}</span>에서 변경
             </span>
           )}
         </div>
       </div>
     </div>
   )
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MAP VIEW — ReactFlow 노드 맵 (유기적 연결)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const EDGE_LABELS: Record<string, string> = {
+  created_from: '생성', changed_by: '변경', implemented_in: '구현',
+  discussed_in: '논의', affects: '적용',
+}
+
+function layoutDagre(nodes: Node[], edges: Edge[]) {
+  const g = new dagre.graphlib.Graph()
+  g.setDefaultEdgeLabel(() => ({}))
+  g.setGraph({ rankdir: 'TB', nodesep: 60, ranksep: 90 })
+  nodes.forEach(n => {
+    const isMtg = n.type === 'meeting'
+    g.setNode(n.id, { width: isMtg ? 240 : 260, height: isMtg ? 50 : 90 })
+  })
+  edges.forEach(e => g.setEdge(e.source, e.target))
+  dagre.layout(g)
+  return {
+    nodes: nodes.map(n => {
+      const p = g.node(n.id)
+      const isMtg = n.type === 'meeting'
+      return { ...n, position: { x: p.x - (isMtg ? 120 : 130), y: p.y - (isMtg ? 25 : 45) } }
+    }),
+    edges,
+  }
+}
+
+function buildFlowElements(items: TimelineItem[], highlightedIds?: Set<string>) {
+  const nodes: Node<FlowNodeData>[] = []
+  const edges: Edge[] = []
+  const codeToId = new Map<string, string>()
+
+  items.forEach(item => {
+    codeToId.set(item.code, item.id)
+    const on = !highlightedIds || highlightedIds.has(item.id)
+    nodes.push({
+      id: item.id, type: item.type as FlowNodeType,
+      data: {
+        code: item.code, title: item.title, description: item.description,
+        status: item.status, type: item.type as FlowNodeType,
+        owner: item.owner, contributors: item.contributors,
+        tasks: item.tasks, area: item.area, sourceType: item.sourceType,
+        hasConflict: item.hasConflict, hasBlocker: item.hasBlocker,
+      },
+      position: { x: 0, y: 0 },
+      style: on ? {} : { opacity: 0.15 },
+    })
+  })
+
+  items.forEach(item => {
+    item.connections.sources.forEach(src => {
+      const from = codeToId.get(src.code)
+      if (!from) return
+      const id = `e-${from}-${item.id}`
+      if (edges.find(e => e.id === id)) return
+      const color = relationColors[src.relation] || '#888'
+      const on = !highlightedIds || (highlightedIds.has(item.id) && highlightedIds.has(from))
+      edges.push({
+        id, source: from, target: item.id,
+        label: EDGE_LABELS[src.relation] || src.relation,
+        animated: src.relation === 'changed_by',
+        style: { stroke: color, strokeWidth: 1.5, opacity: on ? 0.6 : 0.1 },
+        labelStyle: { fontSize: 10, fill: color, fontWeight: 600, opacity: on ? 1 : 0.2 },
+        labelBgStyle: { fill: 'hsl(var(--background))', fillOpacity: on ? 0.8 : 0.2 },
+        labelBgPadding: [4, 2] as [number, number],
+        labelBgBorderRadius: 3,
+        markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 },
+      })
+    })
+  })
+
+  return { nodes, edges }
+}
+
+export function FlowMapView({ items }: { items: TimelineItem[] }) {
+  const [areaFilter, setAreaFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  const hasFilter = areaFilter !== 'all' || statusFilter !== 'all'
+
+  const highlightedIds = useMemo(() => {
+    if (!hasFilter) return undefined
+    const ids = new Set<string>()
+    items.forEach(item => {
+      let ok = true
+      if (areaFilter !== 'all' && norm(item.area) !== areaFilter && item.type !== 'meeting') ok = false
+      if (statusFilter !== 'all' && item.status !== statusFilter && item.type !== 'meeting') ok = false
+      if (ok) ids.add(item.id)
+    })
+    return ids
+  }, [items, areaFilter, statusFilter, hasFilter])
+
+  const { initialNodes, initialEdges } = useMemo(() => {
+    const { nodes, edges } = buildFlowElements(items, highlightedIds)
+    const laid = layoutDagre(nodes, edges)
+    return { initialNodes: laid.nodes, initialEdges: laid.edges }
+  }, [items, highlightedIds])
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+
+  useEffect(() => { setNodes(initialNodes); setEdges(initialEdges) }, [initialNodes, initialEdges, setNodes, setEdges])
+
+  return (
+    <div className="h-full flex flex-col overflow-hidden">
+      <FilterBar items={items} areaFilter={areaFilter} setAreaFilter={setAreaFilter}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
+      <div className="flex-1">
+        <ReactFlow
+          nodes={nodes} edges={edges}
+          onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: 0.5 }}
+          minZoom={0.3} maxZoom={2}
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="hsl(var(--border) / 0.4)" />
+          <Controls className="!bg-secondary/80 !border-border/50 !rounded-xl overflow-hidden" showInteractive={false} />
+        </ReactFlow>
+      </div>
+    </div>
+  )
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Legacy export (for backward compat with other pages)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export function FlowView({ items }: { items: TimelineItem[] }) {
+  return <FlowListView items={items} />
 }
