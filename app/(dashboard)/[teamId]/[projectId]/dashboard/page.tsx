@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import {
   GitBranch, AlertTriangle, ListChecks, Mic, ArrowRight,
@@ -9,6 +9,7 @@ import {
   Circle, CheckCircle2, Sparkles,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import type { StoredMeeting, StoredDecision, StoredTask, StoredRejected } from '@/lib/store/types'
 import { detectConflicts, getSeverityConfig, getConflictTypeLabel, type Conflict } from '@/lib/conflicts'
@@ -49,6 +50,8 @@ export default function DashboardPage() {
   const [decisions, setDecisions] = useState<StoredDecision[]>([])
   const [tasks, setTasks] = useState<StoredTask[]>([])
   const [conflicts, setConflicts] = useState<Conflict[]>([])
+  const [botReview, setBotReview] = useState<string | null>(null)
+  const [botLoading, setBotLoading] = useState(false)
 
   useEffect(() => {
     const m = JSON.parse(localStorage.getItem('pkeep-meetings') || '[]')
@@ -82,6 +85,35 @@ export default function DashboardPage() {
   }, {})
 
   const getMeeting = (meetingId: string) => meetings.find(m => m.id === meetingId)
+
+  const requestBotReview = useCallback(async () => {
+    if (botLoading || (meetings.length === 0 && decisions.length === 0)) return
+    setBotLoading(true)
+    setBotReview(null)
+    try {
+      const rejected: StoredRejected[] = JSON.parse(localStorage.getItem('pkeep-rejected') || '[]')
+      const res = await fetch('/api/ai/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meetings: meetings.slice(0, 10).map(m => ({ code: m.code, title: m.title, date: m.date, summary: m.summary, issues: m.issues })),
+          decisions: decisions.slice(0, 20).map(d => ({ code: d.code, title: d.title, status: d.status, area: d.area, rationale: d.rationale })),
+          tasks: tasks.slice(0, 20).map(t => ({ title: t.title, done: t.done, assignee: t.assignee })),
+          rejected: rejected.slice(0, 10).map(r => ({ title: r.title, reason: r.reason })),
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setBotReview(data.review)
+      } else {
+        setBotReview('리뷰 생성에 실패했습니다. 잠시 후 다시 시도해주세요.')
+      }
+    } catch {
+      setBotReview('리뷰 생성에 실패했습니다.')
+    } finally {
+      setBotLoading(false)
+    }
+  }, [meetings, decisions, tasks, botLoading])
 
   // 주의 필요 아이템 빌드
   type AttentionItem = { type: string; label: string; title: string; color: string; link: string; dot: string }
@@ -127,6 +159,45 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* PKEEP Bot 리뷰 */}
+      <div className="card-soft p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500">
+              <Sparkles className="h-3.5 w-3.5 text-white" />
+            </div>
+            <h3 className="text-sm font-semibold text-stone-800">PKEEP Bot</h3>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs rounded-lg"
+            onClick={requestBotReview}
+            disabled={botLoading || (meetings.length === 0 && decisions.length === 0)}
+          >
+            {botLoading ? (
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 border-2 border-stone-300 border-t-orange-500 rounded-full animate-spin" />
+                분석 중...
+              </span>
+            ) : (
+              '프로젝트 리뷰'
+            )}
+          </Button>
+        </div>
+        {botReview ? (
+          <div className="text-sm text-stone-700 leading-relaxed whitespace-pre-line bg-stone-50 rounded-lg px-4 py-3">
+            {botReview}
+          </div>
+        ) : (
+          <p className="text-xs text-stone-400">
+            {meetings.length === 0 && decisions.length === 0
+              ? '미팅 데이터가 있으면 AI가 프로젝트 현황을 리뷰해드립니다.'
+              : '"프로젝트 리뷰" 버튼을 눌러 AI 분석을 시작하세요.'}
+          </p>
+        )}
       </div>
 
       {/* 태스크 진행률 (상단 배치) */}
