@@ -185,10 +185,10 @@ export default function ConflictsPage() {
                     {conflict.resolved && conflict.resolution && (
                       <Badge className="text-[10px] bg-emerald-100 text-emerald-700">
                         {conflict.resolution === 'reject_new'
-                          ? '새 결정 기각'
+                          ? '이전 결정 유지'
                           : conflict.resolution === 'hold'
-                          ? '보류'
-                          : '기존 결정 정지'}
+                          ? '나중에 결정'
+                          : '새 결정으로 변경'}
                       </Badge>
                     )}
                   </div>
@@ -264,7 +264,7 @@ export default function ConflictsPage() {
                       onClick={() => resolveConflict(conflict.id, 'reject_new')}
                     >
                       <XCircle className="h-3.5 w-3.5" />
-                      새 결정 기각
+                      이전 결정 유지
                     </Button>
                     <Button
                       variant="outline"
@@ -273,7 +273,7 @@ export default function ConflictsPage() {
                       onClick={() => resolveConflict(conflict.id, 'hold')}
                     >
                       <Pause className="h-3.5 w-3.5" />
-                      보류
+                      나중에 결정
                     </Button>
                     <Button
                       variant="outline"
@@ -282,7 +282,7 @@ export default function ConflictsPage() {
                       onClick={() => resolveConflict(conflict.id, 'suspend_existing')}
                     >
                       <ShieldOff className="h-3.5 w-3.5" />
-                      기존 결정 효력 정지
+                      새 결정으로 변경
                     </Button>
                   </div>
                 )}

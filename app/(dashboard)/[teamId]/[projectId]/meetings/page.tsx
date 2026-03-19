@@ -796,23 +796,24 @@ export default function MeetingsPage() {
 
                 {/* 추출된 결정 미리보기 */}
                 <div>
-                  <h4 className="font-medium mb-2 text-sm">추출된 결정</h4>
-                  <div className="space-y-2">
+                  <h4 className="font-semibold mb-3 text-lg">추출된 결정</h4>
+                  <div className="space-y-3">
                     {analysisResult.auto_created.decisions.map((dec) => (
-                      <div key={dec.id} className="p-3 rounded-xl border bg-card">
+                      <div key={dec.id} className="p-4 rounded-xl border bg-card">
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Badge className="bg-primary/10 text-primary text-xs shrink-0">{dec.code}</Badge>
-                            <span className="text-sm truncate">{dec.title}</span>
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Badge className="bg-primary/10 text-primary text-sm px-2.5 py-0.5 shrink-0">{dec.code}</Badge>
+                            <span className="text-base font-medium">{dec.title}</span>
                           </div>
-                          <Badge className="bg-emerald-500/10 text-emerald-600 text-xs shrink-0">
-                            {dec.status === 'confirmed' ? 'Done' : 'Pending'}
+                          <Badge className="bg-emerald-500/10 text-emerald-600 text-sm px-2.5 py-0.5 shrink-0">
+                            {dec.status === 'confirmed' ? '확정' : '보류'}
                           </Badge>
                         </div>
                         {dec.reason && (
-                          <p className="text-xs text-muted-foreground mt-2 pl-1">
-                            왜? {dec.reason}
-                          </p>
+                          <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200/50 px-3 py-2.5">
+                            <p className="text-xs font-semibold text-amber-600 mb-1">왜?</p>
+                            <p className="text-sm text-amber-900/80 leading-relaxed">{dec.reason}</p>
+                          </div>
                         )}
                       </div>
                     ))}
@@ -822,16 +823,16 @@ export default function MeetingsPage() {
                 {/* 추출된 할 일 */}
                 {analysisResult.auto_created.tasks.length > 0 && (
                   <div>
-                    <h4 className="font-medium mb-2 text-sm">할 일</h4>
-                    <div className="space-y-1.5">
+                    <h4 className="font-semibold mb-3 text-lg">할 일</h4>
+                    <div className="space-y-2">
                       {analysisResult.auto_created.tasks.map((task) => (
-                        <div key={task.id} className="flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-card text-sm">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                            <span>{task.title}</span>
+                        <div key={task.id} className="flex items-center justify-between gap-3 p-3.5 rounded-lg border bg-card">
+                          <div className="flex items-center gap-2.5">
+                            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                            <span className="text-base">{task.title}</span>
                           </div>
                           {task.assignee && (
-                            <Badge variant="outline" className="text-xs shrink-0">{task.assignee}</Badge>
+                            <Badge variant="outline" className="text-sm px-2.5 shrink-0">{task.assignee}</Badge>
                           )}
                         </div>
                       ))}
@@ -1046,7 +1047,7 @@ export default function MeetingsPage() {
                             {meeting.code}
                           </span>
                           <Badge variant="outline" className="text-xs flex items-center gap-1">
-                            {(() => { const Icon = sourceIcon(meeting); return <Icon className="h-3 w-3" /> })()}
+                            {(() => { const Icon = sourceIcon(meeting); return <Icon className="h-5 w-5" /> })()}
                             {sourceLabel(meeting)}
                           </Badge>
                           {meeting.language && meeting.language !== 'ko' && (
@@ -1299,15 +1300,15 @@ export default function MeetingsPage() {
                               return (
                                 <div key={i}>
                                   {showSpeaker && (
-                                    <div className={`text-xs font-medium mt-3 mb-1 pl-16 ${speakerColor}`}>
+                                    <div className={`text-base font-semibold mt-4 mb-1.5 pl-16 ${speakerColor}`}>
                                       {seg.speaker}
                                     </div>
                                   )}
-                                  <div className="flex gap-3 p-2.5 rounded-lg hover:bg-secondary/50 transition-colors">
-                                    <span className="text-xs font-mono text-muted-foreground shrink-0 pt-0.5 w-12 text-right tabular-nums">
+                                  <div className="flex gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors">
+                                    <span className="text-sm font-mono text-muted-foreground shrink-0 pt-0.5 w-14 text-right tabular-nums">
                                       {formatTimestamp(seg.start)}
                                     </span>
-                                    <p className="text-sm leading-relaxed flex-1">
+                                    <p className="text-lg leading-relaxed flex-1">
                                       {seg.text}
                                     </p>
                                   </div>

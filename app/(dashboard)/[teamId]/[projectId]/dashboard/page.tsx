@@ -292,8 +292,8 @@ export default function DashboardPage() {
                     <Link key={mtg.id} href={`/${teamId}/${projectId}/meetings`}
                       className="block px-5 py-3.5 hover:bg-stone-50/50 transition-colors">
                       <div className="flex items-start gap-3">
-                        <div className={`p-1.5 rounded-lg ${srcCfg.bg} mt-0.5`}>
-                          <SrcIcon className={`h-3.5 w-3.5 ${srcCfg.text}`} />
+                        <div className={`p-2 rounded-lg ${srcCfg.bg} mt-0.5`}>
+                          <SrcIcon className={`h-5 w-5 ${srcCfg.text}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">

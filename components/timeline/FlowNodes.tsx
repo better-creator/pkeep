@@ -54,9 +54,9 @@ function MeetingNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
     <div className={`flex items-center gap-2.5 px-4 py-2.5 rounded-full border-2 bg-blue-50 border-blue-400/50 cursor-pointer transition-all
       ${selected ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'}`}>
       <Handle type="target" position={Position.Top} className="!w-2.5 !h-2.5 !border-2 !border-white !bg-blue-500 !-top-1.5" />
-      <SrcIcon className="h-4 w-4 text-blue-500 shrink-0" />
-      <span className="text-xs font-mono font-bold text-blue-600">{data.code}</span>
-      <span className="text-sm font-medium truncate max-w-[140px]">{data.title}</span>
+      <SrcIcon className="h-6 w-6 text-blue-500 shrink-0" />
+      <span className="text-sm font-mono font-bold text-blue-600">{data.code}</span>
+      <span className="text-base font-semibold truncate max-w-[180px]">{data.title}</span>
       <Handle type="source" position={Position.Bottom} className="!w-2.5 !h-2.5 !border-2 !border-white !bg-blue-500 !-bottom-1.5" />
     </div>
   )
@@ -78,7 +78,7 @@ function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
 
   return (
     <div className={`flex rounded-xl border overflow-hidden cursor-pointer transition-all
-      ${selected ? 'min-w-[300px] max-w-[380px]' : 'min-w-[220px] max-w-[280px]'}
+      ${selected ? 'min-w-[340px] max-w-[420px]' : 'min-w-[260px] max-w-[320px]'}
       ${hasIssue
         ? 'border-red-400 bg-red-50/80 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
         : 'bg-card border-border/50'}
@@ -88,36 +88,36 @@ function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
       {/* 상태 바 */}
       <div className={`w-1.5 shrink-0 ${bar}`} />
 
-      <div className="px-3 py-2.5 min-w-0 flex-1">
+      <div className="px-4 py-3 min-w-0 flex-1">
         {/* 코드 + 메타 */}
-        <div className="flex items-center gap-1.5 mb-1">
-          <span className="text-xs font-mono font-bold text-foreground/60">{data.code}</span>
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-sm font-mono font-bold text-foreground/60">{data.code}</span>
           {data.status && STATUS_LABEL[data.status] && (
-            <span className={`text-[10px] font-semibold ${hasIssue ? 'text-red-600' : ''}`}>
+            <span className={`text-xs font-semibold ${hasIssue ? 'text-red-600' : ''}`}>
               {hasIssue ? '이슈' : STATUS_LABEL[data.status]}
             </span>
           )}
           {/* 이슈 강조 아이콘 */}
           {hasIssue && (
-            <span className="flex items-center gap-0.5 ml-auto bg-red-100 rounded-md px-1.5 py-0.5">
-              <AlertTriangle className="h-3 w-3 text-red-600" />
-              <span className="text-[9px] font-bold text-red-600">주의</span>
+            <span className="flex items-center gap-1 ml-auto bg-red-100 rounded-md px-2 py-1">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <span className="text-xs font-bold text-red-600">주의</span>
             </span>
           )}
           {data.area && AREA_DOT[data.area] && !hasIssue && (
-            <span className="flex items-center gap-0.5 ml-auto">
-              <span className={`w-1.5 h-1.5 rounded-full ${AREA_DOT[data.area]}`} />
-              <span className="text-[10px] text-muted-foreground">{AREA_LABEL[data.area]}</span>
+            <span className="flex items-center gap-1 ml-auto">
+              <span className={`w-2 h-2 rounded-full ${AREA_DOT[data.area]}`} />
+              <span className="text-xs text-muted-foreground">{AREA_LABEL[data.area]}</span>
             </span>
           )}
         </div>
 
         {/* 제목 */}
-        <p className={`font-semibold leading-snug ${selected ? 'text-sm' : 'text-sm line-clamp-2'}`}>{data.title}</p>
+        <p className={`font-semibold leading-snug ${selected ? 'text-base' : 'text-base line-clamp-2'}`}>{data.title}</p>
 
         {/* 제안자 */}
         {data.owner && (
-          <p className="text-[11px] text-muted-foreground mt-1 truncate">{data.owner.name}</p>
+          <p className="text-sm text-muted-foreground mt-1.5 truncate">{data.owner.name}</p>
         )}
 
         {/* ─── 선택 시 확장 영역 ─── */}
@@ -125,26 +125,26 @@ function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
           <div className="mt-2 pt-2 border-t border-border/30 space-y-2">
             {/* 근거(Why) */}
             {rationale && (
-              <div className="rounded-lg bg-amber-50 border border-amber-200/50 px-2.5 py-2">
-                <p className="text-[10px] font-semibold text-amber-600 mb-0.5">왜?</p>
-                <p className="text-xs text-amber-900/80 leading-relaxed">{rationale}</p>
+              <div className="rounded-lg bg-amber-50 border border-amber-200/50 px-3 py-2.5">
+                <p className="text-xs font-semibold text-amber-600 mb-1">왜?</p>
+                <p className="text-sm text-amber-900/80 leading-relaxed">{rationale}</p>
               </div>
             )}
 
             {/* 영역 (이슈인 경우에도 표시) */}
             {hasIssue && data.area && AREA_DOT[data.area] && (
-              <div className="flex items-center gap-1">
-                <span className={`w-2 h-2 rounded-full ${AREA_DOT[data.area]}`} />
-                <span className="text-xs text-muted-foreground">{AREA_LABEL[data.area]}</span>
+              <div className="flex items-center gap-1.5">
+                <span className={`w-2.5 h-2.5 rounded-full ${AREA_DOT[data.area]}`} />
+                <span className="text-sm text-muted-foreground">{AREA_LABEL[data.area]}</span>
               </div>
             )}
 
             {/* 태스크 진행률 */}
             {taskProgress && (
               <div className="flex items-center gap-2">
-                <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">{taskProgress.done}/{taskProgress.total}</span>
-                <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+                <ListChecks className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{taskProgress.done}/{taskProgress.total}</span>
+                <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full"
                     style={{ width: `${taskProgress.total > 0 ? (taskProgress.done / taskProgress.total) * 100 : 0}%` }} />
                 </div>
