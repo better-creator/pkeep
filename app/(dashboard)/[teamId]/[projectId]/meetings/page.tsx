@@ -839,15 +839,78 @@ export default function MeetingsPage() {
                   </div>
                 )}
 
-                {/* 충돌 경고 */}
-                {analysisResult.conflicts.length > 0 && (
-                  <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
-                    <h4 className="font-medium text-destructive flex items-center gap-2 text-sm mb-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      {analysisResult.conflicts.length}건의 충돌이 감지되었습니다
+                {/* 이슈(안건) */}
+                {analysisResult.analysis.issues?.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2 text-sm flex items-center gap-2">
+                      <MessageSquareWarning className="h-4 w-4 text-amber-500" />
+                      이슈 ({analysisResult.analysis.issues.length}건)
                     </h4>
+                    <div className="space-y-1.5">
+                      {analysisResult.analysis.issues.map((issue, i) => (
+                        <div key={i} className="p-2.5 rounded-lg border border-amber-200/50 bg-amber-50/50 text-sm">
+                          <p className="font-medium text-amber-900">{issue.title}</p>
+                          {issue.description && (
+                            <p className="text-xs text-amber-700/70 mt-0.5">{issue.description}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
+
+                {/* 이전 결정과 충돌/유사 경고 */}
+                {(() => {
+                  // 기존 결정과 새 결정 비교
+                  const existingDecs: { code: string; title: string; status: string }[] = (() => {
+                    try { return JSON.parse(localStorage.getItem('pkeep-decisions') || '[]') } catch { return [] }
+                  })()
+                  const newDecs = analysisResult.auto_created.decisions
+                  const warnings: { newDec: string; existDec: string; existCode: string; reason: string }[] = []
+
+                  for (const nd of newDecs) {
+                    for (const ed of existingDecs) {
+                      // 제목이 유사하면 경고 (간단한 포함 관계 체크)
+                      const ndLower = nd.title.toLowerCase()
+                      const edLower = ed.title.toLowerCase()
+                      if (ndLower === edLower || ndLower.includes(edLower) || edLower.includes(ndLower)) {
+                        warnings.push({
+                          newDec: nd.title,
+                          existDec: ed.title,
+                          existCode: ed.code,
+                          reason: ed.status === 'confirmed' ? '기존 확정 결정과 유사' : `기존 ${ed.status} 결정과 유사`,
+                        })
+                      }
+                    }
+                  }
+
+                  // API 충돌 + 클라이언트 유사도 경고 합산
+                  const apiConflicts = analysisResult.conflicts.length
+                  const totalWarnings = apiConflicts + warnings.length
+
+                  if (totalWarnings === 0) return null
+
+                  return (
+                    <div className="p-4 rounded-xl bg-red-50 border border-red-200/50 space-y-2">
+                      <h4 className="font-semibold text-red-700 flex items-center gap-2 text-sm">
+                        <AlertTriangle className="h-4 w-4" />
+                        이전 결정과 {totalWarnings}건의 충돌/유사 항목
+                      </h4>
+                      {warnings.map((w, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs text-red-800 bg-red-100/50 rounded-lg px-3 py-2">
+                          <AlertTriangle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="font-medium">"{w.newDec}"</p>
+                            <p className="text-red-600 mt-0.5">→ {w.existCode} "{w.existDec}" ({w.reason})</p>
+                          </div>
+                        </div>
+                      ))}
+                      {apiConflicts > 0 && (
+                        <p className="text-xs text-red-600">+ AI 분석에서 {apiConflicts}건 추가 충돌 감지</p>
+                      )}
+                    </div>
+                  )
+                })()}
 
                 {/* 키워드 */}
                 {analysisResult.analysis.keywords?.length > 0 && (

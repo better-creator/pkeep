@@ -4,7 +4,7 @@ import { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import {
   GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare,
-  Mic, BookOpen, Phone, Mail, FileText, AlertTriangle,
+  Mic, BookOpen, Phone, Mail, FileText, AlertTriangle, ListChecks,
 } from 'lucide-react'
 import { Person, Task } from './types'
 
@@ -25,7 +25,6 @@ export interface FlowNodeData {
   hasBlocker?: boolean
 }
 
-// ─── 색상 ───
 const STATUS_BAR: Record<string, string> = {
   confirmed: 'bg-emerald-500', changed: 'bg-amber-500', pending: 'bg-zinc-400',
   rejected: 'bg-red-500', hold: 'bg-zinc-400',
@@ -47,7 +46,7 @@ const SOURCE_ICON: Record<string, React.ElementType> = {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 미팅 노드 — 컴팩트 pill
+// 미팅 노드
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function MeetingNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
   const SrcIcon = (data.sourceType && SOURCE_ICON[data.sourceType]) || Calendar
@@ -64,31 +63,47 @@ function MeetingNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 결정 노드 — 좌측 상태 바 카드
+// 결정 노드 — 이슈 강조 + 선택 시 확장
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
   const hasIssue = data.hasConflict || data.hasBlocker
   const bar = hasIssue ? 'bg-red-500' : (data.status ? STATUS_BAR[data.status] || 'bg-zinc-300' : 'bg-zinc-300')
 
+  const taskProgress = data.tasks?.length
+    ? { total: data.tasks.length, done: data.tasks.filter(t => t.status === 'done').length }
+    : null
+
+  // description에서 근거 추출 (형식: "[영역] 근거 텍스트")
+  const rationale = data.description?.replace(/^\[.*?\]\s*/, '') || ''
+
   return (
-    <div className={`flex rounded-xl border bg-card overflow-hidden min-w-[220px] max-w-[280px] cursor-pointer transition-all
-      ${hasIssue ? 'border-red-400/50' : 'border-border/50'}
+    <div className={`flex rounded-xl border overflow-hidden cursor-pointer transition-all
+      ${selected ? 'min-w-[300px] max-w-[380px]' : 'min-w-[220px] max-w-[280px]'}
+      ${hasIssue
+        ? 'border-red-400 bg-red-50/80 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
+        : 'bg-card border-border/50'}
       ${selected ? 'ring-2 ring-orange-500 shadow-lg' : 'hover:shadow-md hover:border-border'}`}>
-      <Handle type="target" position={Position.Top} className="!w-2.5 !h-2.5 !border-2 !border-white !bg-teal-500 !-top-1.5" />
+      <Handle type="target" position={Position.Top} className={`!w-2.5 !h-2.5 !border-2 !border-white ${hasIssue ? '!bg-red-500' : '!bg-teal-500'} !-top-1.5`} />
 
       {/* 상태 바 */}
-      <div className={`w-1 shrink-0 ${bar}`} />
+      <div className={`w-1.5 shrink-0 ${bar}`} />
 
       <div className="px-3 py-2.5 min-w-0 flex-1">
         {/* 코드 + 메타 */}
         <div className="flex items-center gap-1.5 mb-1">
           <span className="text-xs font-mono font-bold text-foreground/60">{data.code}</span>
           {data.status && STATUS_LABEL[data.status] && (
-            <span className={`text-[10px] font-semibold ${hasIssue ? 'text-red-500' : ''}`}>
+            <span className={`text-[10px] font-semibold ${hasIssue ? 'text-red-600' : ''}`}>
               {hasIssue ? '이슈' : STATUS_LABEL[data.status]}
             </span>
           )}
-          {hasIssue && <AlertTriangle className="h-3 w-3 text-red-500 ml-auto" />}
+          {/* 이슈 강조 아이콘 */}
+          {hasIssue && (
+            <span className="flex items-center gap-0.5 ml-auto bg-red-100 rounded-md px-1.5 py-0.5">
+              <AlertTriangle className="h-3 w-3 text-red-600" />
+              <span className="text-[9px] font-bold text-red-600">주의</span>
+            </span>
+          )}
           {data.area && AREA_DOT[data.area] && !hasIssue && (
             <span className="flex items-center gap-0.5 ml-auto">
               <span className={`w-1.5 h-1.5 rounded-full ${AREA_DOT[data.area]}`} />
@@ -98,15 +113,48 @@ function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
         </div>
 
         {/* 제목 */}
-        <p className="text-sm font-semibold leading-snug line-clamp-2">{data.title}</p>
+        <p className={`font-semibold leading-snug ${selected ? 'text-sm' : 'text-sm line-clamp-2'}`}>{data.title}</p>
 
         {/* 제안자 */}
         {data.owner && (
           <p className="text-[11px] text-muted-foreground mt-1 truncate">{data.owner.name}</p>
         )}
+
+        {/* ─── 선택 시 확장 영역 ─── */}
+        {selected && (
+          <div className="mt-2 pt-2 border-t border-border/30 space-y-2">
+            {/* 근거(Why) */}
+            {rationale && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200/50 px-2.5 py-2">
+                <p className="text-[10px] font-semibold text-amber-600 mb-0.5">왜?</p>
+                <p className="text-xs text-amber-900/80 leading-relaxed">{rationale}</p>
+              </div>
+            )}
+
+            {/* 영역 (이슈인 경우에도 표시) */}
+            {hasIssue && data.area && AREA_DOT[data.area] && (
+              <div className="flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${AREA_DOT[data.area]}`} />
+                <span className="text-xs text-muted-foreground">{AREA_LABEL[data.area]}</span>
+              </div>
+            )}
+
+            {/* 태스크 진행률 */}
+            {taskProgress && (
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">{taskProgress.done}/{taskProgress.total}</span>
+                <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full"
+                    style={{ width: `${taskProgress.total > 0 ? (taskProgress.done / taskProgress.total) * 100 : 0}%` }} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!w-2.5 !h-2.5 !border-2 !border-white !bg-teal-500 !-bottom-1.5" />
+      <Handle type="source" position={Position.Bottom} className={`!w-2.5 !h-2.5 !border-2 !border-white ${hasIssue ? '!bg-red-500' : '!bg-teal-500'} !-bottom-1.5`} />
     </div>
   )
 }
