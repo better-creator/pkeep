@@ -176,10 +176,10 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
-                      className="h-11 rounded-xl px-3 border-2 border-orange-500 text-orange-600 hover:bg-orange-50 font-medium"
+                      className="h-11 rounded-xl px-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-sm"
                     >
                       <Link href={`/${teamId}/${projectId}/meetings`} className="flex items-center gap-2.5">
-                        <Mic className="h-4 w-4" />
+                        <Mic className="h-5 w-5" />
                         <span className="text-sm">새 녹음</span>
                       </Link>
                     </SidebarMenuButton>

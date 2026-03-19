@@ -3,44 +3,30 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import {
-  GitBranch, AlertTriangle, ListChecks, Mic, ArrowRight,
-  CheckCircle, Clock, AlertCircle, CircleDot, MessageSquare,
-  BookOpen, Figma, FolderOpen, Phone, Mail, ChevronRight,
-  Circle, CheckCircle2, Sparkles,
+  GitBranch, AlertTriangle, ListChecks, Mic,
+  CheckCircle, Clock, AlertCircle, MessageSquare,
+  BookOpen, Phone, Mail, ChevronRight, Sparkles,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import type { StoredMeeting, StoredDecision, StoredTask, StoredRejected } from '@/lib/store/types'
-import { detectConflicts, getSeverityConfig, getConflictTypeLabel, type Conflict } from '@/lib/conflicts'
+import { detectConflicts, type Conflict } from '@/lib/conflicts'
 import { PkeepLogo } from '@/components/brand/Logo'
 
-// ─── Config (이전과 동일) ───
-const statusConfig: Record<string, { icon: typeof CheckCircle; color: string; bg: string; label: string }> = {
-  confirmed: { icon: CheckCircle, color: 'text-emerald-500', bg: 'status-confirmed', label: '확정' },
-  changed: { icon: AlertCircle, color: 'text-amber-500', bg: 'status-changed', label: '변경' },
-  pending: { icon: Clock, color: 'text-amber-500', bg: 'status-pending', label: '보류' },
-  hold: { icon: AlertTriangle, color: 'text-amber-500', bg: 'status-pending', label: '보류' },
-}
-const areaLabel: Record<string, string> = { planning: '기획', design: '디자인', dev: '개발' }
-const areaColor: Record<string, string> = {
-  planning: 'bg-violet-100 text-violet-700',
-  design: 'bg-pink-100 text-pink-700',
-  dev: 'bg-sky-100 text-sky-700',
-}
 const sourceTypeCfg: Record<string, { icon: typeof Mic; label: string; bg: string; text: string }> = {
-  meeting: { icon: Mic, label: '회의', bg: 'bg-red-50', text: 'text-red-600' },
+  meeting: { icon: Mic, label: '회의', bg: 'bg-orange-50', text: 'text-orange-600' },
   slack: { icon: MessageSquare, label: 'Slack', bg: 'bg-purple-50', text: 'text-purple-600' },
   notion: { icon: BookOpen, label: 'Notion', bg: 'bg-stone-100', text: 'text-stone-600' },
   call: { icon: Phone, label: '통화', bg: 'bg-green-50', text: 'text-green-600' },
   email: { icon: Mail, label: '이메일', bg: 'bg-rose-50', text: 'text-rose-600' },
 }
-const integrations = [
-  { name: 'Notion', icon: BookOpen, connected: true, color: 'text-stone-700', bg: 'bg-stone-100' },
-  { name: 'Slack', icon: MessageSquare, connected: true, color: 'text-purple-600', bg: 'bg-purple-100' },
-  { name: 'Figma', icon: Figma, connected: true, color: 'text-pink-600', bg: 'bg-pink-100' },
-  { name: 'Drive', icon: FolderOpen, connected: false, color: 'text-blue-600', bg: 'bg-blue-100' },
-]
+
+const statusBar: Record<string, string> = {
+  confirmed: 'bg-emerald-500', changed: 'bg-amber-500', pending: 'bg-stone-300', hold: 'bg-stone-300',
+}
+const statusLabel: Record<string, string> = {
+  confirmed: '확정', changed: '변경', pending: '보류', hold: '보류',
+}
 
 export default function DashboardPage() {
   const params = useParams()
@@ -60,7 +46,6 @@ export default function DashboardPage() {
     const t = JSON.parse(localStorage.getItem('pkeep-tasks') || '[]')
     const r: StoredRejected[] = JSON.parse(localStorage.getItem('pkeep-rejected') || '[]')
     setMeetings(m); setDecisions(d); setTasks(t)
-
     const detected = detectConflicts(d, r)
     const saved: Conflict[] | null = JSON.parse(localStorage.getItem('pkeep-conflicts') || 'null')
     if (saved) {
@@ -72,30 +57,20 @@ export default function DashboardPage() {
     setConflicts(detected)
   }, [])
 
-  const totalDecisions = decisions.length
   const tasksDone = tasks.filter(t => t.done).length
   const tasksTotal = tasks.length
   const unresolvedConflicts = conflicts.filter(c => !c.resolved && c.type !== 'rejected_alternative')
-  const pendingDecisions = decisions.filter(d => d.status === 'pending' || d.status === 'hold')
   const changedDecisions = decisions.filter(d => d.status === 'changed')
-
-  const areaCounts = decisions.reduce<Record<string, number>>((acc, d) => {
-    const area = d.area || 'planning'
-    acc[area] = (acc[area] || 0) + 1
-    return acc
-  }, {})
-
-  const getMeeting = (meetingId: string) => meetings.find(m => m.id === meetingId)
+  const pendingDecisions = decisions.filter(d => d.status === 'pending' || d.status === 'hold')
+  const getMeeting = (id: string) => meetings.find(m => m.id === id)
 
   const requestBotReview = useCallback(async () => {
     if (botLoading || (meetings.length === 0 && decisions.length === 0)) return
-    setBotLoading(true)
-    setBotReview(null)
+    setBotLoading(true); setBotReview(null)
     try {
       const rejected: StoredRejected[] = JSON.parse(localStorage.getItem('pkeep-rejected') || '[]')
       const res = await fetch('/api/ai/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           meetings: meetings.slice(0, 10).map(m => ({ code: m.code, title: m.title, date: m.date, summary: m.summary, issues: m.issues })),
           decisions: decisions.slice(0, 20).map(d => ({ code: d.code, title: d.title, status: d.status, area: d.area, rationale: d.rationale })),
@@ -103,332 +78,203 @@ export default function DashboardPage() {
           rejected: rejected.slice(0, 10).map(r => ({ title: r.title, reason: r.reason })),
         }),
       })
-      if (res.ok) {
-        const data = await res.json()
-        setBotReview(data.review)
-      } else {
-        setBotReview('리뷰 생성에 실패했습니다. 잠시 후 다시 시도해주세요.')
-      }
-    } catch {
-      setBotReview('리뷰 생성에 실패했습니다.')
-    } finally {
-      setBotLoading(false)
-    }
+      if (res.ok) { setBotReview((await res.json()).review) }
+      else { setBotReview('리뷰 생성에 실패했습니다.') }
+    } catch { setBotReview('리뷰 생성에 실패했습니다.') }
+    finally { setBotLoading(false) }
   }, [meetings, decisions, tasks, botLoading])
 
-  // 주의 필요 아이템 빌드
-  type AttentionItem = { type: string; label: string; title: string; color: string; link: string; dot: string }
+  // 주의 필요
+  type AttentionItem = { label: string; title: string; color: string; dot: string; link: string }
   const attentionItems: AttentionItem[] = []
-  unresolvedConflicts.forEach(c => attentionItems.push({
-    type: 'conflict', label: '충돌', color: 'text-red-600', dot: 'bg-red-500',
-    title: `${c.newDecision.code} vs ${c.existingDecision.code}`,
-    link: `/${teamId}/${projectId}/conflicts`,
-  }))
-  changedDecisions.forEach(d => attentionItems.push({
-    type: 'changed', label: '변경', color: 'text-amber-600', dot: 'bg-amber-500',
-    title: `${d.code} ${d.title}`,
-    link: `/${teamId}/${projectId}/decisions`,
-  }))
-  meetings.forEach(m => (m.issues || []).forEach(issue => attentionItems.push({
-    type: 'issue', label: '이슈', color: 'text-orange-600', dot: 'bg-orange-500',
-    title: issue.title,
-    link: `/${teamId}/${projectId}/meetings`,
-  })))
-  pendingDecisions.forEach(d => attentionItems.push({
-    type: 'pending', label: '보류', color: 'text-stone-500', dot: 'bg-stone-400',
-    title: `${d.code} ${d.title}`,
-    link: `/${teamId}/${projectId}/decisions`,
-  }))
+  unresolvedConflicts.forEach(c => attentionItems.push({ label: '충돌', color: 'text-red-600', dot: 'bg-red-500', title: `${c.newDecision.code} vs ${c.existingDecision.code}`, link: `/${teamId}/${projectId}/conflicts` }))
+  changedDecisions.forEach(d => attentionItems.push({ label: '변경', color: 'text-amber-600', dot: 'bg-amber-500', title: `${d.code} ${d.title}`, link: `/${teamId}/${projectId}/decisions` }))
+  meetings.forEach(m => (m.issues || []).forEach(issue => attentionItems.push({ label: '이슈', color: 'text-orange-600', dot: 'bg-orange-500', title: issue.title, link: `/${teamId}/${projectId}/meetings` })))
+  pendingDecisions.forEach(d => attentionItems.push({ label: '보류', color: 'text-stone-500', dot: 'bg-stone-400', title: `${d.code} ${d.title}`, link: `/${teamId}/${projectId}/decisions` }))
 
-  return (
-    <div className="space-y-6">
-      {/* Header + Integration strip (이전과 동일) */}
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-800">대시보드</h1>
-          <p className="text-sm text-stone-500 mt-1">프로젝트 현황을 한눈에 확인하세요</p>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {integrations.map(tool => (
-            <div key={tool.name}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${
-                tool.connected ? 'bg-white border border-stone-200 text-stone-600' : 'bg-stone-50 border border-dashed border-stone-200 text-stone-400'
-              }`}>
-              <tool.icon className={`h-3 w-3 ${tool.connected ? tool.color : 'text-stone-400'}`} />
-              {tool.name}
-              {tool.connected && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
-            </div>
-          ))}
+  const hasData = meetings.length > 0 || decisions.length > 0
+
+  // ─── 빈 상태: 온보딩 ───
+  if (!hasData) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-md space-y-8">
+          <PkeepLogo size={56} className="mx-auto" />
+          <div className="space-y-3">
+            <h1 className="text-2xl font-bold text-stone-900">회의만 하세요.</h1>
+            <p className="text-stone-500 leading-relaxed">
+              결정과 맥락은 AI가 정리합니다.<br />
+              첫 회의를 녹음하고 결과를 확인해보세요.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <Link
+              href={`/${teamId}/${projectId}/meetings`}
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+            >
+              <Mic className="h-5 w-5" />
+              첫 회의 녹음하기
+            </Link>
+            <p className="text-xs text-stone-400">3분이면 됩니다</p>
+          </div>
         </div>
       </div>
+    )
+  }
 
-      {/* PKEEP Bot 리뷰 */}
-      <div className="card-soft p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <PkeepLogo size={28} />
-            <h3 className="text-sm font-semibold text-stone-900">PKEEP Bot</h3>
+  // ─── 데이터 있는 대시보드: 3섹션 ───
+  return (
+    <div className="max-w-3xl space-y-10">
+      {/* ─── 섹션 1: PKEEP Bot ─── */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <PkeepLogo size={32} />
+            <div>
+              <h1 className="text-lg font-bold text-stone-900">프로젝트 현황</h1>
+              <p className="text-xs text-stone-400">
+                미팅 {meetings.length} · 결정 {decisions.length} · 할일 {tasksDone}/{tasksTotal}
+              </p>
+            </div>
           </div>
           <Button
             variant="outline"
             size="sm"
-            className="h-7 text-xs rounded-lg"
+            className="h-8 text-xs rounded-lg gap-1.5"
             onClick={requestBotReview}
-            disabled={botLoading || (meetings.length === 0 && decisions.length === 0)}
+            disabled={botLoading}
           >
             {botLoading ? (
-              <span className="flex items-center gap-1.5">
+              <>
                 <span className="h-3 w-3 border-2 border-stone-300 border-t-orange-500 rounded-full animate-spin" />
                 분석 중...
-              </span>
+              </>
             ) : (
-              '프로젝트 리뷰'
+              <>
+                <Sparkles className="h-3.5 w-3.5" />
+                AI 리뷰
+              </>
             )}
           </Button>
         </div>
-        {botReview ? (
-          <div className="text-sm text-stone-700 leading-relaxed whitespace-pre-line bg-orange-50/50 border border-orange-100 rounded-xl px-4 py-3">
+
+        {botReview && (
+          <div className="text-sm text-stone-700 leading-relaxed whitespace-pre-line bg-orange-50/50 border border-orange-100 rounded-xl px-5 py-4">
             {botReview}
           </div>
-        ) : (
-          <p className="text-xs text-stone-400">
-            {meetings.length === 0 && decisions.length === 0
-              ? '미팅 데이터가 있으면 AI가 프로젝트 현황을 리뷰해드립니다.'
-              : '"프로젝트 리뷰" 버튼을 눌러 AI 분석을 시작하세요.'}
-          </p>
+        )}
+
+        {/* 태스크 진행률 — 인라인 */}
+        {tasksTotal > 0 && (
+          <Link href={`/${teamId}/${projectId}/tasks`} className="flex items-center gap-4 group">
+            <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${(tasksDone / tasksTotal) * 100}%` }} />
+            </div>
+            <span className="text-sm font-semibold text-stone-700 group-hover:text-orange-600 transition-colors">
+              {Math.round((tasksDone / tasksTotal) * 100)}%
+            </span>
+          </Link>
         )}
       </div>
 
-      {/* 태스크 진행률 (상단 배치) */}
-      {tasksTotal > 0 && (
-        <Link href={`/${teamId}/${projectId}/tasks`} className="block card-soft p-4 hover:bg-stone-50 transition-colors">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-stone-800">태스크 진행률</h3>
-            <span className="text-sm font-bold text-stone-800">{tasksDone}/{tasksTotal} ({tasksTotal > 0 ? Math.round(tasksDone / tasksTotal * 100) : 0}%)</span>
-          </div>
-          <div className="h-2.5 bg-stone-100 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${tasksTotal > 0 ? (tasksDone / tasksTotal) * 100 : 0}%` }} />
-          </div>
-        </Link>
-      )}
-
-      {/* KPI Cards — 클릭 시 상세 페이지 이동 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: '결정', value: totalDecisions, icon: GitBranch, color: 'text-emerald-500', bg: 'bg-emerald-50', sub: `확정 ${decisions.filter(d => d.status === 'confirmed').length}건`, href: `/${teamId}/${projectId}/decisions` },
-          { label: '이슈', value: unresolvedConflicts.length + changedDecisions.length, icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-50', sub: attentionItems.length > 0 ? '확인 필요' : '없음', href: `/${teamId}/${projectId}/conflicts` },
-          { label: '할 일', value: `${tasksDone}/${tasksTotal}`, icon: ListChecks, color: 'text-blue-500', bg: 'bg-blue-50', sub: tasksTotal > 0 ? `${Math.round(tasksDone / tasksTotal * 100)}%` : '-', href: `/${teamId}/${projectId}/tasks` },
-          { label: '미팅', value: meetings.length, icon: Mic, color: 'text-purple-500', bg: 'bg-purple-50', sub: `최근 ${meetings.slice(0, 1).map(m => m.code).join('')}`, href: `/${teamId}/${projectId}/meetings` },
-        ].map(kpi => (
-          <Link key={kpi.label} href={kpi.href} className="card-soft p-4 hover:bg-stone-50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-stone-400">{kpi.label}</p>
-                <p className="text-2xl font-bold text-stone-800 mt-0.5">{kpi.value}</p>
-                <p className="text-[11px] text-stone-400">{kpi.sub}</p>
-              </div>
-              <div className={`p-2 rounded-xl ${kpi.bg}`}>
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
-              </div>
-            </div>
+      {/* ─── 섹션 2: 최근 미팅 ─── */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-stone-900">최근 미팅</h2>
+          <Link href={`/${teamId}/${projectId}/meetings`} className="text-xs text-stone-400 hover:text-orange-600 transition-colors">
+            모두 보기 →
           </Link>
-        ))}
-      </div>
-
-      {/* 주의 필요 (새로 추가) */}
-      {attentionItems.length > 0 && (
-        <div className="card-soft p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-orange-100">
-                <AlertCircle className="h-3.5 w-3.5 text-orange-600" />
-              </div>
-              <h3 className="text-sm font-semibold text-stone-800">주의 필요</h3>
-              <Badge variant="secondary" className="text-[10px] bg-orange-100 text-orange-700">
-                {attentionItems.length}건
-              </Badge>
-            </div>
-          </div>
-          <div className="space-y-1">
-            {attentionItems.slice(0, 6).map((item, i) => (
-              <Link key={`${item.type}-${i}`} href={item.link}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-stone-50 transition-colors">
-                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${item.dot}`} />
-                <span className={`text-[10px] font-semibold w-7 flex-shrink-0 ${item.color}`}>{item.label}</span>
-                <span className="text-sm text-stone-700 flex-1 truncate">{item.title}</span>
-                <ChevronRight className="h-3 w-3 text-stone-300 flex-shrink-0" />
-              </Link>
-            ))}
-          </div>
         </div>
-      )}
+        <div className="space-y-3">
+          {meetings.slice(0, 3).map(mtg => {
+            const st = (mtg as any).sourceType || 'meeting'
+            const cfg = sourceTypeCfg[st] || sourceTypeCfg.meeting
+            const SrcIcon = cfg.icon
+            const mtgDecs = decisions.filter(d => d.meetingId === mtg.id)
+            const mtgTasks = tasks.filter(t => t.meetingId === mtg.id)
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* 최근 미팅 (새로 추가 — 이전 activity feed 대체) */}
-        <div className="col-span-2 space-y-5">
-          {/* 최근 미팅 섹션 */}
-          <div className="glass-card">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-100/50">
-              <h2 className="font-semibold text-stone-800 text-sm">최근 미팅</h2>
-              <Link href={`/${teamId}/${projectId}/meetings`} className="text-xs text-stone-400 hover:text-orange-600">모두 보기 →</Link>
-            </div>
-            {meetings.length === 0 ? (
-              <div className="px-5 py-10 text-center text-stone-400 text-sm">
-                <Sparkles className="h-6 w-6 mx-auto mb-2 opacity-30" />
-                회의를 녹음하면 AI가 자동으로 결정과 할 일을 추출합니다.
-              </div>
-            ) : (
-              <div className="divide-y divide-stone-100/50">
-                {meetings.slice(0, 4).map(mtg => {
-                  const st = (mtg as any).sourceType || 'meeting'
-                  const srcCfg = sourceTypeCfg[st] || sourceTypeCfg.meeting
-                  const SrcIcon = srcCfg.icon
-                  const mtgDecs = decisions.filter(d => d.meetingId === mtg.id)
-                  const mtgTasks = tasks.filter(t => t.meetingId === mtg.id)
-                  const issueCount = (mtg.issues || []).length
-
-                  return (
-                    <Link key={mtg.id} href={`/${teamId}/${projectId}/meetings`}
-                      className="block px-5 py-3.5 hover:bg-stone-50/50 transition-colors">
-                      <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-lg ${srcCfg.bg} mt-0.5`}>
-                          <SrcIcon className={`h-5 w-5 ${srcCfg.text}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <Badge variant="outline" className="text-[10px] font-mono rounded-md border-stone-200/60 px-1.5 py-0">{mtg.code}</Badge>
-                            <span className="text-sm font-medium text-stone-800 truncate">{mtg.title}</span>
-                            <span className="text-[11px] text-stone-400 ml-auto flex-shrink-0">{mtg.date}</span>
-                          </div>
-                          {mtg.summary && (
-                            <p className="text-xs text-stone-500 mt-1 line-clamp-1">{mtg.summary}</p>
-                          )}
-                          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-stone-400">
-                            {mtgDecs.length > 0 && (
-                              <span className="flex items-center gap-0.5">
-                                <GitBranch className="h-3 w-3" /> 결정 {mtgDecs.length}
-                              </span>
-                            )}
-                            {mtgTasks.length > 0 && (
-                              <span className="flex items-center gap-0.5">
-                                <ListChecks className="h-3 w-3" /> 할일 {mtgTasks.length}
-                              </span>
-                            )}
-                            {issueCount > 0 && (
-                              <span className="flex items-center gap-0.5 text-amber-500">
-                                <AlertTriangle className="h-3 w-3" /> 이슈 {issueCount}
-                              </span>
-                            )}
-                            {mtg.keywords?.length > 0 && (
-                              <span className="ml-auto flex gap-1">
-                                {mtg.keywords.slice(0, 3).map(kw => (
-                                  <Badge key={kw} variant="secondary" className="text-[9px] px-1 py-0 bg-stone-100">{kw}</Badge>
-                                ))}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* 최근 결정 (새로 추가) */}
-          <div className="glass-card">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-100/50">
-              <h2 className="font-semibold text-stone-800 text-sm">최근 결정</h2>
-              <Link href={`/${teamId}/${projectId}/decisions`} className="text-xs text-stone-400 hover:text-orange-600">모두 보기 →</Link>
-            </div>
-            <div className="divide-y divide-stone-100/50">
-              {decisions.length === 0 ? (
-                <div className="px-5 py-8 text-center text-stone-400 text-sm">추출된 결정이 없습니다.</div>
-              ) : (
-                decisions.slice(0, 5).map(d => {
-                  const st = statusConfig[d.status as string] || statusConfig.pending
-                  const StIcon = st.icon
-                  const meeting = getMeeting(d.meetingId)
-                  const meetingSt = (meeting as any)?.sourceType || 'meeting'
-                  const srcCfg = sourceTypeCfg[meetingSt] || sourceTypeCfg.meeting
-                  const SrcIcon = srcCfg.icon
-
-                  return (
-                    <div key={d.id} className="px-5 py-3.5 hover:bg-stone-50/50 transition-colors">
-                      <div className="flex items-start gap-3">
-                        <StIcon className={`h-4 w-4 mt-0.5 ${st.color}`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <Badge variant="outline" className="text-[10px] font-mono rounded-md border-stone-200/60 px-1.5 py-0">{d.code}</Badge>
-                            <Badge className={`text-[10px] rounded-md px-1.5 py-0 ${areaColor[d.area || ''] || ''}`}>{areaLabel[d.area || ''] || d.area}</Badge>
-                            <Badge variant="secondary" className={`text-[10px] rounded-md px-1.5 py-0 ${st.bg}`}>{st.label}</Badge>
-                          </div>
-                          <p className="text-sm font-medium text-stone-800 mt-1 truncate">{d.title}</p>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className={`inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium ${srcCfg.bg} ${srcCfg.text}`}>
-                              <SrcIcon className="h-2 w-2" />
-                              {meeting?.code}
-                            </span>
-                            {d.proposedBy && <span className="text-[11px] text-stone-400">{d.proposedBy}</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column (이전과 동일 구조) */}
-        <div className="space-y-5">
-          {/* 영역별 (이전과 동일) */}
-          <div className="glass-card">
-            <div className="px-4 py-3 border-b border-stone-100/50">
-              <h2 className="font-semibold text-stone-800 text-sm">영역별</h2>
-            </div>
-            <div className="p-4 space-y-2.5">
-              {Object.entries(areaCounts).map(([area, count]) => (
-                <div key={area} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CircleDot className={`h-3.5 w-3.5 ${area === 'dev' ? 'text-sky-500' : area === 'design' ? 'text-pink-500' : 'text-violet-500'}`} />
-                    <span className="text-xs text-stone-600">{areaLabel[area] || area}</span>
+            return (
+              <Link key={mtg.id} href={`/${teamId}/${projectId}/meetings`}
+                className="block card-soft p-4 hover:border-stone-300 transition-all">
+                <div className="flex items-start gap-3">
+                  <div className={`p-2 rounded-lg ${cfg.bg}`}>
+                    <SrcIcon className={`h-5 w-5 ${cfg.text}`} />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-16 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${area === 'dev' ? 'bg-sky-400' : area === 'design' ? 'bg-pink-400' : 'bg-violet-400'}`}
-                        style={{ width: `${totalDecisions > 0 ? (count / totalDecisions) * 100 : 0}%` }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-stone-500">{mtg.code}</span>
+                      <span className="text-sm font-semibold text-stone-900 truncate">{mtg.title}</span>
+                      <span className="text-xs text-stone-400 ml-auto shrink-0">{mtg.date}</span>
                     </div>
-                    <span className="text-xs font-medium text-stone-700 w-5 text-right">{count}</span>
+                    {mtg.summary && (
+                      <p className="text-sm text-stone-500 mt-1 line-clamp-1">{mtg.summary}</p>
+                    )}
+                    <div className="flex items-center gap-4 mt-2 text-xs text-stone-400">
+                      {mtgDecs.length > 0 && <span>결정 {mtgDecs.length}</span>}
+                      {mtgTasks.length > 0 && <span>할일 {mtgTasks.length}</span>}
+                      {(mtg.issues?.length || 0) > 0 && <span className="text-amber-500">이슈 {mtg.issues.length}</span>}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
 
-          {/* 바로가기 (이전과 동일) */}
-          <div className="glass-card">
-            <div className="px-4 py-3 border-b border-stone-100/50">
-              <h2 className="font-semibold text-stone-800 text-sm">바로가기</h2>
-            </div>
-            <div className="p-2 space-y-0.5">
-              {[
-                { href: `/${teamId}/${projectId}/meetings`, icon: Mic, label: '회의 녹음', iconBg: 'bg-red-100', iconColor: 'text-red-600', hoverBg: 'hover:bg-red-50' },
-                { href: `/${teamId}/${projectId}/decisions`, icon: GitBranch, label: '결정 관리', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', hoverBg: 'hover:bg-stone-50' },
-                { href: `/${teamId}/${projectId}/tasks`, icon: ListChecks, label: '할 일', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', hoverBg: 'hover:bg-stone-50' },
-              ].map(a => (
-                <Link key={a.label} href={a.href} className={`flex items-center gap-2.5 p-2.5 rounded-lg ${a.hoverBg} transition-colors`}>
-                  <div className={`p-1.5 rounded-md ${a.iconBg}`}>
-                    <a.icon className={`h-3.5 w-3.5 ${a.iconColor}`} />
-                  </div>
-                  <span className="text-xs font-medium text-stone-700">{a.label}</span>
+      {/* ─── 섹션 3: 주의 필요 + 최근 결정 ─── */}
+      <div className="space-y-6">
+        {/* 주의 필요 */}
+        {attentionItems.length > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold text-stone-900 mb-3">
+              주의 필요 <span className="text-orange-500 font-bold">{attentionItems.length}</span>
+            </h2>
+            <div className="space-y-1.5">
+              {attentionItems.slice(0, 5).map((item, i) => (
+                <Link key={i} href={item.link}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-stone-50 transition-colors">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
+                  <span className={`text-xs font-semibold w-8 shrink-0 ${item.color}`}>{item.label}</span>
+                  <span className="text-sm text-stone-700 flex-1 truncate">{item.title}</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-stone-300 shrink-0" />
                 </Link>
               ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* 최근 결정 — 심플 */}
+        {decisions.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-stone-900">최근 결정</h2>
+              <Link href={`/${teamId}/${projectId}/decisions`} className="text-xs text-stone-400 hover:text-orange-600 transition-colors">
+                모두 보기 →
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {decisions.slice(0, 4).map(d => {
+                const meeting = getMeeting(d.meetingId)
+                return (
+                  <div key={d.id} className="flex items-center gap-3 px-4 py-3 rounded-xl card-soft">
+                    <div className={`w-1 self-stretch rounded-full shrink-0 ${statusBar[d.status] || 'bg-stone-300'}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-stone-400">{d.code}</span>
+                        <span className="text-xs text-stone-400">{statusLabel[d.status] || d.status}</span>
+                      </div>
+                      <p className="text-sm font-medium text-stone-900 truncate">{d.title}</p>
+                    </div>
+                    {meeting && (
+                      <span className="text-xs text-stone-400 shrink-0">{meeting.code}</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
