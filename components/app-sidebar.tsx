@@ -44,6 +44,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { PkeepLogoFull } from '@/components/brand/Logo'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -118,15 +119,7 @@ export function AppSidebar() {
     <>
       <Sidebar className="border-r border-sidebar-border/30 sidebar-glass">
         <SidebarHeader className="border-b border-sidebar-border/30 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white font-bold text-sm shadow-md">
-              PK
-            </div>
-            <div>
-              <span className="font-semibold text-sm bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">PKEEP</span>
-              <p className="text-[10px] text-muted-foreground">AI 프로젝트 매니저</p>
-            </div>
-          </div>
+          <PkeepLogoFull size={36} />
         </SidebarHeader>
 
         <SidebarContent className="p-2">
@@ -183,7 +176,7 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
-                      className="h-11 rounded-xl px-3 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm"
+                      className="h-11 rounded-xl px-3 border-2 border-orange-500 text-orange-600 hover:bg-orange-50 font-medium"
                     >
                       <Link href={`/${teamId}/${projectId}/meetings`} className="flex items-center gap-2.5">
                         <Mic className="h-4 w-4" />

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import type { StoredMeeting, StoredDecision, StoredTask, StoredRejected } from '@/lib/store/types'
 import { detectConflicts, getSeverityConfig, getConflictTypeLabel, type Conflict } from '@/lib/conflicts'
+import { PkeepLogo } from '@/components/brand/Logo'
 
 // ─── Config (이전과 동일) ───
 const statusConfig: Record<string, { icon: typeof CheckCircle; color: string; bg: string; label: string }> = {
@@ -165,10 +166,8 @@ export default function DashboardPage() {
       <div className="card-soft p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500">
-              <Sparkles className="h-3.5 w-3.5 text-white" />
-            </div>
-            <h3 className="text-sm font-semibold text-stone-800">PKEEP Bot</h3>
+            <PkeepLogo size={28} />
+            <h3 className="text-sm font-semibold text-stone-900">PKEEP Bot</h3>
           </div>
           <Button
             variant="outline"
@@ -188,7 +187,7 @@ export default function DashboardPage() {
           </Button>
         </div>
         {botReview ? (
-          <div className="text-sm text-stone-700 leading-relaxed whitespace-pre-line bg-stone-50 rounded-lg px-4 py-3">
+          <div className="text-sm text-stone-700 leading-relaxed whitespace-pre-line bg-orange-50/50 border border-orange-100 rounded-xl px-4 py-3">
             {botReview}
           </div>
         ) : (

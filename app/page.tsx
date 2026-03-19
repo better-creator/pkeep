@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Mic, Search, ShieldAlert, ArrowRight, CheckCircle, Zap } from "lucide-react"
+import { PkeepLogo, PkeepLogoFull } from '@/components/brand/Logo'
 
 export default function Home() {
   return (
@@ -8,13 +9,7 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-              PK
-            </div>
-            <span className="font-semibold text-stone-900">PKEEP</span>
-            <span className="text-xs text-stone-400 ml-1">피킵</span>
-          </div>
+          <PkeepLogoFull size={28} />
           <nav className="flex items-center gap-6">
             <Link href="#features" className="text-sm text-stone-600 hover:text-stone-900">
               기능
@@ -242,11 +237,9 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-8 px-6 bg-white border-t border-stone-200">
         <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-xs">
-              PK
-            </div>
-            <span className="text-sm text-stone-600">PKEEP © 2025</span>
+          <div className="flex items-center gap-3">
+            <PkeepLogoFull size={24} />
+            <span className="text-sm text-stone-600">© 2025</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-stone-500">
             <Link href="#" className="hover:text-stone-900">이용약관</Link>
