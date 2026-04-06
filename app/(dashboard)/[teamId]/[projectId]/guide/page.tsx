@@ -11,102 +11,147 @@ import {
   Youtube,
   MonitorSmartphone,
   Megaphone,
-  ChevronRight,
   Sparkles,
   Clock,
   GitBranch,
   Eye,
+  Camera,
+  PenTool,
+  Volume2,
+  ChevronDown,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-// --- Mock Brand Data ---
-const brandColors = [
-  { name: 'Primary', hex: '#7B3FA3', hsl: '275, 50%, 48%', usage: '주요 CTA, 헤더, 강조 요소' },
-  { name: 'Accent', hex: '#E8734A', hsl: '24, 78%, 58%', usage: '보조 CTA, 알림, 배지' },
-  { name: 'Dark', hex: '#1A1625', hsl: '260, 28%, 12%', usage: '본문 텍스트, 다크 배경' },
-  { name: 'Light BG', hex: '#FAF8F5', hsl: '30, 25%, 97%', usage: '배경, 카드 베이스' },
-  { name: 'Mint', hex: '#34D399', hsl: '160, 84%, 39%', usage: '성공, 확정 상태' },
-  { name: 'Warm Gray', hex: '#A8A3B3', hsl: '260, 10%, 67%', usage: '보조 텍스트, 비활성' },
+// Dummy images from picsum
+const img = (id: number, w = 400, h = 300) => `https://picsum.photos/id/${id}/${w}/${h}`
+
+// --- Brand Guide Data (Content-Production Focused) ---
+const brandEssence = {
+  target: '2030 여성, 뷰티에 관심 많고 트렌드에 민감한 도시 거주자',
+  positioning: '매일의 뷰티 루틴을 특별하게 — 합리적 가격의 프리미엄 경험',
+  tone: '친근하지만 세련된. 전문적이되 딱딱하지 않은. 발견의 즐거움.',
+  keywords: ['데일리 뷰티', '합리적 프리미엄', '트렌드 큐레이션', '자기관리'],
+}
+
+const visualSystem = {
+  colors: [
+    { name: 'Olive Green', hex: '#2D8C3C', usage: '브랜드 메인' },
+    { name: 'Warm White', hex: '#FFF8F0', usage: '배경' },
+    { name: 'Coral Pink', hex: '#E8734A', usage: '포인트, CTA' },
+    { name: 'Charcoal', hex: '#1B1D1F', usage: '본문 텍스트' },
+    { name: 'Soft Gray', hex: '#F2F0ED', usage: '카드, 구분선' },
+    { name: 'Gold', hex: '#C9A96E', usage: '프리미엄 라인' },
+  ],
+  fonts: {
+    korean: 'Pretendard',
+    english: 'Satoshi',
+    body: '16px / 행간 160%',
+  },
+  logoRules: '최소 여백: 로고 높이의 100%. 배경: 흰색 또는 올리브 그린만 허용.',
+}
+
+const moodboards = [
+  { src: img(1005, 400, 300), label: '무드 A — 자연스러운 데일리' },
+  { src: img(1027, 400, 300), label: '무드 B — 깔끔한 프로덕트' },
+  { src: img(1035, 400, 300), label: '무드 C — 감성 라이프스타일' },
+  { src: img(1062, 400, 300), label: '무드 D — 따뜻한 톤 & 텍스처' },
 ]
 
-const typography = [
-  { name: 'Heading 1', font: 'Satoshi Bold', size: '32px / 2rem', weight: '700', sample: '브랜드 가이드 타이틀' },
-  { name: 'Heading 2', font: 'Satoshi SemiBold', size: '24px / 1.5rem', weight: '600', sample: '섹션 헤딩' },
-  { name: 'Heading 3', font: 'Pretendard SemiBold', size: '18px / 1.125rem', weight: '600', sample: '서브 헤딩 한글' },
-  { name: 'Body', font: 'Pretendard Regular', size: '16px / 1rem', weight: '400', sample: '본문 텍스트입니다. 가독성을 최우선으로 합니다.' },
-  { name: 'Caption', font: 'Pretendard Regular', size: '13px / 0.8125rem', weight: '400', sample: '보조 설명, 메타 정보' },
-  { name: 'Code', font: 'JetBrains Mono', size: '14px / 0.875rem', weight: '500', sample: 'const brand = "PKEEP"' },
-]
+const shootingGuide = {
+  product: {
+    title: '제품 촬영',
+    rules: [
+      '화이트 배경 + 좌측 45도 자연광 라이팅',
+      '제품 그림자: 소프트, 바닥에 자연스럽게',
+      '소품 사용 시 브랜드 컬러 톤에 맞출 것',
+    ],
+    references: [img(225, 300, 300), img(901, 300, 300), img(431, 300, 300)],
+  },
+  model: {
+    title: '모델 촬영',
+    rules: [
+      '피부 톤 따뜻하게, 과도한 보정 금지',
+      '자연스러운 표정, 포즈는 릴렉스',
+      '배경: 화이트, 베이지, 올리브 톤 허용',
+    ],
+    references: [img(1027, 300, 300), img(1012, 300, 300), img(64, 300, 300)],
+  },
+}
 
 const doList = [
-  { rule: '보라-코랄 그라데이션은 브랜드 핵심 포인트에만 사용', image: 'https://i.pinimg.com/736x/8d/6e/f5/8d6ef5c5a3e8b2f9a1c5d7e4f6a8b9c0.jpg', from: 'M-001 킥오프 회의' },
-  { rule: '한글은 프리텐다드, 영문은 Satoshi 서체 조합', image: null, from: 'M-003 디자인 리뷰' },
-  { rule: '제품 이미지는 화이트 배경 + 좌측 45도 라이팅', image: 'https://i.pinimg.com/736x/a1/b2/c3/a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6.jpg', from: 'M-005 촬영 가이드' },
-  { rule: '인스타그램: 정사각형 비율 유지, 여백 최소 8%', image: null, from: 'M-008 채널 전략' },
-  { rule: 'CTA 버튼은 Accent(코랄) 색상, 라운드 14px', image: null, from: 'D-012 UI 결정' },
+  { rule: '보라-코랄 그라데이션은 브랜드 핵심 포인트에만 사용', image: img(188, 120, 120), from: 'M-001 킥오프' },
+  { rule: '제품 이미지는 화이트 배경 + 좌측 45도 라이팅', image: img(225, 120, 120), from: 'M-005 촬영 가이드' },
+  { rule: '인스타 피드: 정사각형 1:1 비율, 여백 최소 8%', image: null, from: 'M-008 채널 전략' },
+  { rule: 'CTA 버튼은 코랄(#E8734A), 라운드 14px', image: null, from: 'D-012 UI 결정' },
+  { rule: '한글 프리텐다드 + 영문 Satoshi 조합', image: null, from: 'M-003 디자인 리뷰' },
 ]
 
 const dontList = [
-  { rule: '로고 주변 여백 미확보 (최소 로고 높이의 50%)', image: 'https://i.pinimg.com/736x/f1/e2/d3/f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6.jpg', from: 'M-001 킥오프 회의', reason: '가독성 저하, 브랜드 인지도 훼손' },
-  { rule: '네온 컬러·형광색 사용 금지', image: null, from: 'M-003 디자인 리뷰', reason: '브랜드 톤 불일치 — 따뜻하고 차분한 톤 유지' },
-  { rule: '검정 배경 위 보라색 텍스트 사용 금지', image: null, from: 'D-007 접근성 검토', reason: '명도 대비 부족, WCAG AA 미달' },
-  { rule: '제품 사진 과도한 필터/보정 금지', image: 'https://i.pinimg.com/736x/b1/c2/d3/b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6.jpg', from: 'M-005 촬영 가이드', reason: '실물과 괴리 — 소비자 신뢰 저하' },
+  { rule: '로고 주변 여백 미확보 (최소 로고 높이의 100%)', image: img(1074, 120, 120), from: 'M-001 킥오프', reason: '가독성 저하, 브랜드 인지도 훼손' },
+  { rule: '네온·형광색 사용 금지', image: null, from: 'M-003 디자인 리뷰', reason: '브랜드 톤 불일치 — 따뜻하고 차분한 톤 유지' },
+  { rule: '제품 사진 과도한 필터/보정 금지', image: img(659, 120, 120), from: 'M-005 촬영 가이드', reason: '실물 괴리 → 소비자 신뢰 저하' },
+  { rule: '검정 배경 위 올리브 텍스트 사용 금지', image: null, from: 'D-007 접근성', reason: 'WCAG AA 명도 대비 미달' },
 ]
 
 const channels = [
   {
+    id: 'instagram',
     name: '인스타그램',
     icon: Instagram,
-    color: 'bg-gradient-to-br from-purple-500 to-pink-500',
-    specs: ['정사각형 1:1 비율', 'Reels: 9:16', '캡션 2,200자 이내'],
-    toneNote: '캐주얼 + 감성. 이모지 사용 허용. 해시태그 15개 이내.',
-    thumbnail: 'https://i.pinimg.com/736x/d4/e5/f6/d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9.jpg',
+    color: 'from-purple-500 to-pink-500',
+    thumbnail: img(1080, 600, 400),
+    specs: '피드 1:1 · 릴스 9:16 · 캡션 2,200자',
+    tone: '캐주얼 + 감성. 이모지 허용. 해시태그 15개 이내.',
+    samples: [img(1005, 200, 200), img(1027, 200, 200), img(1035, 200, 200)],
+    decisions: 8,
   },
   {
+    id: 'youtube',
     name: '유튜브',
     icon: Youtube,
-    color: 'bg-red-600',
-    specs: ['썸네일 1280x720', '영상 16:9', '설명 5,000자 이내'],
-    toneNote: '정보 전달 + 친근함. 자막 필수. "~입니다"체 사용.',
-    thumbnail: 'https://i.pinimg.com/736x/e5/f6/a7/e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0.jpg',
+    color: 'from-red-500 to-red-600',
+    thumbnail: img(180, 600, 400),
+    specs: '썸네일 1280x720 · 영상 16:9 · 설명 5,000자',
+    tone: '정보 전달 + 친근함. 자막 필수. "~입니다"체.',
+    samples: [img(180, 200, 200), img(367, 200, 200), img(403, 200, 200)],
+    decisions: 5,
   },
   {
+    id: 'outdoor',
     name: '옥외광고',
     icon: Megaphone,
-    color: 'bg-amber-600',
-    specs: ['해상도 300dpi', '시인성 거리 3m 기준', 'CMYK 모드'],
-    toneNote: '간결. 핵심 메시지 7단어 이내. 로고 면적 15% 이상.',
-    thumbnail: 'https://i.pinimg.com/736x/c3/d4/e5/c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8.jpg',
+    color: 'from-amber-500 to-amber-600',
+    thumbnail: img(274, 600, 400),
+    specs: '300dpi · 시인성 3m 기준 · CMYK',
+    tone: '간결. 핵심 메시지 7단어 이내. 로고 면적 15% 이상.',
+    samples: [img(274, 200, 200), img(366, 200, 200), img(399, 200, 200)],
+    decisions: 3,
   },
   {
+    id: 'web',
     name: '웹/앱',
     icon: MonitorSmartphone,
-    color: 'bg-sky-600',
-    specs: ['반응형 필수', '최소 터치 영역 44px', '웹 폰트 Pretendard'],
-    toneNote: '명확하고 간결. UX 라이팅 가이드 준수. "~해요"체.',
-    thumbnail: 'https://i.pinimg.com/736x/a9/b0/c1/a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4.jpg',
+    color: 'from-sky-500 to-sky-600',
+    thumbnail: img(0, 600, 400),
+    specs: '반응형 · 최소 터치 44px · Pretendard',
+    tone: '명확하고 간결. UX 라이팅 가이드 준수. "~해요"체.',
+    samples: [img(0, 200, 200), img(3, 200, 200), img(20, 200, 200)],
+    decisions: 6,
   },
 ]
 
 const recentUpdates = [
-  { date: '2026-04-05', change: 'Accent 컬러 채도 5% 상향 조정', from: 'M-012 시즌2 킥오프', type: '비주얼' },
-  { date: '2026-04-03', change: '인스타 릴스 자막 위치 규정 추가', from: 'D-023 채널 가이드', type: '채널' },
-  { date: '2026-04-01', change: '제품 촬영 라이팅 각도 40도→45도', from: 'M-011 포토 리뷰', type: '촬영' },
-  { date: '2026-03-28', change: 'DON\'T 목록에 "검정 배경 보라 텍스트" 추가', from: 'D-007 접근성', type: '접근성' },
-]
-
-// Placeholder images for visual references
-const visualReferences = [
-  { url: 'https://i.pinimg.com/736x/1a/2b/3c/1a2b3cd4e5f6a7b8c9d0e1f2a3b4c5d6.jpg', label: '무드보드 A — 따뜻한 톤' },
-  { url: 'https://i.pinimg.com/736x/4d/5e/6f/4d5e6fa7b8c9d0e1f2a3b4c5d6e7f8a9.jpg', label: '무드보드 B — 미니멀' },
-  { url: 'https://i.pinimg.com/736x/7g/8h/9i/7g8h9ia0b1c2d3e4f5a6b7c8d9e0f1a2.jpg', label: '키 비주얼 레퍼런스' },
-  { url: 'https://i.pinimg.com/736x/0a/1b/2c/0a1b2cd3e4f5a6b7c8d9e0f1a2b3c4d5.jpg', label: '타이포 레퍼런스' },
+  { date: '04.05', change: 'Accent 컬러 채도 5% 상향', from: 'M-012 시즌2 킥오프', type: '비주얼' },
+  { date: '04.03', change: '인스타 릴스 자막 위치 규정 추가', from: 'D-023 채널 가이드', type: '채널' },
+  { date: '04.01', change: '제품 촬영 라이팅 각도 40°→45°', from: 'M-011 포토 리뷰', type: '촬영' },
+  { date: '03.28', change: 'DON\'T: "검정 배경 올리브 텍스트" 추가', from: 'D-007 접근성', type: '접근성' },
+  { date: '03.25', change: '모델 촬영: 피부 보정 기준 명시', from: 'M-010 촬영 기준', type: '촬영' },
 ]
 
 export default function BrandGuidePage() {
-  const [activeChannel, setActiveChannel] = useState<string | null>(null)
+  const [expandedChannel, setExpandedChannel] = useState<string | null>('instagram')
 
   return (
     <div className="space-y-8">
@@ -116,7 +161,7 @@ export default function BrandGuidePage() {
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="outline" className="text-xs font-normal border-primary/30 text-primary bg-primary/5">
               <Sparkles className="h-3 w-3 mr-1" />
-              자동 생성
+              결정 기반 자동 생성
             </Badge>
             <Badge variant="outline" className="text-xs font-normal border-emerald-300 text-emerald-700 bg-emerald-50">
               <Clock className="h-3 w-3 mr-1" />
@@ -125,7 +170,7 @@ export default function BrandGuidePage() {
           </div>
           <h1 className="text-2xl font-bold">브랜드 가이드</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            12건의 결정에서 자동 생성 · 마지막 업데이트 2026.04.05
+            34건의 결정에서 자동 생성 · 4개 채널 분기
           </p>
         </div>
         <div className="flex gap-2">
@@ -133,258 +178,249 @@ export default function BrandGuidePage() {
             <Eye className="h-4 w-4 mr-1.5" />
             외주사 공유용
           </Button>
-          <Button variant="outline" size="sm" className="rounded-xl text-sm">
-            <GitBranch className="h-4 w-4 mr-1.5" />
-            채널별 분기
-          </Button>
         </div>
       </div>
 
-      {/* Main Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-secondary/50 rounded-xl p-1">
-          <TabsTrigger value="overview" className="rounded-lg text-sm">마스터 가이드</TabsTrigger>
-          <TabsTrigger value="channels" className="rounded-lg text-sm">채널별 가이드</TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg text-sm">변경 이력</TabsTrigger>
-        </TabsList>
-
-        {/* === MASTER GUIDE === */}
-        <TabsContent value="overview" className="space-y-8">
-
-          {/* Color System */}
-          <section className="card-soft p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Palette className="h-4 w-4 text-primary" />
-              </div>
-              <h2 className="text-lg font-semibold">컬러 시스템</h2>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {brandColors.map((color) => (
-                <div key={color.name} className="space-y-2">
-                  <div
-                    className="h-20 rounded-xl shadow-inner border border-black/5"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  <div>
-                    <p className="text-sm font-medium">{color.name}</p>
-                    <p className="text-xs font-mono text-muted-foreground">{color.hex}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{color.usage}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Typography */}
-          <section className="card-soft p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Type className="h-4 w-4 text-primary" />
-              </div>
-              <h2 className="text-lg font-semibold">타이포그래피</h2>
-            </div>
-            <div className="space-y-4">
-              {typography.map((t) => (
-                <div key={t.name} className="flex items-baseline gap-6 py-3 border-b border-border/30 last:border-0">
-                  <div className="w-28 shrink-0">
-                    <p className="text-xs font-medium text-muted-foreground">{t.name}</p>
-                    <p className="text-[10px] text-muted-foreground/70">{t.font} · {t.size}</p>
-                  </div>
-                  <p
-                    className="flex-1"
-                    style={{
-                      fontFamily: t.font.includes('JetBrains') ? "'JetBrains Mono', monospace" :
-                        t.font.includes('Satoshi') ? "'Satoshi', sans-serif" : "'Pretendard Variable', sans-serif",
-                      fontWeight: parseInt(t.weight),
-                      fontSize: t.size.split(' / ')[0],
-                    }}
-                  >
-                    {t.sample}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Visual References */}
-          <section className="card-soft p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Image className="h-4 w-4 text-primary" />
-              </div>
-              <h2 className="text-lg font-semibold">비주얼 레퍼런스</h2>
-              <Badge variant="outline" className="text-[10px] ml-2">M-001에서 등록</Badge>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {visualReferences.map((ref, i) => (
-                <div key={i} className="group relative">
-                  <div className="aspect-[4/3] rounded-xl bg-muted/50 border border-border/30 overflow-hidden">
-                    <div className="w-full h-full bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center">
-                      <Image className="h-8 w-8 text-muted-foreground/20" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">{ref.label}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* DO / DON'T */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* DO */}
-            <section className="card-soft p-6 border-l-4 border-l-emerald-500">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                </div>
-                <h2 className="text-lg font-semibold text-emerald-700">DO</h2>
-                <span className="text-xs text-muted-foreground ml-auto">{doList.length}건</span>
-              </div>
-              <div className="space-y-3">
-                {doList.map((item, i) => (
-                  <div key={i} className="flex gap-3 p-3 rounded-xl bg-emerald-50/50 border border-emerald-100/50">
-                    {item.image ? (
-                      <div className="w-16 h-16 rounded-lg bg-emerald-100/50 border border-emerald-200/30 shrink-0 flex items-center justify-center overflow-hidden">
-                        <Image className="h-5 w-5 text-emerald-300" />
-                      </div>
-                    ) : null}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{item.rule}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1 font-mono">{item.from}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* DON'T */}
-            <section className="card-soft p-6 border-l-4 border-l-rose-500">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="h-8 w-8 rounded-lg bg-rose-50 flex items-center justify-center">
-                  <ShieldX className="h-4 w-4 text-rose-600" />
-                </div>
-                <h2 className="text-lg font-semibold text-rose-700">DON&apos;T</h2>
-                <span className="text-xs text-muted-foreground ml-auto">{dontList.length}건</span>
-              </div>
-              <div className="space-y-3">
-                {dontList.map((item, i) => (
-                  <div key={i} className="flex gap-3 p-3 rounded-xl bg-rose-50/50 border border-rose-100/50">
-                    {item.image ? (
-                      <div className="w-16 h-16 rounded-lg bg-rose-100/50 border border-rose-200/30 shrink-0 flex items-center justify-center overflow-hidden">
-                        <Image className="h-5 w-5 text-rose-300" />
-                      </div>
-                    ) : null}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{item.rule}</p>
-                      <p className="text-xs text-rose-600/70 mt-0.5">{item.reason}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1 font-mono">{item.from}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+      {/* Brand Essence */}
+      <section className="card-soft p-6">
+        <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+          <PenTool className="h-4 w-4 text-primary" />
+          브랜드 에센스
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl bg-secondary/30">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">타겟</p>
+            <p className="text-sm">{brandEssence.target}</p>
           </div>
-        </TabsContent>
-
-        {/* === CHANNEL GUIDES === */}
-        <TabsContent value="channels" className="space-y-6">
-          <div className="card-soft p-4 bg-primary/5 border-primary/20">
-            <p className="text-sm text-primary">
-              <GitBranch className="h-4 w-4 inline mr-1.5" />
-              채널별 가이드는 마스터 가이드를 상속받아 자동 생성됩니다. 마스터 가이드가 변경되면 모든 채널에 자동 반영됩니다.
-            </p>
+          <div className="p-4 rounded-xl bg-secondary/30">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">포지셔닝</p>
+            <p className="text-sm">{brandEssence.positioning}</p>
           </div>
+          <div className="p-4 rounded-xl bg-secondary/30">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">톤 & 보이스</p>
+            <p className="text-sm">{brandEssence.tone}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-secondary/30">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">키워드</p>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {brandEssence.keywords.map((kw, i) => (
+                <Badge key={i} variant="outline" className="text-xs font-normal">{kw}</Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {channels.map((ch) => (
-              <div
-                key={ch.name}
-                className={`card-soft p-5 cursor-pointer transition-all ${
-                  activeChannel === ch.name ? 'ring-2 ring-primary shadow-md' : ''
-                }`}
-                onClick={() => setActiveChannel(activeChannel === ch.name ? null : ch.name)}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`h-10 w-10 rounded-xl ${ch.color} flex items-center justify-center text-white`}>
+      {/* Visual System — Compact */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Colors + Typo */}
+        <section className="card-soft p-6">
+          <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <Palette className="h-4 w-4 text-primary" />
+            비주얼 시스템
+          </h2>
+          <div className="flex gap-2 mb-4">
+            {visualSystem.colors.map((c) => (
+              <div key={c.name} className="flex-1 text-center">
+                <div className="h-12 rounded-lg border border-black/5 shadow-inner mb-1" style={{ backgroundColor: c.hex }} />
+                <p className="text-[9px] font-mono text-muted-foreground">{c.hex}</p>
+                <p className="text-[9px] text-muted-foreground">{c.usage}</p>
+              </div>
+            ))}
+          </div>
+          <div className="pt-3 border-t border-border/30 space-y-1">
+            <p className="text-xs"><span className="text-muted-foreground">한글:</span> {visualSystem.fonts.korean}</p>
+            <p className="text-xs"><span className="text-muted-foreground">영문:</span> {visualSystem.fonts.english}</p>
+            <p className="text-xs"><span className="text-muted-foreground">본문:</span> {visualSystem.fonts.body}</p>
+            <p className="text-xs"><span className="text-muted-foreground">로고:</span> {visualSystem.logoRules}</p>
+          </div>
+        </section>
+
+        {/* Moodboard */}
+        <section className="card-soft p-6">
+          <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <Image className="h-4 w-4 text-primary" />
+            무드보드
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {moodboards.map((m, i) => (
+              <div key={i}>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted/30 border border-border/30">
+                  <img src={m.src} alt={m.label} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">{m.label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Shooting Guide */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {Object.values(shootingGuide).map((guide) => (
+          <section key={guide.title} className="card-soft p-6">
+            <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
+              <Camera className="h-4 w-4 text-primary" />
+              {guide.title} 가이드
+            </h2>
+            <ul className="space-y-1.5 mb-4">
+              {guide.rules.map((rule, i) => (
+                <li key={i} className="text-sm flex items-start gap-2">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                  {rule}
+                </li>
+              ))}
+            </ul>
+            <div className="flex gap-2">
+              {guide.references.map((src, i) => (
+                <div key={i} className="flex-1 aspect-square rounded-xl overflow-hidden bg-muted/30 border border-border/30">
+                  <img src={src} alt={`${guide.title} 레퍼런스 ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {/* DO / DON'T */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="card-soft p-6 border-l-4 border-l-emerald-500">
+          <h2 className="text-base font-semibold mb-4 flex items-center gap-2 text-emerald-700">
+            <ShieldCheck className="h-4 w-4" />
+            DO
+            <span className="text-xs text-muted-foreground font-normal ml-auto">{doList.length}건</span>
+          </h2>
+          <div className="space-y-2.5">
+            {doList.map((item, i) => (
+              <div key={i} className="flex gap-3 p-3 rounded-xl bg-emerald-50/50 border border-emerald-100/50">
+                {item.image && (
+                  <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden">
+                    <img src={item.image} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm">{item.rule}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{item.from}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="card-soft p-6 border-l-4 border-l-rose-500">
+          <h2 className="text-base font-semibold mb-4 flex items-center gap-2 text-rose-700">
+            <ShieldX className="h-4 w-4" />
+            DON&apos;T
+            <span className="text-xs text-muted-foreground font-normal ml-auto">{dontList.length}건</span>
+          </h2>
+          <div className="space-y-2.5">
+            {dontList.map((item, i) => (
+              <div key={i} className="flex gap-3 p-3 rounded-xl bg-rose-50/50 border border-rose-100/50">
+                {item.image && (
+                  <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden">
+                    <img src={item.image} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm">{item.rule}</p>
+                  <p className="text-xs text-rose-600/70 mt-0.5">{item.reason}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{item.from}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* Channel Guides */}
+      <section>
+        <h2 className="text-base font-semibold mb-1 flex items-center gap-2">
+          <GitBranch className="h-4 w-4 text-primary" />
+          채널별 가이드
+        </h2>
+        <p className="text-xs text-muted-foreground mb-4">마스터 가이드를 상속받아 자동 생성. 마스터 변경 시 모든 채널에 반영.</p>
+
+        <div className="space-y-4">
+          {channels.map((ch) => {
+            const isExpanded = expandedChannel === ch.id
+            return (
+              <div key={ch.id} className="card-soft overflow-hidden">
+                {/* Channel Header — always visible */}
+                <div
+                  className="flex items-center gap-4 p-5 cursor-pointer hover:bg-secondary/20 transition-colors"
+                  onClick={() => setExpandedChannel(isExpanded ? null : ch.id)}
+                >
+                  <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${ch.color} flex items-center justify-center text-white shrink-0`}>
                     <ch.icon className="h-5 w-5" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{ch.name}</h3>
-                    <p className="text-xs text-muted-foreground">마스터 가이드 + {ch.specs.length}개 채널 규정</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm">{ch.name}</h3>
+                    <p className="text-xs text-muted-foreground">{ch.specs}</p>
                   </div>
-                  <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${
-                    activeChannel === ch.name ? 'rotate-90' : ''
-                  }`} />
+                  <Badge variant="outline" className="text-[10px]">{ch.decisions}건 결정</Badge>
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                 </div>
 
-                {/* Thumbnail placeholder */}
-                <div className="aspect-video rounded-xl bg-muted/30 border border-border/30 mb-4 flex items-center justify-center overflow-hidden">
-                  <div className="text-center">
-                    <Image className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground/50">{ch.name} 채널 프리뷰</p>
-                  </div>
-                </div>
-
-                {/* Expanded details */}
-                {activeChannel === ch.name && (
-                  <div className="space-y-4 pt-3 border-t border-border/30 animate-in slide-in-from-top-2 duration-200">
+                {/* Channel Detail */}
+                {isExpanded && (
+                  <div className="px-5 pb-5 space-y-4 border-t border-border/30 pt-4">
+                    {/* Thumbnail + Tone */}
+                    <div className="flex gap-5">
+                      <div className="w-1/2 aspect-video rounded-xl overflow-hidden bg-muted/30">
+                        <img src={ch.thumbnail} alt={ch.name} className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                      <div className="w-1/2">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">톤 & 보이스</p>
+                        <p className="text-sm mb-3">{ch.tone}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">사양</p>
+                        <p className="text-sm">{ch.specs}</p>
+                      </div>
+                    </div>
+                    {/* Sample Images */}
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">사양 규정</p>
-                      <div className="flex flex-wrap gap-2">
-                        {ch.specs.map((spec, i) => (
-                          <Badge key={i} variant="outline" className="text-xs font-normal">{spec}</Badge>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">레퍼런스 · 샘플</p>
+                      <div className="flex gap-3">
+                        {ch.samples.map((src, i) => (
+                          <div key={i} className="flex-1 aspect-square rounded-xl overflow-hidden bg-muted/30 border border-border/30">
+                            <img src={src} alt={`${ch.name} 샘플 ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                          </div>
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">톤 & 보이스</p>
-                      <p className="text-sm">{ch.toneNote}</p>
-                    </div>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="rounded-xl text-xs flex-1">
-                        전체 가이드 보기
-                      </Button>
-                      <Button size="sm" variant="outline" className="rounded-xl text-xs flex-1">
-                        외주사 전달용 PDF
-                      </Button>
+                      <Button size="sm" variant="outline" className="rounded-xl text-xs flex-1">전체 가이드 보기</Button>
+                      <Button size="sm" variant="outline" className="rounded-xl text-xs flex-1">외주사 전달용 PDF</Button>
                     </div>
                   </div>
                 )}
               </div>
-            ))}
-          </div>
-        </TabsContent>
+            )
+          })}
+        </div>
+      </section>
 
-        {/* === CHANGE HISTORY === */}
-        <TabsContent value="history" className="space-y-4">
-          <div className="card-soft p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Clock className="h-4 w-4 text-primary" />
-              </div>
-              <h2 className="text-lg font-semibold">가이드 변경 이력</h2>
-              <span className="text-xs text-muted-foreground ml-auto">결정이 바뀌면 자동 반영</span>
-            </div>
-            <div className="space-y-3">
-              {recentUpdates.map((update, i) => (
-                <div key={i} className="flex items-start gap-4 p-3 rounded-xl hover:bg-secondary/30 transition-colors">
-                  <div className="text-xs text-muted-foreground w-20 shrink-0 pt-0.5 font-mono">
-                    {update.date}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{update.change}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-[10px]">{update.type}</Badge>
-                      <span className="text-[10px] text-muted-foreground font-mono">{update.from}</span>
-                    </div>
-                  </div>
+      {/* Change History */}
+      <section className="card-soft p-6">
+        <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+          <Clock className="h-4 w-4 text-primary" />
+          변경 이력
+          <span className="text-xs text-muted-foreground font-normal ml-2">결정이 바뀌면 자동 반영</span>
+        </h2>
+        <div className="space-y-2">
+          {recentUpdates.map((u, i) => (
+            <div key={i} className="flex items-start gap-4 p-2.5 rounded-xl hover:bg-secondary/30 transition-colors">
+              <span className="text-xs text-muted-foreground w-12 shrink-0 font-mono pt-0.5">{u.date}</span>
+              <div className="flex-1">
+                <p className="text-sm">{u.change}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Badge variant="outline" className="text-[10px]">{u.type}</Badge>
+                  <span className="text-[10px] text-muted-foreground font-mono">{u.from}</span>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

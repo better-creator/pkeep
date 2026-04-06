@@ -14,6 +14,9 @@ import {
   Layers,
   Upload,
   Users,
+  GitBranch,
+  Eye,
+  Network,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, usePathname, useRouter } from "next/navigation"
@@ -91,42 +94,36 @@ export function AppSidebar() {
 
   const currentProject = projects.find(p => p.id === projectId)
 
-  const navItems = [
+  // 그룹별 네비게이션
+  const navGroups = [
     {
-      title: "대시보드",
-      icon: LayoutDashboard,
-      href: `/${teamId}/${projectId}/dashboard`,
+      label: '제작',
+      items: [
+        { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
+        { title: "녹음 · 회의", icon: Mic, href: `/${teamId}/${projectId}/meetings` },
+        { title: "결정", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
+        { title: "할 일", icon: ListChecks, href: `/${teamId}/${projectId}/tasks` },
+      ],
     },
     {
-      title: "녹음",
-      icon: Mic,
-      href: `/${teamId}/${projectId}/meetings`,
+      label: '가이드 · 검증',
+      items: [
+        { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
+        { title: "결정 흐름", icon: GitBranch, href: `/${teamId}/${projectId}/nodeview` },
+      ],
     },
     {
-      title: "결정",
-      icon: CircleDot,
-      href: `/${teamId}/${projectId}/decisions`,
+      label: '협업',
+      items: [
+        { title: "팀 · 외주사", icon: Network, href: `/${teamId}/${projectId}/teams` },
+        { title: "클라이언트 포털", icon: Eye, href: `/${teamId}/${projectId}/client-portal` },
+      ],
     },
     {
-      title: "브랜드 가이드",
-      icon: BookOpen,
-      href: `/${teamId}/${projectId}/guide`,
-    },
-    {
-      title: "할 일",
-      icon: ListChecks,
-      href: `/${teamId}/${projectId}/tasks`,
-    },
-    {
-      title: "클라이언트 포털",
-      icon: Users,
-      href: `/${teamId}/${projectId}/client-portal`,
-    },
-    {
-      title: "AI 진단",
-      icon: Bot,
-      href: `/${teamId}/${projectId}/ai`,
-      accent: true,
+      label: 'AI',
+      items: [
+        { title: "AI 진단", icon: Bot, href: `/${teamId}/${projectId}/ai`, accent: true },
+      ],
     },
   ]
 
@@ -198,20 +195,20 @@ export function AppSidebar() {
             </SidebarGroup>
           )}
 
-          {/* Navigation */}
-          {projectId && (
-            <SidebarGroup className="mt-2">
-              <SidebarGroupLabel className="text-xs text-muted-foreground px-2 mb-1">메뉴</SidebarGroupLabel>
+          {/* Navigation Groups */}
+          {projectId && navGroups.map((group) => (
+            <SidebarGroup key={group.label} className="mt-1">
+              <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-0.5">{group.label}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {navItems.map((item) => {
+                  {group.items.map((item) => {
                     const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                           asChild
                           isActive={isActive}
-                          className={`h-10 rounded-xl px-3 ${
+                          className={`h-9 rounded-xl px-3 ${
                             isActive
                               ? 'bg-primary/10 text-primary'
                               : 'hover:bg-secondary/50'
@@ -220,11 +217,6 @@ export function AppSidebar() {
                           <Link href={item.href} className="flex items-center gap-2.5">
                             <item.icon className={`h-4 w-4 ${isActive ? 'text-primary' : 'accent' in item && item.accent ? 'text-primary' : ''}`} />
                             <span className="font-medium text-sm">{item.title}</span>
-                            {'badge' in item && typeof item.badge === 'number' && item.badge > 0 && (
-                              <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
-                                {item.badge}
-                              </span>
-                            )}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -233,7 +225,7 @@ export function AppSidebar() {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          )}
+          ))}
         </SidebarContent>
 
         <SidebarFooter className="border-t border-sidebar-border/30 p-2">
