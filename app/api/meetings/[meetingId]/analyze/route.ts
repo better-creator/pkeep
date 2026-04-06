@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import OpenAI from 'openai'
+import { createDecisionEdge, createContextEdge, recordConflict } from '@/lib/graph'
+import { chunkDecision, batchEmbed, cosineSimilarity } from '@/lib/embeddings'
 
 function getOpenAIClient() {
   const apiKey = process.env.OPENAI_API_KEY
@@ -299,12 +301,57 @@ async function autoCreateTickets(
         source_id: meetingId,
       })
 
+      // ── Graph KB: 맥락 엣지 생성 (특허 청구항 3) ──
+      // 회의 → 결정 관계
+      await createContextEdge({
+        projectId, decisionId: newDecision.id,
+        entityType: 'meeting', entityId: meetingId,
+        relationType: 'created_from',
+      })
+
+      // 결정 청크 생성 + 벡터 DB 저장 (비동기, 실패해도 계속)
+      try {
+        const chunks = chunkDecision({ title: decision.title, content: decision.rationale, reason: decision.rationale })
+        const texts = chunks.map(c => c.text)
+        const embeddings = await batchEmbed(texts)
+        for (let ci = 0; ci < chunks.length; ci++) {
+          try {
+            await supabase.from('decision_chunks').insert({
+              decision_id: newDecision.id,
+              chunk_index: ci,
+              chunk_text: chunks[ci].text,
+              chunk_type: chunks[ci].type,
+              embedding: embeddings[ci] || null,
+              token_count: Math.ceil(chunks[ci].text.length / 4),
+            })
+          } catch { /* non-fatal */ }
+        }
+      } catch (chunkErr) {
+        console.error('Decision chunk creation failed (non-fatal):', chunkErr)
+      }
+
       createdDecisions.push({
         ...newDecision,
         conflicts: conflictResults,
       })
 
+      // 충돌 → Graph KB에 엣지 + 충돌 레코드 저장
       if (conflictResults.length > 0) {
+        for (const cr of conflictResults) {
+          const existingDec = existingDecs?.find((d: any) => d.code === cr.existing_code)
+          if (existingDec) {
+            await createDecisionEdge({
+              projectId, sourceId: newDecision.id, targetId: existingDec.id,
+              edgeType: 'conflicts', reason: cr.conflict_reason, meetingId,
+              confidence: cr.similarity,
+            })
+            await recordConflict({
+              projectId, newDecisionId: newDecision.id, existingDecisionId: existingDec.id,
+              conflictType: 'logical', severity: cr.similarity >= 0.85 ? 'high' : 'medium',
+              similarityScore: cr.similarity, reason: cr.conflict_reason,
+            })
+          }
+        }
         conflicts.push({
           decision: newDecision,
           conflicts: conflictResults,
@@ -362,7 +409,17 @@ async function autoCreateTickets(
       .select()
       .single()
 
-    if (!error && data) createdRejected.push(data)
+    if (!error && data) {
+      createdRejected.push(data)
+      // Graph KB: 결정 → 기각대안 엣지
+      if (relatedDecision) {
+        await createContextEdge({
+          projectId, decisionId: relatedDecision.id,
+          entityType: 'rejected_alternative', entityId: data.id,
+          relationType: 'rejected_for',
+        })
+      }
+    }
   }
 
   // 태스크 저장
@@ -384,7 +441,17 @@ async function autoCreateTickets(
       .select()
       .single()
 
-    if (!error && data) createdTasks.push(data)
+    if (!error && data) {
+      createdTasks.push(data)
+      // Graph KB: 결정 → 태스크 엣지
+      if (relatedDecision) {
+        await createContextEdge({
+          projectId, decisionId: relatedDecision.id,
+          entityType: 'task', entityId: data.id,
+          relationType: 'produces',
+        })
+      }
+    }
   }
 
   // 맥락 관계 처리 (이전 결정 변경/완료 처리)
@@ -397,7 +464,7 @@ async function autoCreateTickets(
         .eq('project_id', projectId)
         .ilike('title', `%${relation.previous_decision_title}%`)
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (prevDecision) {
         const newStatus = relation.relation === 'completed' ? 'confirmed' : 'changed'
@@ -408,6 +475,21 @@ async function autoCreateTickets(
             changed_at: new Date().toISOString(),
           })
           .eq('id', prevDecision.id)
+
+        // Graph KB: 맥락 관계 엣지 (changed_from / related)
+        const relatedNew = createdDecisions.find(d =>
+          d.title?.toLowerCase().includes(relation.previous_decision_title?.toLowerCase()?.slice(0, 20))
+        )
+        if (relatedNew) {
+          await createDecisionEdge({
+            projectId,
+            sourceId: relatedNew.id,
+            targetId: prevDecision.id,
+            edgeType: relation.relation === 'changed' ? 'changed_from' : 'related',
+            reason: relation.explanation,
+            meetingId,
+          })
+        }
       }
     }
   }
@@ -467,17 +549,6 @@ JSON으로 응답:
   } catch {
     return { isConflict: false, reason: 'LLM 충돌 판정 실패' }
   }
-}
-
-// 코사인 유사도
-function cosineSimilarity(a: number[], b: number[]): number {
-  let dot = 0, normA = 0, normB = 0
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i]
-    normA += a[i] * a[i]
-    normB += b[i] * b[i]
-  }
-  return dot / (Math.sqrt(normA) * Math.sqrt(normB))
 }
 
 // POST /api/meetings/[meetingId]/analyze

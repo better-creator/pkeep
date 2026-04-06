@@ -276,6 +276,16 @@ export default function LiveMeeting({ onComplete, onCancel }: LiveMeetingProps) 
     ws.onclose = (event) => {
       if (event.code !== 1000) {
         console.error('[LiveMeeting] WebSocket closed:', event.code, event.reason)
+        // 토큰 만료(4008) 또는 예기치 않은 종료 → 자동 재연결
+        setStatus((prev) => {
+          if (prev === 'recording') {
+            console.log('[LiveMeeting] Auto-reconnecting...')
+            setTimeout(() => startSession(), 1500)
+            return 'connecting'
+          }
+          return prev
+        })
+        return
       }
       setStatus((prev) => (prev === 'recording' ? 'stopped' : prev))
     }
@@ -425,7 +435,7 @@ export default function LiveMeeting({ onComplete, onCancel }: LiveMeetingProps) 
               취소
             </Button>
             <Button
-              className="bg-gradient-to-r from-primary to-orange-600 hover:opacity-90 text-white"
+              className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white"
               onClick={handleAnalyze}
               disabled={!fullText.trim()}
             >

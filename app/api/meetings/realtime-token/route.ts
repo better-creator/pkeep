@@ -14,7 +14,7 @@ export async function POST() {
 
   try {
     const res = await fetch(
-      `https://streaming.assemblyai.com/v3/token?expires_in_seconds=600`,
+      `https://streaming.assemblyai.com/v3/token?expires_in_seconds=3600`,
       {
         method: 'GET',
         headers: { Authorization: apiKey },

@@ -5,8 +5,9 @@ import {
   Plus, Calendar, Sparkles, ChevronDown, ChevronRight,
   CheckCircle2, X, Mic, Upload, Loader2, AlertTriangle, Ban,
   ListChecks, MessageSquareWarning, Check, Clock,
-  MessageSquare, BookOpen, FileText, Phone, Mail, PenLine
+  FileText, Phone, Mail, PenLine
 } from "lucide-react"
+import { SlackIcon, NotionIcon } from '@/components/brand/ServiceIcons'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -420,8 +421,8 @@ export default function MeetingsPage() {
     const st = meeting.sourceType
     switch (st) {
       case 'meeting': return Mic
-      case 'slack': return MessageSquare
-      case 'notion': return BookOpen
+      case 'slack': return SlackIcon
+      case 'notion': return NotionIcon
       case 'document': return FileText
       case 'call': return Phone
       case 'email': return Mail
@@ -525,7 +526,7 @@ export default function MeetingsPage() {
                           className="p-4 rounded-xl border-2 border-primary/20 bg-primary/5 hover:border-primary/40 transition-all group cursor-pointer text-left"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                               <Sparkles className="h-4 w-4 text-white" />
                             </div>
                             <div>
@@ -651,7 +652,7 @@ export default function MeetingsPage() {
                         취소
                       </Button>
                       <Button
-                        className="flex-1 bg-gradient-to-r from-primary to-orange-600 hover:opacity-90 text-white"
+                        className="flex-1 bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white"
                         onClick={startFullPipeline}
                         disabled={!audioFile}
                       >
@@ -721,7 +722,7 @@ export default function MeetingsPage() {
                         취소
                       </Button>
                       <Button
-                        className="flex-1 bg-gradient-to-r from-primary to-orange-600 hover:opacity-90 text-white"
+                        className="flex-1 bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white"
                         onClick={startFullPipeline}
                         disabled={!meetingContent.trim()}
                       >
@@ -924,7 +925,7 @@ export default function MeetingsPage() {
 
                 {/* 저장 버튼 */}
                 <Button
-                  className="w-full bg-gradient-to-r from-primary to-orange-600 hover:opacity-90 text-white"
+                  className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white"
                   onClick={saveMeetingToList}
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />

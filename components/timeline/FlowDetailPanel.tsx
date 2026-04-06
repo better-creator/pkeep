@@ -1,7 +1,8 @@
 'use client'
 
 import { Node } from 'reactflow'
-import { X, GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare, ArrowDownLeft, ArrowUpRight, ExternalLink, User, Users, CheckCircle2, Circle, Clock, ListTodo } from 'lucide-react'
+import { X, GitBranch, Calendar, MonitorSmartphone, Github, ArrowDownLeft, ArrowUpRight, ExternalLink, User, Users, CheckCircle2, Circle, Clock, ListTodo } from 'lucide-react'
+import { SlackIcon } from '@/components/brand/ServiceIcons'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -28,7 +29,7 @@ const typeConfig: Record<FlowNodeType, {
   decision: { icon: GitBranch, color: 'text-teal-400', bgColor: 'bg-teal-500/10', label: '결정' },
   screen: { icon: MonitorSmartphone, color: 'text-purple-400', bgColor: 'bg-purple-500/10', label: '화면' },
   github: { icon: Github, color: 'text-zinc-400', bgColor: 'bg-zinc-500/10', label: 'Github' },
-  slack: { icon: MessageSquare, color: 'text-amber-400', bgColor: 'bg-amber-500/10', label: 'Slack' },
+  slack: { icon: SlackIcon, color: 'text-amber-400', bgColor: 'bg-amber-500/10', label: 'Slack' },
 }
 
 const statusLabels: Record<string, { text: string, className: string }> = {
@@ -54,7 +55,7 @@ const typeIconMap: Record<string, React.ElementType> = {
   decision: GitBranch,
   screen: MonitorSmartphone,
   github: Github,
-  slack: MessageSquare,
+  slack: SlackIcon,
 }
 
 // 태스크 상태 아이콘

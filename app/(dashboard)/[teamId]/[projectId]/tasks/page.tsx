@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  ListChecks, CheckCircle2, Circle, Mic, MessageSquare,
-  BookOpen, Phone, Mail, ChevronRight, FileText,
+  ListChecks, CheckCircle2, Circle, Mic,
+  Phone, Mail, ChevronRight, FileText,
 } from 'lucide-react'
+import { SlackIcon, NotionIcon } from '@/components/brand/ServiceIcons'
+import { ContextPanel } from '@/components/context-panel'
 
 interface Task {
   id: string
@@ -36,10 +38,10 @@ interface Decision {
 
 type FilterType = 'all' | 'incomplete' | 'complete'
 
-const sourceTypeCfg: Record<string, { icon: typeof Mic; label: string; bg: string; text: string }> = {
+const sourceTypeCfg: Record<string, { icon: React.ComponentType<{ className?: string }>; label: string; bg: string; text: string }> = {
   meeting: { icon: Mic, label: '회의', bg: 'bg-red-50', text: 'text-red-600' },
-  slack: { icon: MessageSquare, label: 'Slack', bg: 'bg-purple-50', text: 'text-purple-600' },
-  notion: { icon: BookOpen, label: 'Notion', bg: 'bg-stone-100', text: 'text-stone-600' },
+  slack: { icon: SlackIcon, label: 'Slack', bg: 'bg-purple-50', text: 'text-purple-600' },
+  notion: { icon: NotionIcon, label: 'Notion', bg: 'bg-stone-100', text: 'text-stone-600' },
   call: { icon: Phone, label: '통화', bg: 'bg-green-50', text: 'text-green-600' },
   email: { icon: Mail, label: '이메일', bg: 'bg-rose-50', text: 'text-rose-600' },
   text: { icon: FileText, label: '텍스트', bg: 'bg-stone-100', text: 'text-stone-500' },
@@ -53,6 +55,13 @@ export default function TasksPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [filter, setFilter] = useState<FilterType>('all')
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [panelItem, setPanelItem] = useState<{ type: 'meeting' | 'decision' | 'task'; id: string } | null>(null)
+
+  const openPanel = (type: 'meeting' | 'decision' | 'task', id: string) => {
+    setPanelItem({ type, id })
+    setPanelOpen(true)
+  }
 
   useEffect(() => {
     try {
@@ -101,7 +110,7 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
         <div className="flex items-center gap-2">
-          <ListChecks className="h-5 w-5 text-orange-500" />
+          <ListChecks className="h-5 w-5 text-primary" />
           <h1 className="text-xl font-semibold">할 일</h1>
           {tasks.length > 0 && (
             <span className="text-sm text-muted-foreground ml-2">
@@ -135,7 +144,7 @@ export default function TasksPage() {
               size="sm"
               className={`h-7 text-xs rounded-lg ${
                 filter === opt.value
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                  ? 'bg-primary hover:bg-primary/90 text-white'
                   : 'text-muted-foreground'
               }`}
               onClick={() => setFilter(opt.value)}
@@ -204,13 +213,16 @@ export default function TasksPage() {
                             {task.done ? (
                               <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" />
                             ) : (
-                              <Circle className="h-4.5 w-4.5 text-stone-300 hover:text-orange-500 transition-colors" />
+                              <Circle className="h-4.5 w-4.5 text-stone-300 hover:text-primary transition-colors" />
                             )}
                           </button>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm ${task.done ? 'line-through text-stone-400' : 'font-medium text-stone-800'}`}>
+                            <span
+                              className={`text-sm cursor-pointer hover:underline ${task.done ? 'line-through text-stone-400' : 'font-medium text-stone-800'}`}
+                              onClick={() => openPanel('task', task.id)}
+                            >
                               {task.title}
-                            </p>
+                            </span>
                             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                               {parentDec && (
                                 <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-400">
@@ -245,6 +257,15 @@ export default function TasksPage() {
           </div>
         )}
       </div>
+
+      {panelItem && (
+        <ContextPanel
+          open={panelOpen}
+          onOpenChange={setPanelOpen}
+          itemType={panelItem.type}
+          itemId={panelItem.id}
+        />
+      )}
     </div>
   )
 }

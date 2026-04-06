@@ -7,9 +7,10 @@ import ReactFlow, {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import {
-  Filter, Calendar, GitBranch, Mic, BookOpen, Phone, Mail, FileText, X,
-  AlertTriangle, ListChecks, ArrowRight, MessageSquare,
+  Filter, Calendar, GitBranch, Mic, Phone, Mail, FileText, X,
+  AlertTriangle, ListChecks, ArrowRight,
 } from 'lucide-react'
+import { SlackIcon, NotionIcon } from '@/components/brand/ServiceIcons'
 import { Button } from '@/components/ui/button'
 import { nodeTypes, FlowNodeData, FlowNodeType } from './FlowNodes'
 import { TimelineItem, relationColors, ConnectionRelation } from './types'
@@ -45,7 +46,7 @@ const AREA_STYLE: Record<string, { dot: string; label: string }> = {
 }
 
 const SOURCE_ICON: Record<string, React.ElementType> = {
-  meeting: Mic, slack: MessageSquare, notion: BookOpen,
+  meeting: Mic, slack: SlackIcon, notion: NotionIcon,
   call: Phone, email: Mail, document: FileText, text: FileText,
 }
 

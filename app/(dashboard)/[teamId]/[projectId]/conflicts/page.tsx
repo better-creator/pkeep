@@ -198,8 +198,8 @@ export default function ConflictsPage() {
                 {/* Side by side decisions */}
                 <div className="p-5 grid grid-cols-2 gap-4">
                   {/* New decision */}
-                  <div className="rounded-xl border border-orange-200 bg-orange-50/50 p-4">
-                    <p className="text-[10px] font-medium text-orange-600 uppercase tracking-wide mb-2">
+                  <div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
+                    <p className="text-[10px] font-medium text-accent uppercase tracking-wide mb-2">
                       새 결정
                     </p>
                     <Badge variant="outline" className="text-[10px] font-mono mb-1.5">

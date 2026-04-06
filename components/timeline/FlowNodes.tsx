@@ -3,9 +3,10 @@
 import { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import {
-  GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare,
-  Mic, BookOpen, Phone, Mail, FileText, AlertTriangle, ListChecks,
+  GitBranch, Calendar, MonitorSmartphone, Github,
+  Mic, Phone, Mail, FileText, AlertTriangle, ListChecks,
 } from 'lucide-react'
+import { SlackIcon, NotionIcon } from '@/components/brand/ServiceIcons'
 import { Person, Task } from './types'
 
 export type FlowNodeType = 'meeting' | 'decision' | 'screen' | 'github' | 'slack'
@@ -41,7 +42,7 @@ const AREA_LABEL: Record<string, string> = {
   planning: '기획', design: '디자인', dev: '개발', '기획': '기획', '디자인': '디자인', '개발': '개발',
 }
 const SOURCE_ICON: Record<string, React.ElementType> = {
-  meeting: Mic, slack: MessageSquare, notion: BookOpen,
+  meeting: Mic, slack: SlackIcon, notion: NotionIcon,
   call: Phone, email: Mail, document: FileText, text: FileText,
 }
 
@@ -82,7 +83,7 @@ function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
       ${hasIssue
         ? 'border-red-400 bg-red-50/80 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
         : 'bg-card border-border/50'}
-      ${selected ? 'ring-2 ring-orange-500 shadow-lg' : 'hover:shadow-md hover:border-border'}`}>
+      ${selected ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md hover:border-border'}`}>
       <Handle type="target" position={Position.Top} className={`!w-2.5 !h-2.5 !border-2 !border-white ${hasIssue ? '!bg-red-500' : '!bg-teal-500'} !-top-1.5`} />
 
       {/* 상태 바 */}
@@ -165,7 +166,7 @@ function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
 const OTHER: Record<string, { icon: React.ElementType; color: string; handle: string }> = {
   screen: { icon: MonitorSmartphone, color: 'text-purple-500', handle: '!bg-purple-500' },
   github: { icon: Github, color: 'text-zinc-500', handle: '!bg-zinc-500' },
-  slack:  { icon: MessageSquare, color: 'text-amber-500', handle: '!bg-amber-500' },
+  slack:  { icon: SlackIcon, color: 'text-amber-500', handle: '!bg-amber-500' },
 }
 
 function OtherNodeInner({ data, selected }: NodeProps<FlowNodeData>) {

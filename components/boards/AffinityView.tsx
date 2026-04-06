@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import {
   Sparkles,
   Plus,
@@ -19,9 +19,7 @@ import {
   FileText,
   Github,
   Figma,
-  MessageSquare,
   HardDrive,
-  BookOpen,
   Video,
   Edit3,
   LucideIcon,
@@ -30,6 +28,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TimelineItem, ItemCategory, ItemSource, categoryConfig } from '@/components/timeline/types'
+import { SlackIcon, NotionIcon } from '@/components/brand/ServiceIcons'
 
 interface AffinityViewProps {
   items: TimelineItem[]
@@ -45,7 +44,7 @@ const stickyColors = [
   { bg: 'bg-blue-200', border: 'border-blue-400', text: 'text-blue-900', hex: '#bfdbfe' },
   { bg: 'bg-green-200', border: 'border-green-400', text: 'text-green-900', hex: '#bbf7d0' },
   { bg: 'bg-purple-200', border: 'border-purple-400', text: 'text-purple-900', hex: '#e9d5ff' },
-  { bg: 'bg-orange-200', border: 'border-orange-400', text: 'text-orange-900', hex: '#fed7aa' },
+  { bg: 'bg-primary/20', border: 'border-primary/40', text: 'text-primary', hex: '#fed7aa' },
 ]
 
 // 발화/카드 타입
@@ -398,12 +397,12 @@ const categoryIcons: Record<ItemCategory, LucideIcon> = {
 }
 
 // 소스별 아이콘 매핑
-const sourceIcons: Record<ItemSource, LucideIcon> = {
+const sourceIcons: Record<ItemSource, React.ComponentType<{ className?: string }>> = {
   github: Github,
   figma: Figma,
-  slack: MessageSquare,
+  slack: SlackIcon,
   google_drive: HardDrive,
-  notion: BookOpen,
+  notion: NotionIcon,
   zoom: Video,
   manual: Edit3,
 }

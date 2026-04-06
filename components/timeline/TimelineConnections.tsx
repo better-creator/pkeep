@@ -21,7 +21,7 @@ const typeColorMap: Record<ItemType, string> = {
   meeting: 'text-blue-400',
   decision: 'text-teal-400',
   screen: 'text-purple-400',
-  github: 'text-orange-400',
+  github: 'text-accent',
   slack: 'text-yellow-400',
 }
 

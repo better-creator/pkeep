@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { FlowMapView } from '@/components/timeline/FlowView'
 import type { TimelineItem as TLItem } from '@/components/timeline/types'
+import { ContextPanel } from '@/components/context-panel'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -148,6 +149,7 @@ function ListView({
   setStatusFilter,
   setAreaFilter,
   onStatusChange,
+  onOpenPanel,
 }: {
   decisions: Decision[]
   filtered: Decision[]
@@ -156,6 +158,7 @@ function ListView({
   setStatusFilter: (v: string) => void
   setAreaFilter: (v: string) => void
   onStatusChange: (id: string, status: string) => void
+  onOpenPanel: (type: 'meeting' | 'decision' | 'task', id: string) => void
 }) {
   const params = useParams()
   const teamId = params.teamId as string
@@ -220,7 +223,7 @@ function ListView({
         ) : (
           <div className="grid gap-4 max-w-3xl">
             {filtered.map((decision) => (
-              <Card key={decision.id} className="border-border/50">
+              <Card key={decision.id} className="border-border/50 cursor-pointer" onClick={() => onOpenPanel('decision', decision.id)}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -494,6 +497,13 @@ export default function DecisionsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [areaFilter, setAreaFilter] = useState('all')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [panelItem, setPanelItem] = useState<{ type: 'meeting' | 'decision' | 'task'; id: string } | null>(null)
+
+  const openPanel = (type: 'meeting' | 'decision' | 'task', id: string) => {
+    setPanelItem({ type, id })
+    setPanelOpen(true)
+  }
 
   // Load from localStorage
   useEffect(() => {
@@ -543,7 +553,7 @@ export default function DecisionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
         <div className="flex items-center gap-2">
-          <CircleDot className="h-5 w-5 text-orange-500" />
+          <CircleDot className="h-5 w-5 text-primary" />
           <h1 className="text-xl font-semibold">결정</h1>
           {decisions.length > 0 && (
             <span className="text-sm text-muted-foreground ml-2">
@@ -585,9 +595,19 @@ export default function DecisionsPage() {
           setStatusFilter={setStatusFilter}
           setAreaFilter={setAreaFilter}
           onStatusChange={handleStatusChange}
+          onOpenPanel={openPanel}
         />
       ) : (
         <MapViewWrapper decisions={decisions} meetings={meetings} />
+      )}
+
+      {panelItem && (
+        <ContextPanel
+          open={panelOpen}
+          onOpenChange={setPanelOpen}
+          itemType={panelItem.type}
+          itemId={panelItem.id}
+        />
       )}
     </div>
   )

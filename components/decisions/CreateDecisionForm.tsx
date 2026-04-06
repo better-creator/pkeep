@@ -77,7 +77,7 @@ const mockTags = [
   { id: 'tag-1', name: 'MVP', color: 'bg-blue-500' },
   { id: 'tag-2', name: '긴급', color: 'bg-red-500' },
   { id: 'tag-3', name: '디자인', color: 'bg-purple-500' },
-  { id: 'tag-4', name: '기술부채', color: 'bg-orange-500' },
+  { id: 'tag-4', name: '기술부채', color: 'bg-accent' },
   { id: 'tag-5', name: '실험', color: 'bg-green-500' },
 ]
 

@@ -24,8 +24,33 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-// Dummy images from picsum
-const img = (id: number, w = 400, h = 300) => `https://picsum.photos/id/${id}/${w}/${h}`
+// Unsplash beauty/cosmetics images
+const unsplash = (query: string, w = 400, h = 300) => `https://images.unsplash.com/photo-${query}?w=${w}&h=${h}&fit=crop&q=80`
+
+// Pre-selected beauty/cosmetics image IDs
+const IMGS = {
+  moodA: unsplash('1596462502278-27bfdc403348', 400, 300),    // skincare flatlay
+  moodB: unsplash('1522335789203-aabd1fc54bc9', 400, 300),    // minimal beauty
+  moodC: unsplash('1571781926291-c477ebfd024b', 400, 300),     // lifestyle beauty
+  moodD: unsplash('1556228578-8c89e6adf883', 400, 300),       // warm textures
+  productShot1: unsplash('1611930022073-b7a4ba5fcccd', 300, 300), // cosmetic product
+  productShot2: unsplash('1631729371254-42c2892f0e6e', 300, 300), // skincare bottle
+  productShot3: unsplash('1596462502278-27bfdc403348', 300, 300), // flatlay
+  model1: unsplash('1616394584738-fc6e612e71b9', 300, 300),    // beauty model
+  model2: unsplash('1594744803329-e58b31de8bf5', 300, 300),    // natural makeup
+  model3: unsplash('1487412912498-0447578fcca8', 300, 300),    // portrait
+  doImg1: unsplash('1571781926291-c477ebfd024b', 200, 200),
+  doImg2: unsplash('1611930022073-b7a4ba5fcccd', 200, 200),
+  dontImg1: unsplash('1526045478516-99145907023c', 200, 200),  // overly filtered
+  dontImg2: unsplash('1522335789203-aabd1fc54bc9', 200, 200),
+  igSample1: unsplash('1596462502278-27bfdc403348', 200, 200),
+  igSample2: unsplash('1631729371254-42c2892f0e6e', 200, 200),
+  igSample3: unsplash('1571781926291-c477ebfd024b', 200, 200),
+  ytThumb: unsplash('1616394584738-fc6e612e71b9', 600, 400),
+  igThumb: unsplash('1596462502278-27bfdc403348', 600, 400),
+  oohThumb: unsplash('1441986300917-64674bd600d8', 600, 400),  // billboard/outdoor
+  webThumb: unsplash('1611930022073-b7a4ba5fcccd', 600, 400),
+}
 
 // --- Brand Guide Data (Content-Production Focused) ---
 const brandEssence = {
@@ -53,10 +78,10 @@ const visualSystem = {
 }
 
 const moodboards = [
-  { src: img(1005, 400, 300), label: '무드 A — 자연스러운 데일리' },
-  { src: img(1027, 400, 300), label: '무드 B — 깔끔한 프로덕트' },
-  { src: img(1035, 400, 300), label: '무드 C — 감성 라이프스타일' },
-  { src: img(1062, 400, 300), label: '무드 D — 따뜻한 톤 & 텍스처' },
+  { src: IMGS.moodA, label: '무드 A — 자연스러운 데일리' },
+  { src: IMGS.moodB, label: '무드 B — 깔끔한 프로덕트' },
+  { src: IMGS.moodC, label: '무드 C — 감성 라이프스타일' },
+  { src: IMGS.moodD, label: '무드 D — 따뜻한 톤 & 텍스처' },
 ]
 
 const shootingGuide = {
@@ -67,7 +92,7 @@ const shootingGuide = {
       '제품 그림자: 소프트, 바닥에 자연스럽게',
       '소품 사용 시 브랜드 컬러 톤에 맞출 것',
     ],
-    references: [img(225, 300, 300), img(901, 300, 300), img(431, 300, 300)],
+    references: [IMGS.productShot1, IMGS.productShot2, IMGS.productShot3],
   },
   model: {
     title: '모델 촬영',
@@ -76,22 +101,22 @@ const shootingGuide = {
       '자연스러운 표정, 포즈는 릴렉스',
       '배경: 화이트, 베이지, 올리브 톤 허용',
     ],
-    references: [img(1027, 300, 300), img(1012, 300, 300), img(64, 300, 300)],
+    references: [IMGS.model1, IMGS.model2, IMGS.model3],
   },
 }
 
 const doList = [
-  { rule: '보라-코랄 그라데이션은 브랜드 핵심 포인트에만 사용', image: img(188, 120, 120), from: 'M-001 킥오프' },
-  { rule: '제품 이미지는 화이트 배경 + 좌측 45도 라이팅', image: img(225, 120, 120), from: 'M-005 촬영 가이드' },
+  { rule: '보라-코랄 그라데이션은 브랜드 핵심 포인트에만 사용', image: IMGS.doImg1, from: 'M-001 킥오프' },
+  { rule: '제품 이미지는 화이트 배경 + 좌측 45도 라이팅', image: IMGS.doImg2, from: 'M-005 촬영 가이드' },
   { rule: '인스타 피드: 정사각형 1:1 비율, 여백 최소 8%', image: null, from: 'M-008 채널 전략' },
   { rule: 'CTA 버튼은 코랄(#E8734A), 라운드 14px', image: null, from: 'D-012 UI 결정' },
   { rule: '한글 프리텐다드 + 영문 Satoshi 조합', image: null, from: 'M-003 디자인 리뷰' },
 ]
 
 const dontList = [
-  { rule: '로고 주변 여백 미확보 (최소 로고 높이의 100%)', image: img(1074, 120, 120), from: 'M-001 킥오프', reason: '가독성 저하, 브랜드 인지도 훼손' },
+  { rule: '로고 주변 여백 미확보 (최소 로고 높이의 100%)', image: IMGS.dontImg1, from: 'M-001 킥오프', reason: '가독성 저하, 브랜드 인지도 훼손' },
   { rule: '네온·형광색 사용 금지', image: null, from: 'M-003 디자인 리뷰', reason: '브랜드 톤 불일치 — 따뜻하고 차분한 톤 유지' },
-  { rule: '제품 사진 과도한 필터/보정 금지', image: img(659, 120, 120), from: 'M-005 촬영 가이드', reason: '실물 괴리 → 소비자 신뢰 저하' },
+  { rule: '제품 사진 과도한 필터/보정 금지', image: IMGS.dontImg2, from: 'M-005 촬영 가이드', reason: '실물 괴리 → 소비자 신뢰 저하' },
   { rule: '검정 배경 위 올리브 텍스트 사용 금지', image: null, from: 'D-007 접근성', reason: 'WCAG AA 명도 대비 미달' },
 ]
 
@@ -101,10 +126,10 @@ const channels = [
     name: '인스타그램',
     icon: Instagram,
     color: 'from-purple-500 to-pink-500',
-    thumbnail: img(1080, 600, 400),
+    thumbnail: IMGS.igThumb,
     specs: '피드 1:1 · 릴스 9:16 · 캡션 2,200자',
     tone: '캐주얼 + 감성. 이모지 허용. 해시태그 15개 이내.',
-    samples: [img(1005, 200, 200), img(1027, 200, 200), img(1035, 200, 200)],
+    samples: [IMGS.igSample1, IMGS.igSample2, IMGS.igSample3],
     decisions: 8,
   },
   {
@@ -112,10 +137,10 @@ const channels = [
     name: '유튜브',
     icon: Youtube,
     color: 'from-red-500 to-red-600',
-    thumbnail: img(180, 600, 400),
+    thumbnail: IMGS.ytThumb,
     specs: '썸네일 1280x720 · 영상 16:9 · 설명 5,000자',
     tone: '정보 전달 + 친근함. 자막 필수. "~입니다"체.',
-    samples: [img(180, 200, 200), img(367, 200, 200), img(403, 200, 200)],
+    samples: [IMGS.model1, IMGS.model2, IMGS.productShot1],
     decisions: 5,
   },
   {
@@ -123,10 +148,10 @@ const channels = [
     name: '옥외광고',
     icon: Megaphone,
     color: 'from-amber-500 to-amber-600',
-    thumbnail: img(274, 600, 400),
+    thumbnail: IMGS.oohThumb,
     specs: '300dpi · 시인성 3m 기준 · CMYK',
     tone: '간결. 핵심 메시지 7단어 이내. 로고 면적 15% 이상.',
-    samples: [img(274, 200, 200), img(366, 200, 200), img(399, 200, 200)],
+    samples: [IMGS.productShot2, IMGS.moodB, IMGS.moodD],
     decisions: 3,
   },
   {
@@ -134,10 +159,10 @@ const channels = [
     name: '웹/앱',
     icon: MonitorSmartphone,
     color: 'from-sky-500 to-sky-600',
-    thumbnail: img(0, 600, 400),
+    thumbnail: IMGS.webThumb,
     specs: '반응형 · 최소 터치 44px · Pretendard',
     tone: '명확하고 간결. UX 라이팅 가이드 준수. "~해요"체.',
-    samples: [img(0, 200, 200), img(3, 200, 200), img(20, 200, 200)],
+    samples: [IMGS.productShot1, IMGS.moodA, IMGS.moodC],
     decisions: 6,
   },
 ]
@@ -294,7 +319,7 @@ export default function BrandGuidePage() {
             {doList.map((item, i) => (
               <div key={i} className="flex gap-3 p-3 rounded-xl bg-emerald-50/50 border border-emerald-100/50">
                 {item.image && (
-                  <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden">
+                  <div className="w-20 h-20 rounded-lg shrink-0 overflow-hidden">
                     <img src={item.image} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 )}
@@ -317,7 +342,7 @@ export default function BrandGuidePage() {
             {dontList.map((item, i) => (
               <div key={i} className="flex gap-3 p-3 rounded-xl bg-rose-50/50 border border-rose-100/50">
                 {item.image && (
-                  <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden">
+                  <div className="w-20 h-20 rounded-lg shrink-0 overflow-hidden">
                     <img src={item.image} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 )}

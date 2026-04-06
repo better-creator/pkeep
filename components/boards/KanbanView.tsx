@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { GitBranch, Calendar, MonitorSmartphone, Github, MessageSquare, GripVertical, User } from 'lucide-react'
+import { GitBranch, Calendar, MonitorSmartphone, Github, GripVertical, User } from 'lucide-react'
+import { SlackIcon } from '@/components/brand/ServiceIcons'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { TimelineItem } from '@/components/timeline/types'
@@ -23,7 +24,7 @@ const typeConfig = {
   decision: { icon: GitBranch, color: 'bg-teal-500', label: '결정' },
   screen: { icon: MonitorSmartphone, color: 'bg-purple-500', label: '화면' },
   github: { icon: Github, color: 'bg-zinc-600', label: 'Github' },
-  slack: { icon: MessageSquare, color: 'bg-amber-500', label: 'Slack' },
+  slack: { icon: SlackIcon, color: 'bg-amber-500', label: 'Slack' },
 }
 
 // 결정 아이템을 상태별로 칸반 컬럼에 배치

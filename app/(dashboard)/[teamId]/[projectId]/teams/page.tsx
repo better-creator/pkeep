@@ -27,10 +27,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const teams = [
   {
     id: 'team-client',
-    name: '올리브영 마케팅팀',
+    name: '글로우업 코스메틱 마케팅팀',
     type: 'client' as const,
     role: '발주사',
-    color: '#2D8C3C',
+    color: '#E8734A',
     members: [
       { name: '정하은', role: '브랜드 매니저', avatar: '정', isLead: true, status: 'active' },
       { name: '윤서진', role: '마케팅 담당', avatar: '윤', isLead: false, status: 'active' },
@@ -72,7 +72,7 @@ const teams = [
     stats: { decisions: 5, pending: 1, avgResponseDays: 1.2 },
     lastActivity: '제품 촬영본 1차 업로드',
     lastActivityDate: '1일 전',
-    scope: '제품 촬영 + 모델 촬영 (S/S 룩북)',
+    scope: '제품 촬영 + 모델 촬영 (S/S 캠페인)',
   },
   {
     id: 'team-video',
@@ -106,6 +106,22 @@ const teams = [
     lastActivityDate: '2일 전',
     scope: '버스 쉘터 + 지하철 스크린도어',
   },
+  {
+    id: 'team-game',
+    name: '플레이팩토리',
+    type: 'vendor' as const,
+    role: '게임 콜라보 개발',
+    color: '#6C3EC1',
+    members: [
+      { name: '조현우', role: '게임 기획', avatar: '조', isLead: true, status: 'active' },
+      { name: '이수빈', role: '개발', avatar: '이', isLead: false, status: 'active' },
+    ],
+    permissions: ['게임 가이드 열람', '빌드 업로드', '결정 코멘트'],
+    stats: { decisions: 2, pending: 1, avgResponseDays: 1.0 },
+    lastActivity: '인게임 아이템 시안 1차 등록',
+    lastActivityDate: '4시간 전',
+    scope: '던전히어로 콜라보 인게임 아이템 + 이벤트 페이지 개발',
+  },
 ]
 
 const typeConfig = {
@@ -116,16 +132,18 @@ const typeConfig = {
 
 // Responsibility matrix
 const responsibilityMatrix = [
-  { area: '브랜드 전략', client: 'A', agency: 'R', photo: '-', video: '-', ooh: '-' },
-  { area: '크리에이티브 디렉션', client: 'C', agency: 'R', photo: 'I', video: 'I', ooh: 'I' },
-  { area: '인스타그램 시안', client: 'A', agency: 'R', photo: '-', video: '-', ooh: '-' },
-  { area: '유튜브 영상', client: 'A', agency: 'C', photo: '-', video: 'R', ooh: '-' },
-  { area: '제품 촬영', client: 'I', agency: 'C', photo: 'R', video: '-', ooh: '-' },
-  { area: '모델 촬영', client: 'A', agency: 'C', photo: 'R', video: 'I', ooh: '-' },
-  { area: '옥외 시안', client: 'A', agency: 'R', photo: '-', video: '-', ooh: 'C' },
-  { area: '옥외 제작', client: 'I', agency: 'C', photo: '-', video: '-', ooh: 'R' },
-  { area: '브랜드 가이드', client: 'C', agency: 'R', photo: 'I', video: 'I', ooh: 'I' },
-  { area: '최종 검수', client: 'A', agency: 'R', photo: 'I', video: 'I', ooh: 'I' },
+  { area: '브랜드 전략', client: 'A', agency: 'R', photo: '-', video: '-', ooh: '-', game: '-' },
+  { area: '크리에이티브 디렉션', client: 'C', agency: 'R', photo: 'I', video: 'I', ooh: 'I', game: 'I' },
+  { area: '인스타그램 시안', client: 'A', agency: 'R', photo: '-', video: '-', ooh: '-', game: '-' },
+  { area: '유튜브 영상', client: 'A', agency: 'C', photo: '-', video: 'R', ooh: '-', game: '-' },
+  { area: '제품 촬영', client: 'I', agency: 'C', photo: 'R', video: '-', ooh: '-', game: '-' },
+  { area: '모델 촬영', client: 'A', agency: 'C', photo: 'R', video: 'I', ooh: '-', game: '-' },
+  { area: '옥외 시안', client: 'A', agency: 'R', photo: '-', video: '-', ooh: 'C', game: '-' },
+  { area: '옥외 제작', client: 'I', agency: 'C', photo: '-', video: '-', ooh: 'R', game: '-' },
+  { area: '게임 콜라보 기획', client: 'A', agency: 'C', photo: '-', video: '-', ooh: '-', game: 'R' },
+  { area: '인게임 아이템 개발', client: 'I', agency: 'C', photo: '-', video: '-', ooh: '-', game: 'R' },
+  { area: '브랜드 가이드', client: 'C', agency: 'R', photo: 'I', video: 'I', ooh: 'I', game: 'I' },
+  { area: '최종 검수', client: 'A', agency: 'R', photo: 'I', video: 'I', ooh: 'I', game: 'I' },
 ]
 
 const raciConfig: Record<string, { label: string; color: string }> = {
@@ -138,12 +156,13 @@ const raciConfig: Record<string, { label: string; color: string }> = {
 
 // Pending items per team
 const pendingByTeam = [
-  { team: '올리브영', item: '인스타 피드 시안 3차 확정', days: 3, blocker: true },
-  { team: '올리브영', item: '유튜브 썸네일 A/B 선택', days: 1, blocker: false },
-  { team: '올리브영', item: '옥외 카피 최종안 확정', days: 0, blocker: false },
+  { team: '글로우업 코스메틱', item: '인스타 피드 시안 3차 확정', days: 3, blocker: true },
+  { team: '글로우업 코스메틱', item: '유튜브 썸네일 A/B 선택', days: 1, blocker: false },
+  { team: '글로우업 코스메틱', item: '옥외 카피 최종안 확정', days: 0, blocker: false },
   { team: '스튜디오 블랑', item: '모델 촬영 일정 확정', days: 2, blocker: false },
   { team: '모션랩', item: '인스타 릴스 BGM 방향 확인', days: 1, blocker: true },
   { team: '프린트웍스', item: '버스 쉘터 사이즈 최종 확인', days: 2, blocker: false },
+  { team: '플레이팩토리', item: '인게임 아이템 디자인 방향 확정', days: 1, blocker: false },
 ]
 
 export default function TeamsPage() {
@@ -159,7 +178,7 @@ export default function TeamsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="pending" className="space-y-6">
         <TabsList className="bg-secondary/50 rounded-xl p-1">
           <TabsTrigger value="overview" className="rounded-lg text-sm">팀 현황</TabsTrigger>
           <TabsTrigger value="raci" className="rounded-lg text-sm">역할 매트릭스</TabsTrigger>
@@ -328,18 +347,19 @@ export default function TeamsPage() {
                 <thead>
                   <tr className="border-b border-border/50">
                     <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground w-40">업무 영역</th>
-                    <th className="text-center py-2 px-2 text-xs font-medium text-muted-foreground">올리브영</th>
+                    <th className="text-center py-2 px-2 text-xs font-medium text-muted-foreground">글로우업</th>
                     <th className="text-center py-2 px-2 text-xs font-medium text-muted-foreground">OTV</th>
                     <th className="text-center py-2 px-2 text-xs font-medium text-muted-foreground">스튜디오 블랑</th>
                     <th className="text-center py-2 px-2 text-xs font-medium text-muted-foreground">모션랩</th>
                     <th className="text-center py-2 px-2 text-xs font-medium text-muted-foreground">프린트웍스</th>
+                    <th className="text-center py-2 px-2 text-xs font-medium text-muted-foreground">플레이팩토리</th>
                   </tr>
                 </thead>
                 <tbody>
                   {responsibilityMatrix.map((row, i) => (
                     <tr key={i} className="border-b border-border/20 hover:bg-secondary/20">
                       <td className="py-2.5 px-3 text-sm font-medium">{row.area}</td>
-                      {[row.client, row.agency, row.photo, row.video, row.ooh].map((val, j) => (
+                      {[row.client, row.agency, row.photo, row.video, row.ooh, row.game].map((val, j) => (
                         <td key={j} className="text-center py-2.5 px-2">
                           {val !== '-' ? (
                             <span className={`inline-flex h-6 w-6 items-center justify-center rounded text-[11px] font-bold ${raciConfig[val].color}`}>

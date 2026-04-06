@@ -918,7 +918,7 @@ export function MindmapView({ items }: MindmapViewProps) {
                   }}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-white text-orange-600 shadow-sm'
+                      ? 'bg-white text-primary shadow-sm'
                       : 'text-stone-500 hover:text-stone-700'
                   }`}
                 >
@@ -979,7 +979,7 @@ export function MindmapView({ items }: MindmapViewProps) {
                     onClick={() => setSelectedMemberId(member.id)}
                     className={`px-2 py-1 rounded text-xs font-medium transition-all ${
                       selectedMemberId === member.id
-                        ? 'bg-orange-500 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
                     }`}
                   >
@@ -1009,7 +1009,7 @@ export function MindmapView({ items }: MindmapViewProps) {
               onClick={() => setViewMode('bubble')}
               className={`p-1.5 rounded-md transition-all ${
                 viewMode === 'bubble'
-                  ? 'bg-white text-orange-600 shadow-sm'
+                  ? 'bg-white text-primary shadow-sm'
                   : 'text-stone-500 hover:text-stone-700'
               }`}
               title="버블 뷰"
@@ -1020,7 +1020,7 @@ export function MindmapView({ items }: MindmapViewProps) {
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded-md transition-all ${
                 viewMode === 'list'
-                  ? 'bg-white text-orange-600 shadow-sm'
+                  ? 'bg-white text-primary shadow-sm'
                   : 'text-stone-500 hover:text-stone-700'
               }`}
               title="리스트 뷰"
@@ -1059,7 +1059,7 @@ export function MindmapView({ items }: MindmapViewProps) {
       {/* 메인 */}
       <div className="flex-1 flex relative min-h-0">
         {viewMode === 'bubble' ? (
-          <div ref={containerRef} className="flex-1 relative overflow-hidden bg-gradient-to-br from-slate-50 via-stone-50 to-orange-50/30" style={{ minHeight: '400px' }}>
+          <div ref={containerRef} className="flex-1 relative overflow-hidden bg-gradient-to-br from-slate-50 via-stone-50 to-primary/5" style={{ minHeight: '400px' }}>
             <svg
               ref={svgRef}
               width={dimensions.width}
@@ -1107,11 +1107,11 @@ export function MindmapView({ items }: MindmapViewProps) {
                 {/* 요약 */}
                 <div className="flex items-center gap-4 p-3 bg-white rounded-lg border border-stone-200/60">
                   <div className="flex items-center gap-2">
-                    <FolderKanban className="h-4 w-4 text-orange-500" />
+                    <FolderKanban className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium text-stone-700">{projectInfo.name}</span>
                   </div>
                   <div className="text-xs text-stone-500">
-                    총 <span className="font-semibold text-orange-600">{filteredItemsForList.length}</span>개 항목
+                    총 <span className="font-semibold text-primary">{filteredItemsForList.length}</span>개 항목
                   </div>
                 </div>
 
@@ -1191,7 +1191,7 @@ export function MindmapView({ items }: MindmapViewProps) {
                                       </div>
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-[10px] font-mono text-orange-600">{item.code}</span>
+                                          <span className="text-[10px] font-mono text-primary">{item.code}</span>
                                           {item.status && (
                                             <Badge
                                               variant="outline"
@@ -1249,7 +1249,7 @@ export function MindmapView({ items }: MindmapViewProps) {
                 {selectedNode.data && (
                   <>
                     <div>
-                      <span className="text-[10px] font-mono text-orange-600">{selectedNode.data.code}</span>
+                      <span className="text-[10px] font-mono text-primary">{selectedNode.data.code}</span>
                       <h4 className="text-sm font-medium text-stone-800 mt-0.5">{selectedNode.data.title}</h4>
                       {selectedNode.data.status && (
                         <Badge
@@ -1272,7 +1272,7 @@ export function MindmapView({ items }: MindmapViewProps) {
                       <div>
                         <h4 className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-1">담당자</h4>
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center text-[10px] text-orange-600 font-medium">
+                          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-medium">
                             {selectedNode.data.owner.name.charAt(0)}
                           </div>
                           <span className="text-xs text-stone-700">{selectedNode.data.owner.name}</span>
@@ -1286,7 +1286,7 @@ export function MindmapView({ items }: MindmapViewProps) {
                         <div className="space-y-1">
                           {selectedNode.data.connections.sources.map(source => (
                             <div key={source.id} className="text-[10px] p-1.5 rounded bg-stone-50 flex items-center gap-1.5">
-                              <span className="font-mono text-orange-600">{source.code}</span>
+                              <span className="font-mono text-primary">{source.code}</span>
                               <span className="text-stone-500 truncate">{source.title}</span>
                             </div>
                           ))}

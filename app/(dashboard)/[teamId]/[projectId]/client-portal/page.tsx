@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // --- Mock Client Portal Data ---
 const projectInfo = {
-  name: '올리브영 S/S 캠페인',
+  name: '글로우업 S/S 캠페인',
   agency: 'OTV 스튜디오',
   progress: 72,
   dday: 14,

@@ -47,11 +47,11 @@ export function ConflictWarningModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg border-orange-500/50 bg-orange-500/5">
+      <DialogContent className="sm:max-w-lg border-accent/50 bg-accent/5">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-orange-500" />
+            <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
+              <AlertTriangle className="h-6 w-6 text-accent" />
             </div>
             <div>
               <DialogTitle className="text-lg">과거에 기각된 안건과 유사합니다</DialogTitle>
@@ -128,7 +128,7 @@ export function ConflictWarningModal({
           <Button
             variant="default"
             onClick={() => handleAction('ignore')}
-            className="sm:order-3 bg-orange-500 hover:bg-orange-600"
+            className="sm:order-3 bg-accent hover:bg-accent/90"
           >
             무시하고 진행
           </Button>
