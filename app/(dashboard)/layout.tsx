@@ -1,16 +1,16 @@
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { HeaderRecordButton } from "@/components/header-record-button"
-import { AutoSeed } from "@/components/auto-seed"
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // [임시 비활성화] 로그인 없이 접근 허용
+  // await requireUser()
   return (
     <SidebarProvider>
-      <AutoSeed />
       <AppSidebar />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-sm px-6">

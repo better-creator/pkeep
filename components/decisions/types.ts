@@ -73,6 +73,14 @@ export interface Decision {
   // 영향받는 화면
   affectedScreenIds?: string[]
 
+  // 비주얼 컨텍스트
+  visual?: {
+    thumbnail?: string        // 관련 이미지 URL
+    colorChips?: string[]     // 관련 컬러 HEX 코드
+    referenceImages?: string[] // 레퍼런스 이미지 URLs
+    channel?: string          // 관련 채널 (인스타/유튜브/옥외 등)
+  }
+
   createdAt: string
   updatedAt: string
 }
