@@ -9,6 +9,7 @@ import {
   ChevronRight,
   History,
   GitBranch,
+  Image,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -148,6 +149,53 @@ export const DecisionCard = memo(function DecisionCard({
       )}>
         {decision.title}
       </h4>
+
+      {/* 비주얼 컨텍스트 */}
+      {decision.visual && (
+        <div className="flex items-start gap-3 mb-3">
+          {/* 썸네일 */}
+          {decision.visual.thumbnail && (
+            <div className="w-20 h-20 rounded-xl bg-muted/30 border border-border/30 shrink-0 flex items-center justify-center overflow-hidden">
+              <Image className="h-6 w-6 text-muted-foreground/20" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            {/* 컬러 칩 */}
+            {decision.visual.colorChips && decision.visual.colorChips.length > 0 && (
+              <div className="flex items-center gap-1.5 mb-2">
+                {decision.visual.colorChips.map((color, ci) => (
+                  <div key={ci} className="flex items-center gap-1">
+                    <div
+                      className="h-5 w-5 rounded-md border border-black/10 shadow-inner"
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-[10px] font-mono text-muted-foreground">{color}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* 채널 */}
+            {decision.visual.channel && (
+              <Badge variant="outline" className="text-[10px] mb-1">{decision.visual.channel}</Badge>
+            )}
+            {/* 레퍼런스 미니 갤러리 */}
+            {decision.visual.referenceImages && decision.visual.referenceImages.length > 0 && (
+              <div className="flex gap-1.5 mt-1">
+                {decision.visual.referenceImages.slice(0, 3).map((_, ri) => (
+                  <div key={ri} className="h-10 w-10 rounded-lg bg-muted/30 border border-border/30 flex items-center justify-center">
+                    <Image className="h-3.5 w-3.5 text-muted-foreground/20" />
+                  </div>
+                ))}
+                {decision.visual.referenceImages.length > 3 && (
+                  <div className="h-10 w-10 rounded-lg bg-muted/30 border border-border/30 flex items-center justify-center">
+                    <span className="text-[10px] text-muted-foreground">+{decision.visual.referenceImages.length - 3}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 설명 */}
       {decision.content && (

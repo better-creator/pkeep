@@ -8,9 +8,12 @@ import {
   LayoutDashboard,
   Bot,
   Settings,
-  FolderKanban,
   ChevronDown,
   Plus,
+  BookOpen,
+  Layers,
+  Upload,
+  Users,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, usePathname, useRouter } from "next/navigation"
@@ -43,8 +46,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { PkeepLogoFull } from '@/components/brand/Logo'
+import { PkeepLogo } from '@/components/brand/Logo'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -67,10 +69,14 @@ export function AppSidebar() {
     setProjects(loadProjects())
   }, [])
 
+  const [isCreating, setIsCreating] = useState(false)
+
   const handleCreateProject = () => {
+    if (isCreating) return // 중복 호출 방지
     const name = newProjectName.trim()
     if (!name) return
 
+    setIsCreating(true)
     const id = `proj-${Date.now()}`
     const project: StoredProject = {
       id,
@@ -78,10 +84,9 @@ export function AppSidebar() {
       createdAt: new Date().toISOString(),
     }
     saveProject(project)
-    setProjects(loadProjects())
     setNewProjectName("")
     setDialogOpen(false)
-    router.push(`/${teamId}/${id}/meetings`)
+    window.location.href = `/${teamId}/${id}/dashboard`
   }
 
   const currentProject = projects.find(p => p.id === projectId)
@@ -103,9 +108,19 @@ export function AppSidebar() {
       href: `/${teamId}/${projectId}/decisions`,
     },
     {
+      title: "브랜드 가이드",
+      icon: BookOpen,
+      href: `/${teamId}/${projectId}/guide`,
+    },
+    {
       title: "할 일",
       icon: ListChecks,
       href: `/${teamId}/${projectId}/tasks`,
+    },
+    {
+      title: "클라이언트 포털",
+      icon: Users,
+      href: `/${teamId}/${projectId}/client-portal`,
     },
     {
       title: "AI 진단",
@@ -119,34 +134,29 @@ export function AppSidebar() {
     <>
       <Sidebar className="border-r border-sidebar-border/30 sidebar-glass">
         <SidebarHeader className="border-b border-sidebar-border/30 p-4">
-          <PkeepLogoFull size={36} />
-        </SidebarHeader>
-
-        <SidebarContent className="p-2">
-          {/* Team & Project Selector */}
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-xs text-muted-foreground px-2 mb-1">프로젝트</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuButton className="w-full justify-between h-10 rounded-xl bg-secondary/50 hover:bg-secondary px-3">
-                        <span className="flex items-center gap-2.5">
-                          <FolderKanban className="h-4 w-4 text-orange-500" />
-                          <span className="font-medium text-sm truncate">
-                            {currentProject?.name || "프로젝트 선택"}
-                          </span>
-                        </span>
-                        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                      </SidebarMenuButton>
-                    </DropdownMenuTrigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2.5 w-full hover:bg-secondary/50 rounded-xl px-1 py-1 transition-colors text-left">
+                <PkeepLogo size={32} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {currentProject?.name || "프로젝트 선택"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">게스트 · 무료 플랜</p>
+                </div>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              </button>
+            </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-56 rounded-xl">
                       {projects.map((project) => (
-                        <DropdownMenuItem key={project.id} asChild className="rounded-lg">
-                          <Link href={`/${teamId}/${project.id}/meetings`}>
-                            {project.name}
-                          </Link>
+                        <DropdownMenuItem
+                          key={project.id}
+                          className="rounded-lg cursor-pointer"
+                          onSelect={() => {
+                            window.location.href = `/${teamId}/${project.id}/dashboard`
+                          }}
+                        >
+                          {project.name}
                         </DropdownMenuItem>
                       ))}
                       {projects.length === 0 && (
@@ -155,20 +165,19 @@ export function AppSidebar() {
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem
-                        className="rounded-lg text-orange-600"
+                        className="rounded-lg text-primary"
                         onSelect={() => setDialogOpen(true)}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         새 프로젝트
                       </DropdownMenuItem>
                     </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          </DropdownMenu>
+        </SidebarHeader>
 
-          {/* 녹음 버튼 */}
+        <SidebarContent className="p-2">
+
+          {/* 녹음 버튼 — accent (coral) */}
           {projectId && (
             <SidebarGroup className="mt-2">
               <SidebarGroupContent>
@@ -176,7 +185,7 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
-                      className="h-11 rounded-xl px-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-sm"
+                      className="h-11 rounded-xl px-3 bg-accent hover:bg-accent-hover text-white font-semibold shadow-sm"
                     >
                       <Link href={`/${teamId}/${projectId}/meetings`} className="flex items-center gap-2.5">
                         <Mic className="h-5 w-5" />
@@ -204,12 +213,12 @@ export function AppSidebar() {
                           isActive={isActive}
                           className={`h-10 rounded-xl px-3 ${
                             isActive
-                              ? 'bg-orange-500/10 text-orange-600'
+                              ? 'bg-primary/10 text-primary'
                               : 'hover:bg-secondary/50'
-                          } ${'accent' in item && item.accent && !isActive ? 'text-orange-500' : ''}`}
+                          } ${'accent' in item && item.accent && !isActive ? 'text-primary' : ''}`}
                         >
                           <Link href={item.href} className="flex items-center gap-2.5">
-                            <item.icon className={`h-4 w-4 ${isActive ? 'text-orange-500' : 'accent' in item && item.accent ? 'text-orange-500' : ''}`} />
+                            <item.icon className={`h-4 w-4 ${isActive ? 'text-primary' : 'accent' in item && item.accent ? 'text-primary' : ''}`} />
                             <span className="font-medium text-sm">{item.title}</span>
                             {'badge' in item && typeof item.badge === 'number' && item.badge > 0 && (
                               <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
@@ -237,17 +246,6 @@ export function AppSidebar() {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <div className="flex items-center gap-2.5 px-3 py-2 mt-1">
-                <Avatar className="h-7 w-7 ring-2 ring-orange-500/20">
-                  <AvatarFallback className="text-xs bg-orange-500/10 text-orange-600">게</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">게스트</span>
-                  <span className="text-[10px] text-muted-foreground">무료 플랜</span>
-                </div>
-              </div>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
@@ -267,7 +265,7 @@ export function AppSidebar() {
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateProject()
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleCreateProject()
               }}
               autoFocus
             />
@@ -277,7 +275,7 @@ export function AppSidebar() {
             <Button
               onClick={handleCreateProject}
               disabled={!newProjectName.trim()}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-primary hover:bg-primary/90 text-white"
             >
               생성
             </Button>
