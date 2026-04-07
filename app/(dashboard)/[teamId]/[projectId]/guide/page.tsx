@@ -29,11 +29,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const IMGS = {
   moodA: '/dummy/mood-a.jpg',
   moodB: '/dummy/product/product-2.jpg',
-  moodC: '/dummy/insta/insta-1.jpg',
-  moodD: '/dummy/insta/insta-3.jpg',
+  moodC: '/dummy/mood-c.jpg',
+  moodD: '/dummy/mood-d.jpg',
   productShot1: '/dummy/product/product-1.jpg',
   productShot2: '/dummy/product/product-2.jpg',
-  productShot3: '/dummy/product/product-1.jpg',
+  productShot3: '/dummy/product-closeup.jpg',
   model1: '/dummy/model/model-1.jpg',
   model2: '/dummy/model/model-2.jpg',
   model3: '/dummy/model/model-1.jpg',
@@ -46,7 +46,7 @@ const IMGS = {
   igSample3: '/dummy/insta/insta-3.jpg',
   ytThumb: '/dummy/model/model-1.jpg',
   igThumb: '/dummy/insta/insta-1.jpg',
-  oohThumb: '/dummy/insta/insta-3.jpg',
+  oohThumb: '/dummy/ooh-1.jpg',
   webThumb: '/dummy/product/product-1.jpg',
 }
 
@@ -149,7 +149,7 @@ const channels = [
     thumbnail: IMGS.oohThumb,
     specs: '300dpi · 시인성 3m 기준 · CMYK',
     tone: '간결. 핵심 메시지 7단어 이내. 로고 면적 15% 이상.',
-    samples: [IMGS.productShot2, IMGS.moodB, IMGS.moodD],
+    samples: ['/dummy/ooh-1.jpg', '/dummy/ooh-2.jpg', IMGS.productShot2],
     decisions: 3,
   },
   {

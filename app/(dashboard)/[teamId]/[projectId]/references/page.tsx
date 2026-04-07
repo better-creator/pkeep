@@ -39,7 +39,7 @@ interface Reference {
 const references: Reference[] = [
   { id: 'ref-1', title: '무드보드 A — 자연스러운 데일리', type: 'image', category: '무드보드', tags: ['톤앤매너', '라이프스타일'], source: 'M-001 킥오프', date: '03.01', thumbnail: '/dummy/mood-a.jpg' },
   { id: 'ref-2', title: '무드보드 B — 깔끔한 프로덕트', type: 'image', category: '무드보드', tags: ['미니멀', '프로덕트'], source: 'M-001 킥오프', date: '03.01', thumbnail: '/dummy/product/product-2.jpg' },
-  { id: 'ref-3', title: '무드보드 C — 감성 라이프스타일', type: 'image', category: '무드보드', tags: ['감성', '라이프스타일'], source: 'M-001 킥오프', date: '03.01', thumbnail: '/dummy/insta/insta-1.jpg' },
+  { id: 'ref-3', title: '무드보드 C — 감성 라이프스타일', type: 'image', category: '무드보드', tags: ['감성', '라이프스타일'], source: 'M-001 킥오프', date: '03.01', thumbnail: '/dummy/mood-c.jpg' },
   { id: 'ref-4', title: '제품 촬영 레퍼런스 — 화이트 배경', type: 'image', category: '촬영', tags: ['제품', '화이트배경', '라이팅'], source: 'M-002 디자인 리뷰', date: '03.10', thumbnail: '/dummy/product/product-1.jpg' },
   { id: 'ref-5', title: '모델 촬영 레퍼런스 — 내추럴 메이크업', type: 'image', category: '촬영', tags: ['모델', '내추럴', '뷰티'], source: 'M-002 디자인 리뷰', date: '03.10', thumbnail: '/dummy/model/model-1.jpg' },
   { id: 'ref-6', title: '인스타 피드 레이아웃 벤치마킹', type: 'image', category: '채널', tags: ['인스타그램', '레이아웃', '피드'], source: 'M-003 채널 전략', date: '03.18', thumbnail: '/dummy/insta/insta-1.jpg' },
