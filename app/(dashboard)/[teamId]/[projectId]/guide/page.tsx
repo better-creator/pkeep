@@ -45,7 +45,7 @@ const IMGS = {
   igSample2: '/dummy/insta/insta-2.jpg',
   igSample3: '/dummy/insta/insta-3.jpg',
   ytThumb: '/dummy/model/model-1.jpg',
-  igThumb: '/dummy/insta/insta-1.jpg',
+  igThumb: '/dummy/insta-guide.jpg',
   oohThumb: '/dummy/ooh-1.jpg',
   webThumb: '/dummy/web-1.png',
 }
@@ -60,12 +60,12 @@ const brandEssence = {
 
 const visualSystem = {
   colors: [
-    { name: 'Olive Green', hex: '#2D8C3C', usage: '브랜드 메인' },
+    { name: 'Rose Pink', hex: '#E8508A', usage: '브랜드 메인' },
     { name: 'Warm White', hex: '#FFF8F0', usage: '배경' },
-    { name: 'Coral Pink', hex: '#E8734A', usage: '포인트, CTA' },
+    { name: 'Sunny Yellow', hex: '#F5C842', usage: '포인트, CTA' },
     { name: 'Charcoal', hex: '#1B1D1F', usage: '본문 텍스트' },
     { name: 'Soft Gray', hex: '#F2F0ED', usage: '카드, 구분선' },
-    { name: 'Gold', hex: '#C9A96E', usage: '프리미엄 라인' },
+    { name: 'Pale Blue', hex: '#B8D4E3', usage: '프리미엄 라인' },
   ],
   fonts: {
     korean: 'Pretendard',
@@ -104,11 +104,11 @@ const shootingGuide = {
 }
 
 const doList = [
-  { rule: '보라-코랄 그라데이션은 브랜드 핵심 포인트에만 사용', image: IMGS.doImg1, from: 'M-001 킥오프' },
-  { rule: '제품 이미지는 화이트 배경 + 좌측 45도 라이팅', image: IMGS.doImg2, from: 'M-005 촬영 가이드' },
   { rule: '인스타 피드: 정사각형 1:1 비율, 여백 최소 8%', image: null, from: 'M-008 채널 전략' },
-  { rule: 'CTA 버튼은 코랄(#E8734A), 라운드 14px', image: null, from: 'D-012 UI 결정' },
+  { rule: 'CTA 버튼은 Sunny Yellow(#F5C842), 라운드 14px', image: null, from: 'D-012 UI 결정' },
   { rule: '한글 프리텐다드 + 영문 Satoshi 조합', image: null, from: 'M-003 디자인 리뷰' },
+  { rule: '블루-아이보리 그라데이션은 브랜드 핵심 포인트에만 사용', image: IMGS.doImg1, from: 'M-001 킥오프' },
+  { rule: '제품 이미지는 화이트 배경 + 좌측 45도 라이팅', image: IMGS.doImg2, from: 'M-005 촬영 가이드' },
 ]
 
 const dontList = [
@@ -127,7 +127,7 @@ const channels = [
     thumbnail: IMGS.igThumb,
     specs: '피드 1:1 · 릴스 9:16 · 캡션 2,200자',
     tone: '캐주얼 + 감성. 이모지 허용. 해시태그 15개 이내.',
-    samples: [IMGS.igSample1, IMGS.igSample2, IMGS.igSample3],
+    samples: ['/dummy/insta-guide.jpg', '/dummy/insta-promo.jpg', IMGS.igSample3],
     decisions: 8,
   },
   {
@@ -182,10 +182,6 @@ export default function BrandGuidePage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant="outline" className="text-xs font-normal border-primary/30 text-primary bg-primary/5">
-              <Sparkles className="h-3 w-3 mr-1" />
-              결정 기반 자동 생성
-            </Badge>
             <Badge variant="outline" className="text-xs font-normal border-emerald-300 text-emerald-700 bg-emerald-50">
               <Clock className="h-3 w-3 mr-1" />
               2시간 전 업데이트
@@ -193,7 +189,7 @@ export default function BrandGuidePage() {
           </div>
           <h1 className="text-2xl font-bold">마스터 가이드</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            34건의 결정에서 자동 생성 · 4개 채널 분기
+            34건의 결정 기반 · 4개 채널 분기
           </p>
         </div>
         <div className="flex gap-2">

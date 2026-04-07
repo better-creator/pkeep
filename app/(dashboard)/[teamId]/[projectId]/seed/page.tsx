@@ -20,7 +20,7 @@ export default function SeedPage() {
       // Seed project entry
       const projects = [{
         id: 'proj-1',
-        name: '글로우업 코스메틱 S/S 캠페인',
+        name: 'COSMETIC PROJECT',
         description: 'OTV 스튜디오 — 글로우업 코스메틱 S/S 시즌 캠페인',
         createdAt: new Date().toISOString(),
       }]

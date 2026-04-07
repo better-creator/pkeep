@@ -12,7 +12,7 @@ export function AutoSeed() {
     const existingProjects = localStorage.getItem('pkeep-projects')
     if (!existingProjects || JSON.parse(existingProjects).length === 0) {
       const defaultProjects = [
-        { id: 'proj-1', name: '글로우업 코스메틱 S/S 캠페인', createdAt: '2026-02-01T00:00:00.000Z' },
+        { id: 'proj-1', name: 'COSMETIC PROJECT', createdAt: '2026-02-01T00:00:00.000Z' },
       ]
       localStorage.setItem('pkeep-projects', JSON.stringify(defaultProjects))
     }

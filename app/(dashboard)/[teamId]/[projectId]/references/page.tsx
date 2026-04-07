@@ -45,7 +45,7 @@ const references: Reference[] = [
   { id: 'ref-6', title: '인스타 피드 레이아웃 벤치마킹', type: 'image', category: '채널', tags: ['인스타그램', '레이아웃', '피드'], source: 'M-003 채널 전략', date: '03.18', thumbnail: '/dummy/insta/insta-1.jpg' },
   { id: 'ref-7', title: '메인 컬러 — 코랄 오렌지', type: 'color', category: '컬러', tags: ['메인컬러', 'primary'], source: 'DEC-001', date: '03.10', color: '#E8734A' },
   { id: 'ref-8', title: '서브 컬러 — Warm White', type: 'color', category: '컬러', tags: ['서브컬러', '배경'], source: 'DEC-001', date: '03.10', color: '#FFF8F0' },
-  { id: 'ref-9', title: '글로우업 브랜드 가이드 v3', type: 'document', category: '문서', tags: ['브랜드가이드', '공식'], source: '온보딩', date: '03.01' },
+  { id: 'ref-9', title: '글로우업 브랜드 가이드 v3', type: 'image', category: '문서', tags: ['브랜드가이드', '공식'], source: '온보딩', date: '03.01', thumbnail: '/dummy/brand-guide-v3.jpg' },
   { id: 'ref-10', title: 'S/S 캠페인 RFP', type: 'document', category: '문서', tags: ['RFP', '요구사항'], source: '온보딩', date: '03.01' },
   { id: 'ref-11', title: '옥외광고 벤치마킹 — 아모레퍼시픽', type: 'url', category: '벤치마킹', tags: ['옥외', '경쟁사'], source: 'M-003 채널 전략', date: '03.18', url: 'https://example.com' },
   { id: 'ref-12', title: '유튜브 썸네일 트렌드 2026', type: 'url', category: '벤치마킹', tags: ['유튜브', '썸네일', '트렌드'], source: 'M-003 채널 전략', date: '03.18', url: 'https://example.com' },
