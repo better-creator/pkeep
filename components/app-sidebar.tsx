@@ -103,7 +103,8 @@ export function AppSidebar() {
     {
       label: '프로젝트',
       items: [
-        { title: "프로젝트 현황", icon: LayoutDashboard, href: `/${teamId}/${projectId}/client-portal` },
+        { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
+        { title: "프로젝트 현황", icon: Eye, href: `/${teamId}/${projectId}/client-portal` },
         { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
         { title: "확인 · 합의 내역", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
       ],
