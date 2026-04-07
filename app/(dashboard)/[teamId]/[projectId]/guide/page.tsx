@@ -138,7 +138,7 @@ const channels = [
     thumbnail: IMGS.ytThumb,
     specs: '썸네일 1280x720 · 영상 16:9 · 설명 5,000자',
     tone: '정보 전달 + 친근함. 자막 필수. "~입니다"체.',
-    samples: ['/dummy/yt-thumb.png', IMGS.model1, IMGS.model2],
+    samples: ['/dummy/yt-thumb-4.png', '/dummy/yt-thumb-2.png', '/dummy/yt-thumb-3.png'],
     decisions: 5,
   },
   {
