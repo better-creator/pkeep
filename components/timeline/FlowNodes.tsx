@@ -241,11 +241,15 @@ function DecisionNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function ScreenNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
   const thumb = SCREEN_THUMBS[data.code]
+  const hasIssue = data.hasConflict || data.hasBlocker
 
   return (
     <div className={`rounded-2xl border bg-card overflow-hidden cursor-pointer transition-all min-w-[200px] max-w-[260px]
-      border-purple-300/50 ${selected ? 'ring-2 ring-purple-500 shadow-lg' : 'hover:shadow-md hover:border-purple-300'}`}>
-      <Handle type="target" position={Position.Top} className="!w-3 !h-3 !border-2 !border-white !bg-purple-500 !-top-2" />
+      ${hasIssue
+        ? 'border-red-400 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
+        : 'border-purple-300/50'}
+      ${selected ? 'ring-2 ring-purple-500 shadow-lg' : 'hover:shadow-md hover:border-purple-300'}`}>
+      <Handle type="target" position={Position.Top} className={`!w-3 !h-3 !border-2 !border-white ${hasIssue ? '!bg-red-500' : '!bg-purple-500'} !-top-2`} />
 
       {/* 썸네일 */}
       {thumb ? (
@@ -266,6 +270,12 @@ function ScreenNodeInner({ data, selected }: NodeProps<FlowNodeData>) {
         <p className="text-sm font-semibold truncate">{data.title}</p>
         {data.channel && (
           <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{data.channel}</span>
+        )}
+        {hasIssue && (
+          <div className="flex items-center gap-1 mt-1.5">
+            <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
+            <span className="text-xs font-semibold text-red-600">검증 이슈</span>
+          </div>
         )}
       </div>
 
