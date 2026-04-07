@@ -39,7 +39,7 @@ const IMGS = {
   model3: '/dummy/model/model-1.jpg',
   doImg1: '/dummy/product/product-2.jpg',
   doImg2: '/dummy/product/product-1.jpg',
-  dontImg1: '/dummy/insta/insta-2.jpg',
+  dontImg1: '/dummy/logo-dont.png',
   dontImg2: '/dummy/model/model-2.jpg',
   igSample1: '/dummy/insta/insta-1.jpg',
   igSample2: '/dummy/insta/insta-2.jpg',
@@ -47,7 +47,7 @@ const IMGS = {
   ytThumb: '/dummy/model/model-1.jpg',
   igThumb: '/dummy/insta/insta-1.jpg',
   oohThumb: '/dummy/ooh-1.jpg',
-  webThumb: '/dummy/product/product-1.jpg',
+  webThumb: '/dummy/web-1.png',
 }
 
 // --- Brand Guide Data (Content-Production Focused) ---
@@ -160,7 +160,7 @@ const channels = [
     thumbnail: IMGS.webThumb,
     specs: '반응형 · 최소 터치 44px · Pretendard',
     tone: '명확하고 간결. UX 라이팅 가이드 준수. "~해요"체.',
-    samples: [IMGS.productShot1, IMGS.moodA, IMGS.moodC],
+    samples: ['/dummy/web-1.png', '/dummy/web-2.png', '/dummy/web-3.png'],
     decisions: 6,
   },
 ]
