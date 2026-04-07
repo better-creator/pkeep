@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // Local dummy images
 const IMGS = {
-  moodA: '/dummy/product/product-1.jpg',
+  moodA: '/dummy/mood-a.jpg',
   moodB: '/dummy/product/product-2.jpg',
   moodC: '/dummy/insta/insta-1.jpg',
   moodD: '/dummy/insta/insta-3.jpg',

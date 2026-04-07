@@ -27,7 +27,7 @@ interface Reference {
 }
 
 const allReferences: Reference[] = [
-  { id: 'ref-1', title: '무드보드 A — 자연스러운 데일리', type: 'image', category: '무드보드', tags: ['톤앤매너', '라이프스타일'], source: 'M-001', thumbnail: '/dummy/product/product-1.jpg' },
+  { id: 'ref-1', title: '무드보드 A — 자연스러운 데일리', type: 'image', category: '무드보드', tags: ['톤앤매너', '라이프스타일'], source: 'M-001', thumbnail: '/dummy/mood-a.jpg' },
   { id: 'ref-2', title: '무드보드 B — 깔끔한 프로덕트', type: 'image', category: '무드보드', tags: ['미니멀', '프로덕트'], source: 'M-001', thumbnail: '/dummy/product/product-2.jpg' },
   { id: 'ref-3', title: '제품 촬영 레퍼런스 — 화이트 배경', type: 'image', category: '촬영', tags: ['제품', '화이트배경'], source: 'M-002', thumbnail: '/dummy/product/product-1.jpg' },
   { id: 'ref-4', title: '모델 촬영 레퍼런스 — 내추럴', type: 'image', category: '촬영', tags: ['모델', '내추럴'], source: 'M-002', thumbnail: '/dummy/model/model-1.jpg' },
