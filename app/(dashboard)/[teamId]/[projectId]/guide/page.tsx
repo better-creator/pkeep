@@ -127,7 +127,7 @@ const channels = [
     thumbnail: IMGS.igThumb,
     specs: '피드 1:1 · 릴스 9:16 · 캡션 2,200자',
     tone: '캐주얼 + 감성. 이모지 허용. 해시태그 15개 이내.',
-    samples: ['/dummy/insta-guide.jpg', '/dummy/insta-promo.jpg', IMGS.igSample3],
+    samples: ['/dummy/insta-guide.jpg', '/dummy/insta-promo.jpg', '/dummy/insta-4.jpg'],
     decisions: 8,
   },
   {
@@ -405,7 +405,7 @@ export default function BrandGuidePage() {
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">레퍼런스 · 샘플</p>
                       <div className="flex gap-3">
                         {ch.samples.map((src, i) => (
-                          <div key={i} className="flex-1 aspect-square rounded-xl overflow-hidden bg-muted/30 border border-border/30">
+                          <div key={i} className="flex-1 aspect-[4/3] rounded-xl overflow-hidden bg-muted/30 border border-border/30">
                             <img src={src} alt={`${ch.name} 샘플 ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
                           </div>
                         ))}
