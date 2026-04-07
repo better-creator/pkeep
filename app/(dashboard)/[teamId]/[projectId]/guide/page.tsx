@@ -214,19 +214,19 @@ export default function BrandGuidePage() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl bg-secondary/30">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">타겟</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">타겟</p>
             <p className="text-sm">{brandEssence.target}</p>
           </div>
           <div className="p-4 rounded-xl bg-secondary/30">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">포지셔닝</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">포지셔닝</p>
             <p className="text-sm">{brandEssence.positioning}</p>
           </div>
           <div className="p-4 rounded-xl bg-secondary/30">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">톤 & 보이스</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">톤 & 보이스</p>
             <p className="text-sm">{brandEssence.tone}</p>
           </div>
           <div className="p-4 rounded-xl bg-secondary/30">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">키워드</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">키워드</p>
             <div className="flex flex-wrap gap-1.5 mt-1">
               {brandEssence.keywords.map((kw, i) => (
                 <Badge key={i} variant="outline" className="text-xs font-normal">{kw}</Badge>
@@ -248,8 +248,8 @@ export default function BrandGuidePage() {
             {visualSystem.colors.map((c) => (
               <div key={c.name} className="flex-1 text-center">
                 <div className="h-12 rounded-lg border border-black/5 shadow-inner mb-1" style={{ backgroundColor: c.hex }} />
-                <p className="text-[9px] font-mono text-muted-foreground">{c.hex}</p>
-                <p className="text-[9px] text-muted-foreground">{c.usage}</p>
+                <p className="text-xs font-mono text-muted-foreground">{c.hex}</p>
+                <p className="text-xs text-muted-foreground">{c.usage}</p>
               </div>
             ))}
           </div>
@@ -273,7 +273,7 @@ export default function BrandGuidePage() {
                 <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted/30 border border-border/30">
                   <img src={m.src} alt={m.label} className="w-full h-full object-cover" loading="lazy" />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1">{m.label}</p>
+                <p className="text-xs text-muted-foreground mt-1">{m.label}</p>
               </div>
             ))}
           </div>
@@ -325,7 +325,7 @@ export default function BrandGuidePage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">{item.rule}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{item.from}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 font-mono">{item.from}</p>
                 </div>
               </div>
             ))}
@@ -349,7 +349,7 @@ export default function BrandGuidePage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">{item.rule}</p>
                   <p className="text-xs text-rose-600/70 mt-0.5">{item.reason}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{item.from}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 font-mono">{item.from}</p>
                 </div>
               </div>
             ))}
@@ -382,7 +382,7 @@ export default function BrandGuidePage() {
                     <h3 className="font-semibold text-sm">{ch.name}</h3>
                     <p className="text-xs text-muted-foreground">{ch.specs}</p>
                   </div>
-                  <Badge variant="outline" className="text-[10px]">{ch.decisions}건 결정</Badge>
+                  <Badge variant="outline" className="text-xs">{ch.decisions}건 결정</Badge>
                   <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                 </div>
 
@@ -395,15 +395,15 @@ export default function BrandGuidePage() {
                         <img src={ch.thumbnail} alt={ch.name} className="w-full h-full object-cover" loading="lazy" />
                       </div>
                       <div className="w-1/2">
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">톤 & 보이스</p>
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">톤 & 보이스</p>
                         <p className="text-sm mb-3">{ch.tone}</p>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">사양</p>
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">사양</p>
                         <p className="text-sm">{ch.specs}</p>
                       </div>
                     </div>
                     {/* Sample Images */}
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">레퍼런스 · 샘플</p>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">레퍼런스 · 샘플</p>
                       <div className="flex gap-3">
                         {ch.samples.map((src, i) => (
                           <div key={i} className="flex-1 aspect-square rounded-xl overflow-hidden bg-muted/30 border border-border/30">
@@ -438,8 +438,8 @@ export default function BrandGuidePage() {
               <div className="flex-1">
                 <p className="text-sm">{u.change}</p>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <Badge variant="outline" className="text-[10px]">{u.type}</Badge>
-                  <span className="text-[10px] text-muted-foreground font-mono">{u.from}</span>
+                  <Badge variant="outline" className="text-xs">{u.type}</Badge>
+                  <span className="text-xs text-muted-foreground font-mono">{u.from}</span>
                 </div>
               </div>
             </div>

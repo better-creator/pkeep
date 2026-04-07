@@ -932,7 +932,7 @@ export function MindmapView({ items }: MindmapViewProps) {
           {/* 팀 필터 */}
           {(activeTab === 'team' || activeTab === 'member') && (
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-stone-400 uppercase tracking-wide">팀</span>
+              <span className="text-xs text-stone-400 uppercase tracking-wide">팀</span>
               <div className="flex gap-0.5">
                 <button
                   onClick={() => { setSelectedTeamId(null); setSelectedMemberId(null) }}
@@ -963,7 +963,7 @@ export function MindmapView({ items }: MindmapViewProps) {
           {/* 담당자 필터 */}
           {activeTab === 'member' && selectedTeamId && (
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-stone-400 uppercase tracking-wide">담당자</span>
+              <span className="text-xs text-stone-400 uppercase tracking-wide">담당자</span>
               <div className="flex gap-0.5">
                 <button
                   onClick={() => setSelectedMemberId(null)}
@@ -1038,7 +1038,7 @@ export function MindmapView({ items }: MindmapViewProps) {
 
         {/* 범례 */}
         <div className="flex items-center gap-3 mt-2 pt-2 border-t border-stone-100/60">
-          <span className="text-[10px] text-stone-400 uppercase tracking-wide">카테고리</span>
+          <span className="text-xs text-stone-400 uppercase tracking-wide">카테고리</span>
           {Object.entries(categoryConfig).map(([key, config]) => {
             const Icon = categoryIcons[key as ItemCategory]
             return (
@@ -1049,7 +1049,7 @@ export function MindmapView({ items }: MindmapViewProps) {
                 >
                   <Icon className="h-2 w-2 text-white" />
                 </div>
-                <span className="text-[10px] text-stone-500">{config.label}</span>
+                <span className="text-xs text-stone-500">{config.label}</span>
               </div>
             )
           })}
@@ -1087,7 +1087,7 @@ export function MindmapView({ items }: MindmapViewProps) {
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleReset}>
                 <Maximize2 className="h-3.5 w-3.5" />
               </Button>
-              <div className="text-[10px] text-center text-stone-400 border-t border-stone-100 pt-1 mt-0.5">
+              <div className="text-xs text-center text-stone-400 border-t border-stone-100 pt-1 mt-0.5">
                 {Math.round(zoom * 100)}%
               </div>
             </div>
@@ -1165,7 +1165,7 @@ export function MindmapView({ items }: MindmapViewProps) {
                                   {member.initials}
                                 </div>
                                 <span className="text-sm font-medium text-stone-700">{member.name}</span>
-                                <Badge variant="outline" className="text-[10px] ml-auto">
+                                <Badge variant="outline" className="text-xs ml-auto">
                                   {memberItems.length}
                                 </Badge>
                               </div>
@@ -1191,11 +1191,11 @@ export function MindmapView({ items }: MindmapViewProps) {
                                       </div>
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-[10px] font-mono text-primary">{item.code}</span>
+                                          <span className="text-xs font-mono text-primary">{item.code}</span>
                                           {item.status && (
                                             <Badge
                                               variant="outline"
-                                              className={`text-[9px] px-1 py-0 ${statusConfig[item.status].bg} ${statusConfig[item.status].text} border-0`}
+                                              className={`text-xs px-1 py-0 ${statusConfig[item.status].bg} ${statusConfig[item.status].text} border-0`}
                                             >
                                               {statusConfig[item.status].label}
                                             </Badge>
@@ -1227,7 +1227,7 @@ export function MindmapView({ items }: MindmapViewProps) {
           <div className="w-72 border-l border-stone-200/60 bg-white/95 backdrop-blur-sm overflow-auto">
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <Badge style={{ backgroundColor: selectedNode.color }} className="text-white text-[10px]">
+                <Badge style={{ backgroundColor: selectedNode.color }} className="text-white text-xs">
                   {selectedNode.type === 'project' ? '프로젝트' :
                    selectedNode.type === 'team' ? '팀' :
                    selectedNode.type === 'member' ? '담당자' :
@@ -1249,12 +1249,12 @@ export function MindmapView({ items }: MindmapViewProps) {
                 {selectedNode.data && (
                   <>
                     <div>
-                      <span className="text-[10px] font-mono text-primary">{selectedNode.data.code}</span>
+                      <span className="text-xs font-mono text-primary">{selectedNode.data.code}</span>
                       <h4 className="text-sm font-medium text-stone-800 mt-0.5">{selectedNode.data.title}</h4>
                       {selectedNode.data.status && (
                         <Badge
                           variant="outline"
-                          className={`mt-1.5 text-[10px] ${statusConfig[selectedNode.data.status].bg} ${statusConfig[selectedNode.data.status].text} border-0`}
+                          className={`mt-1.5 text-xs ${statusConfig[selectedNode.data.status].bg} ${statusConfig[selectedNode.data.status].text} border-0`}
                         >
                           {statusConfig[selectedNode.data.status].label}
                         </Badge>
@@ -1263,16 +1263,16 @@ export function MindmapView({ items }: MindmapViewProps) {
 
                     {selectedNode.data.description && (
                       <div>
-                        <h4 className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-1">설명</h4>
+                        <h4 className="text-xs font-medium text-stone-400 uppercase tracking-wide mb-1">설명</h4>
                         <p className="text-xs text-stone-600 leading-relaxed">{selectedNode.data.description}</p>
                       </div>
                     )}
 
                     {selectedNode.data.owner && (
                       <div>
-                        <h4 className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-1">담당자</h4>
+                        <h4 className="text-xs font-medium text-stone-400 uppercase tracking-wide mb-1">담당자</h4>
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-medium">
+                          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary font-medium">
                             {selectedNode.data.owner.name.charAt(0)}
                           </div>
                           <span className="text-xs text-stone-700">{selectedNode.data.owner.name}</span>
@@ -1282,10 +1282,10 @@ export function MindmapView({ items }: MindmapViewProps) {
 
                     {selectedNode.data.connections.sources.length > 0 && (
                       <div>
-                        <h4 className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-1.5">연결된 항목</h4>
+                        <h4 className="text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">연결된 항목</h4>
                         <div className="space-y-1">
                           {selectedNode.data.connections.sources.map(source => (
-                            <div key={source.id} className="text-[10px] p-1.5 rounded bg-stone-50 flex items-center gap-1.5">
+                            <div key={source.id} className="text-xs p-1.5 rounded bg-stone-50 flex items-center gap-1.5">
                               <span className="font-mono text-primary">{source.code}</span>
                               <span className="text-stone-500 truncate">{source.title}</span>
                             </div>
@@ -1298,12 +1298,12 @@ export function MindmapView({ items }: MindmapViewProps) {
 
                 {selectedNode.type === 'team' && (
                   <div>
-                    <h4 className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-1.5">팀원</h4>
+                    <h4 className="text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">팀원</h4>
                     <div className="space-y-1">
                       {teams.find(t => t.id === selectedNode.id)?.members.map(member => (
                         <div key={member.id} className="flex items-center gap-2 p-1.5 rounded bg-stone-50">
                           <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-white font-medium"
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-xs text-white font-medium"
                             style={{ backgroundColor: selectedNode.color }}
                           >
                             {member.initials}

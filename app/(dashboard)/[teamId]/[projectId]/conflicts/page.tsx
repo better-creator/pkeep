@@ -176,14 +176,14 @@ export default function ConflictsPage() {
                 <div className="px-5 py-3.5 border-b border-stone-100/50 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${severity.dot}`} />
-                    <Badge variant="outline" className={`text-[10px] ${severity.color} border-current`}>
+                    <Badge variant="outline" className={`text-xs ${severity.color} border-current`}>
                       {severity.label}
                     </Badge>
-                    <Badge variant="secondary" className="text-[10px]">
+                    <Badge variant="secondary" className="text-xs">
                       {getConflictTypeLabel(conflict.type)}
                     </Badge>
                     {conflict.resolved && conflict.resolution && (
-                      <Badge className="text-[10px] bg-emerald-100 text-emerald-700">
+                      <Badge className="text-xs bg-emerald-100 text-emerald-700">
                         {conflict.resolution === 'reject_new'
                           ? '이전 결정 유지'
                           : conflict.resolution === 'hold'
@@ -192,17 +192,17 @@ export default function ConflictsPage() {
                       </Badge>
                     )}
                   </div>
-                  <span className="text-[10px] text-stone-400 font-mono">{conflict.id}</span>
+                  <span className="text-xs text-stone-400 font-mono">{conflict.id}</span>
                 </div>
 
                 {/* Side by side decisions */}
                 <div className="p-5 grid grid-cols-2 gap-4">
                   {/* New decision */}
                   <div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
-                    <p className="text-[10px] font-medium text-accent uppercase tracking-wide mb-2">
+                    <p className="text-xs font-medium text-accent uppercase tracking-wide mb-2">
                       새 결정
                     </p>
-                    <Badge variant="outline" className="text-[10px] font-mono mb-1.5">
+                    <Badge variant="outline" className="text-xs font-mono mb-1.5">
                       {conflict.newDecision.code}
                     </Badge>
                     <p className="text-sm font-medium text-stone-800">
@@ -212,14 +212,14 @@ export default function ConflictsPage() {
                       <div className="mt-2 space-y-1">
                         <p className="text-[11px] text-stone-500">{newDec.rationale}</p>
                         <div className="flex items-center gap-1.5">
-                          <Badge variant="secondary" className="text-[9px]">
+                          <Badge variant="secondary" className="text-xs">
                             {newDec.area === 'planning'
                               ? '기획'
                               : newDec.area === 'design'
                               ? '디자인'
                               : '개발'}
                           </Badge>
-                          <span className="text-[10px] text-stone-400">{newDec.proposedBy}</span>
+                          <span className="text-xs text-stone-400">{newDec.proposedBy}</span>
                         </div>
                       </div>
                     )}
@@ -227,10 +227,10 @@ export default function ConflictsPage() {
 
                   {/* Existing decision */}
                   <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4">
-                    <p className="text-[10px] font-medium text-stone-500 uppercase tracking-wide mb-2">
+                    <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2">
                       기존 결정
                     </p>
-                    <Badge variant="outline" className="text-[10px] font-mono mb-1.5">
+                    <Badge variant="outline" className="text-xs font-mono mb-1.5">
                       {conflict.existingDecision.code}
                     </Badge>
                     <p className="text-sm font-medium text-stone-800">
@@ -240,14 +240,14 @@ export default function ConflictsPage() {
                       <div className="mt-2 space-y-1">
                         <p className="text-[11px] text-stone-500">{existingDec.rationale}</p>
                         <div className="flex items-center gap-1.5">
-                          <Badge variant="secondary" className="text-[9px]">
+                          <Badge variant="secondary" className="text-xs">
                             {existingDec.area === 'planning'
                               ? '기획'
                               : existingDec.area === 'design'
                               ? '디자인'
                               : '개발'}
                           </Badge>
-                          <span className="text-[10px] text-stone-400">{existingDec.proposedBy}</span>
+                          <span className="text-xs text-stone-400">{existingDec.proposedBy}</span>
                         </div>
                       </div>
                     )}
@@ -304,7 +304,7 @@ export default function ConflictsPage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-stone-300 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <Badge variant="outline" className="text-[10px] font-mono">
+                    <Badge variant="outline" className="text-xs font-mono">
                       {conflict.newDecision.code}
                     </Badge>
                     <span className="text-[11px] text-stone-400">채택 vs</span>
@@ -313,7 +313,7 @@ export default function ConflictsPage() {
                     </span>
                   </div>
                 </div>
-                <Badge className="text-[9px] bg-stone-100 text-stone-500">해결됨</Badge>
+                <Badge className="text-xs bg-stone-100 text-stone-500">해결됨</Badge>
               </div>
             ))}
           </div>

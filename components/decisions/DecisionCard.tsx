@@ -56,13 +56,13 @@ export const DecisionCard = memo(function DecisionCard({
     return (
       <div key={maker.id} className="flex items-center gap-1.5">
         <Avatar className={avatarSize}>
-          <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+          <AvatarFallback className="text-xs bg-primary/10 text-primary">
             {maker.name.slice(0, 1)}
           </AvatarFallback>
         </Avatar>
         <span className={cn(textSize, 'text-muted-foreground')}>{maker.name}</span>
         {maker.decidedAt && (
-          <span className="text-[10px] text-muted-foreground/60">
+          <span className="text-xs text-muted-foreground/60">
             {new Date(maker.decidedAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
           </span>
         )}
@@ -120,17 +120,17 @@ export const DecisionCard = memo(function DecisionCard({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="font-mono text-xs text-muted-foreground">{decision.code}</span>
-          <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', statusConfig.bgColor, statusConfig.textColor)}>
+          <Badge variant="outline" className={cn('text-xs px-1.5 py-0', statusConfig.bgColor, statusConfig.textColor)}>
             <StatusIcon className="h-3 w-3 mr-1" />
             {statusConfig.label}
           </Badge>
           {showHierarchy && decision.hierarchy !== 'root' && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+            <Badge variant="outline" className="text-xs px-1.5 py-0">
               {decisionHierarchyConfig[decision.hierarchy].label}
             </Badge>
           )}
           {decision.currentVersion > 1 && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-purple-600 bg-purple-50">
+            <Badge variant="outline" className="text-xs px-1.5 py-0 text-purple-600 bg-purple-50">
               <History className="h-3 w-3 mr-1" />
               v{decision.currentVersion}
             </Badge>
@@ -169,14 +169,14 @@ export const DecisionCard = memo(function DecisionCard({
                       className="h-5 w-5 rounded-md border border-black/10 shadow-inner"
                       style={{ backgroundColor: color }}
                     />
-                    <span className="text-[10px] font-mono text-muted-foreground">{color}</span>
+                    <span className="text-xs font-mono text-muted-foreground">{color}</span>
                   </div>
                 ))}
               </div>
             )}
             {/* 채널 */}
             {decision.visual.channel && (
-              <Badge variant="outline" className="text-[10px] mb-1">{decision.visual.channel}</Badge>
+              <Badge variant="outline" className="text-xs mb-1">{decision.visual.channel}</Badge>
             )}
             {/* 레퍼런스 미니 갤러리 */}
             {decision.visual.referenceImages && decision.visual.referenceImages.length > 0 && (
@@ -188,7 +188,7 @@ export const DecisionCard = memo(function DecisionCard({
                 ))}
                 {decision.visual.referenceImages.length > 3 && (
                   <div className="h-10 w-10 rounded-lg bg-muted/30 border border-border/30 flex items-center justify-center">
-                    <span className="text-[10px] text-muted-foreground">+{decision.visual.referenceImages.length - 3}</span>
+                    <span className="text-xs text-muted-foreground">+{decision.visual.referenceImages.length - 3}</span>
                   </div>
                 )}
               </div>
@@ -264,7 +264,7 @@ export const DecisionCard = memo(function DecisionCard({
                   </Avatar>
                 ))}
                 {decision.approvers.length > 3 && (
-                  <span className="text-[10px] text-muted-foreground ml-1">
+                  <span className="text-xs text-muted-foreground ml-1">
                     +{decision.approvers.length - 3}
                   </span>
                 )}
@@ -292,12 +292,12 @@ export const DecisionCard = memo(function DecisionCard({
       {(decision.area || (decision.keywords && decision.keywords.length > 0)) && (
         <div className="flex flex-wrap gap-1.5 mt-3">
           {decision.area && (
-            <Badge variant="secondary" className="text-[10px]">
+            <Badge variant="secondary" className="text-xs">
               {decision.area}
             </Badge>
           )}
           {decision.keywords?.slice(0, 3).map((keyword) => (
-            <Badge key={keyword} variant="outline" className="text-[10px]">
+            <Badge key={keyword} variant="outline" className="text-xs">
               {keyword}
             </Badge>
           ))}

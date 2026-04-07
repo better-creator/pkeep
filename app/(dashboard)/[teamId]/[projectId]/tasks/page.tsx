@@ -182,14 +182,14 @@ export default function TasksPage() {
                 <div key={meetingId}>
                   {/* Meeting group header */}
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${srcCfg.bg} ${srcCfg.text}`}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${srcCfg.bg} ${srcCfg.text}`}>
                       <SrcIcon className="h-2.5 w-2.5" />
                       {srcCfg.label}
                     </span>
                     <span className="text-xs font-mono text-stone-500">{meeting?.code || meetingId}</span>
                     <span className="text-xs text-stone-400 truncate">{meeting?.title}</span>
                     {relatedDecs.length > 0 && (
-                      <span className="text-[10px] text-stone-400 ml-auto">
+                      <span className="text-xs text-stone-400 ml-auto">
                         결정 {relatedDecs.length}건
                       </span>
                     )}
@@ -225,11 +225,11 @@ export default function TasksPage() {
                             </span>
                             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                               {parentDec && (
-                                <span className="inline-flex items-center gap-0.5 text-[10px] text-stone-400">
+                                <span className="inline-flex items-center gap-0.5 text-xs text-stone-400">
                                   <ChevronRight className="h-2.5 w-2.5" />
                                   <span className="font-mono">{parentDec.code}</span>
                                   {parentDec.area && (
-                                    <Badge className={`text-[9px] px-1 py-0 rounded ${
+                                    <Badge className={`text-xs px-1 py-0 rounded ${
                                       parentDec.area === 'dev' ? 'bg-sky-50 text-sky-600' :
                                       parentDec.area === 'design' ? 'bg-pink-50 text-pink-600' :
                                       'bg-violet-50 text-violet-600'
@@ -243,7 +243,7 @@ export default function TasksPage() {
                             </div>
                           </div>
                           {task.assignee && (
-                            <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-stone-50 flex-shrink-0 self-start">
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 bg-stone-50 flex-shrink-0 self-start">
                               {task.assignee.split(' ')[0]}
                             </Badge>
                           )}

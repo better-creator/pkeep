@@ -194,7 +194,7 @@ function ListDecisionCard({ item }: { item: TimelineItem }) {
         <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
           {item.owner && (
             <span className="flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground/60">{item.owner.name.charAt(0)}</span>
+              <span className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-foreground/60">{item.owner.name.charAt(0)}</span>
               {item.owner.name}
             </span>
           )}
@@ -223,11 +223,11 @@ function layoutVerticalStack(nodes: Node[], edges: Edge[], items: TimelineItem[]
   const codeToId = new Map<string, string>()
   items.forEach(i => codeToId.set(i.code, i.id))
 
-  const COL_WIDTH = 320
-  const MTG_HEIGHT = 50
-  const DEC_HEIGHT = 80
-  const GAP_Y = 24
-  const COL_GAP = 40
+  const COL_WIDTH = 420
+  const MTG_HEIGHT = 90
+  const DEC_HEIGHT = 120
+  const GAP_Y = 36
+  const COL_GAP = 60
 
   const posMap = new Map<string, { x: number; y: number }>()
 
@@ -239,7 +239,7 @@ function layoutVerticalStack(nodes: Node[], edges: Edge[], items: TimelineItem[]
     )
 
     // 미팅 위치
-    posMap.set(mtg.id, { x: colX + (COL_WIDTH - 240) / 2, y: 0 })
+    posMap.set(mtg.id, { x: colX + (COL_WIDTH - 300) / 2, y: 0 })
 
     // 결정들을 세로로 쌓기
     let y = MTG_HEIGHT + GAP_Y

@@ -99,7 +99,7 @@ function KanbanCard({ item }: { item: TimelineItem }) {
         <div className={`p-1 rounded ${config?.color || 'bg-zinc-500'}`}>
           <Icon className="h-3 w-3 text-white" />
         </div>
-        <span className="text-[10px] font-mono text-primary font-medium">
+        <span className="text-xs font-mono text-primary font-medium">
           {item.code}
         </span>
       </div>
@@ -115,24 +115,24 @@ function KanbanCard({ item }: { item: TimelineItem }) {
         {item.owner ? (
           <div className="flex items-center gap-1.5">
             <Avatar className="h-5 w-5">
-              <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+              <AvatarFallback className="text-xs bg-primary/10 text-primary">
                 {item.owner.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {item.owner.name}
             </span>
           </div>
         ) : (
           <div className="flex items-center gap-1 text-muted-foreground/50">
             <User className="h-3 w-3" />
-            <span className="text-[10px]">미지정</span>
+            <span className="text-xs">미지정</span>
           </div>
         )}
 
         {/* 태스크 수 */}
         {item.tasks && item.tasks.length > 0 && (
-          <Badge variant="secondary" className="text-[10px] h-5">
+          <Badge variant="secondary" className="text-xs h-5">
             {item.tasks.filter(t => t.status === 'done').length}/{item.tasks.length}
           </Badge>
         )}

@@ -456,7 +456,7 @@ function StickyNote({
 
       <p className="text-sm font-medium leading-snug mb-2">{utterance.content}</p>
 
-      <div className="flex items-center justify-between text-[10px] opacity-70">
+      <div className="flex items-center justify-between text-xs opacity-70">
         <div className="flex items-center gap-1.5">
           <CategoryIcon className="h-3 w-3" />
           <span>{utterance.sourceCode}</span>
@@ -472,7 +472,7 @@ function StickyNote({
       {utterance.tags && utterance.tags.length > 0 && (
         <div className="flex gap-1 mt-2">
           {utterance.tags.map(tag => (
-            <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded bg-black/10">
+            <span key={tag} className="text-xs px-1.5 py-0.5 rounded bg-black/10">
               {tag === 'todo' ? '할 일' : tag === 'in_progress' ? '진행 중' : tag === 'done' ? '완료' : tag}
             </span>
           ))}
@@ -560,7 +560,7 @@ function AffinityCluster({
                 >
                   {group.title}
                 </h3>
-                <Badge variant="secondary" className="text-[10px] shrink-0">
+                <Badge variant="secondary" className="text-xs shrink-0">
                   {group.utterances.length}
                 </Badge>
                 <Button
@@ -573,7 +573,7 @@ function AffinityCluster({
                 </Button>
               </div>
               {group.subtitle && (
-                <p className="text-[10px] text-muted-foreground truncate">{group.subtitle}</p>
+                <p className="text-xs text-muted-foreground truncate">{group.subtitle}</p>
               )}
             </div>
           )}

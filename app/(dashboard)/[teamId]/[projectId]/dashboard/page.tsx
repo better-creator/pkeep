@@ -51,7 +51,7 @@ function HealthRing({ score, size = 96 }: { score: number; size?: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className={`text-2xl font-bold ${textColor}`}>{score}</span>
-        <span className="text-[10px] text-stone-400 -mt-0.5">/ 100</span>
+        <span className="text-xs text-stone-400 -mt-0.5">/ 100</span>
       </div>
     </div>
   )
@@ -224,7 +224,7 @@ export default function DashboardPage() {
                   {Math.round(decisionFollowRate)}%
                 </div>
                 <div className="text-xs text-stone-500">결정 이행률</div>
-                <div className="text-[10px] text-stone-400">
+                <div className="text-xs text-stone-400">
                   {confirmedDecisions.length}/{decisions.length}
                 </div>
               </div>
@@ -234,7 +234,7 @@ export default function DashboardPage() {
                   {tasksTotal > 0 ? Math.round(taskCompletionRate) : '-'}%
                 </div>
                 <div className="text-xs text-stone-500">할일 완료율</div>
-                <div className="text-[10px] text-stone-400">
+                <div className="text-xs text-stone-400">
                   {tasksDone}/{tasksTotal}
                 </div>
               </div>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
                   {unresolvedConflicts.length}
                 </div>
                 <div className="text-xs text-stone-500">미해결 이슈</div>
-                <div className="text-[10px] text-stone-400">
+                <div className="text-xs text-stone-400">
                   충돌 건수
                 </div>
               </div>
@@ -518,7 +518,7 @@ export default function DashboardPage() {
             >
               <intg.Icon size={16} />
               <span className="text-xs font-medium">{intg.name}</span>
-              <span className="text-[10px] bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded-full">연동 가능</span>
+              <span className="text-xs bg-stone-100 text-stone-400 px-1.5 py-0.5 rounded-full">연동 가능</span>
             </button>
           ))}
         </div>

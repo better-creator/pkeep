@@ -189,7 +189,7 @@ export default function OverviewPage() {
           <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <Flame className="h-4 w-4 text-rose-500" />
             긴급 이슈
-            <Badge variant="destructive" className="text-[10px] ml-1">{urgentItems.length}</Badge>
+            <Badge variant="destructive" className="text-xs ml-1">{urgentItems.length}</Badge>
           </h2>
           <div className="space-y-2">
             {urgentItems.map((item, i) => (
@@ -200,9 +200,9 @@ export default function OverviewPage() {
                 }`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm">{item.message}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{item.project}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.project}</p>
                 </div>
-                <Badge variant="outline" className="text-[10px] shrink-0">{item.dday}</Badge>
+                <Badge variant="outline" className="text-xs shrink-0">{item.dday}</Badge>
               </div>
             ))}
           </div>
@@ -230,7 +230,7 @@ export default function OverviewPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-sm truncate">{project.name}</h3>
-                    <Badge className={`text-[10px] border ${statusConfig[project.status].color}`}>
+                    <Badge className={`text-xs border ${statusConfig[project.status].color}`}>
                       {statusConfig[project.status].label}
                     </Badge>
                   </div>
@@ -241,7 +241,7 @@ export default function OverviewPage() {
 
               {/* Progress Bar */}
               <div className="mb-4">
-                <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                <div className="flex justify-between text-xs text-muted-foreground mb-1">
                   <span>진행률</span>
                   <span>{project.progress}%</span>
                 </div>
@@ -280,13 +280,13 @@ export default function OverviewPage() {
               {(project.blockers > 0 || project.warnings > 0) && (
                 <div className="flex gap-2 mb-3">
                   {project.blockers > 0 && (
-                    <Badge variant="outline" className="text-[10px] border-rose-200 text-rose-600 bg-rose-50">
+                    <Badge variant="outline" className="text-xs border-rose-200 text-rose-600 bg-rose-50">
                       <Flame className="h-3 w-3 mr-1" />
                       블로커 {project.blockers}
                     </Badge>
                   )}
                   {project.warnings > 0 && (
-                    <Badge variant="outline" className="text-[10px] border-amber-200 text-amber-600 bg-amber-50">
+                    <Badge variant="outline" className="text-xs border-amber-200 text-amber-600 bg-amber-50">
                       <AlertTriangle className="h-3 w-3 mr-1" />
                       주의 {project.warnings}
                     </Badge>
@@ -297,7 +297,7 @@ export default function OverviewPage() {
               {/* Channels */}
               <div className="flex items-center gap-2">
                 {project.channels.map((ch, i) => (
-                  <Badge key={i} variant="outline" className="text-[10px] font-normal">{ch}</Badge>
+                  <Badge key={i} variant="outline" className="text-xs font-normal">{ch}</Badge>
                 ))}
               </div>
 

@@ -230,9 +230,9 @@ export default function OnboardingPage() {
               {analysisResults.brandRules.map((rule, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                  <Badge variant="outline" className="text-[10px] shrink-0">{rule.category}</Badge>
+                  <Badge variant="outline" className="text-xs shrink-0">{rule.category}</Badge>
                   <p className="text-sm flex-1">{rule.rule}</p>
-                  <span className="text-[10px] text-muted-foreground shrink-0">신뢰도 {rule.confidence}%</span>
+                  <span className="text-xs text-muted-foreground shrink-0">신뢰도 {rule.confidence}%</span>
                 </div>
               ))}
             </div>
@@ -250,9 +250,9 @@ export default function OnboardingPage() {
                   <ShieldX className="h-4 w-4 text-rose-400 shrink-0" />
                   <div className="flex-1">
                     <p className="text-sm">{item.rule}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{item.source}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 font-mono">{item.source}</p>
                   </div>
-                  <span className="text-[10px] text-muted-foreground shrink-0">{item.confidence}%</span>
+                  <span className="text-xs text-muted-foreground shrink-0">{item.confidence}%</span>
                 </div>
               ))}
             </div>
@@ -272,9 +272,9 @@ export default function OnboardingPage() {
                   }`} />
                   <div className="flex-1">
                     <p className="text-sm">{topic.topic}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{topic.source}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 font-mono">{topic.source}</p>
                   </div>
-                  <Badge variant="outline" className={`text-[10px] ${
+                  <Badge variant="outline" className={`text-xs ${
                     topic.severity === 'high' ? 'border-rose-200 text-rose-600' : 'border-amber-200 text-amber-600'
                   }`}>
                     {topic.severity === 'high' ? '중요' : '참고'}
@@ -296,8 +296,8 @@ export default function OnboardingPage() {
                   <div className="aspect-square rounded-xl bg-muted/30 border border-border/30 flex items-center justify-center mb-1">
                     <Image className="h-6 w-6 text-muted-foreground/20" />
                   </div>
-                  <p className="text-[10px] text-muted-foreground truncate">{ref.name}</p>
-                  <Badge variant="outline" className="text-[9px] mt-0.5">{ref.cluster}</Badge>
+                  <p className="text-xs text-muted-foreground truncate">{ref.name}</p>
+                  <Badge variant="outline" className="text-xs mt-0.5">{ref.cluster}</Badge>
                 </div>
               ))}
             </div>

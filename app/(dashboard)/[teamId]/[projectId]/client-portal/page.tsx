@@ -124,12 +124,12 @@ export default function ClientPortalPage() {
           {phases.map((phase, i) => (
             <div key={i} className="flex-1">
               <div className="flex items-center justify-between mb-1">
-                <span className={`text-[10px] font-medium ${
+                <span className={`text-xs font-medium ${
                   phase.status === 'done' ? 'text-emerald-600' :
                   phase.status === 'active' ? 'text-primary' : 'text-muted-foreground'
                 }`}>{phase.name}</span>
                 {phase.progress > 0 && (
-                  <span className="text-[10px] text-muted-foreground">{phase.progress}%</span>
+                  <span className="text-xs text-muted-foreground">{phase.progress}%</span>
                 )}
               </div>
               <div className="h-2 bg-white/60 rounded-full overflow-hidden">
@@ -164,7 +164,7 @@ export default function ClientPortalPage() {
         <TabsList className="bg-secondary/50 rounded-xl p-1">
           <TabsTrigger value="feedback" className="rounded-lg text-sm">
             피드백 요청
-            <Badge className="ml-1.5 h-5 min-w-5 bg-accent text-white text-[10px]">{feedbackRequests.length}</Badge>
+            <Badge className="ml-1.5 h-5 min-w-5 bg-accent text-white text-xs">{feedbackRequests.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="progress" className="rounded-lg text-sm">진행 상황</TabsTrigger>
           <TabsTrigger value="decisions" className="rounded-lg text-sm">결정 이력</TabsTrigger>
@@ -184,7 +184,7 @@ export default function ClientPortalPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-sm">{req.title}</h3>
                     {req.urgent && (
-                      <Badge className="text-[10px] bg-accent/10 text-accent border-accent/30">
+                      <Badge className="text-xs bg-accent/10 text-accent border-accent/30">
                         <Clock className="h-3 w-3 mr-1" />
                         {req.daysWaiting}일 대기
                       </Badge>
@@ -273,7 +273,7 @@ export default function ClientPortalPage() {
                   <span className="text-xs text-muted-foreground w-14 shrink-0 font-mono">{item.date}</span>
                   <p className="text-sm flex-1">{item.event}</p>
                   {item.status === 'waiting' && (
-                    <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200">피드백 대기</Badge>
+                    <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-200">피드백 대기</Badge>
                   )}
                 </div>
               ))}
@@ -293,10 +293,10 @@ export default function ClientPortalPage() {
                   ) : (
                     <Clock className="h-4 w-4 text-amber-500 shrink-0" />
                   )}
-                  <span className="text-[10px] text-muted-foreground font-mono w-12 shrink-0">{d.code}</span>
+                  <span className="text-xs text-muted-foreground font-mono w-12 shrink-0">{d.code}</span>
                   <p className="text-sm flex-1">{d.title}</p>
-                  <Badge variant="outline" className="text-[10px]">{d.area}</Badge>
-                  <span className="text-[10px] text-muted-foreground">{d.date}</span>
+                  <Badge variant="outline" className="text-xs">{d.area}</Badge>
+                  <span className="text-xs text-muted-foreground">{d.date}</span>
                 </div>
               ))}
             </div>

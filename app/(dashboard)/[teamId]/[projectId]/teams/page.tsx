@@ -184,7 +184,7 @@ export default function TeamsPage() {
           <TabsTrigger value="raci" className="rounded-lg text-sm">역할 매트릭스</TabsTrigger>
           <TabsTrigger value="pending" className="rounded-lg text-sm">
             대기 항목
-            <Badge className="ml-1.5 h-5 min-w-5 bg-accent text-white text-[10px]">{pendingByTeam.length}</Badge>
+            <Badge className="ml-1.5 h-5 min-w-5 bg-accent text-white text-xs">{pendingByTeam.length}</Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -214,7 +214,7 @@ export default function TeamsPage() {
                     {/* Team Header */}
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold">{team.name}</h3>
-                      <Badge className={`text-[10px] border ${config.color}`}>{config.label}</Badge>
+                      <Badge className={`text-xs border ${config.color}`}>{config.label}</Badge>
                       <span className="text-xs text-muted-foreground">{team.role}</span>
                     </div>
 
@@ -224,7 +224,7 @@ export default function TeamsPage() {
                         {team.members.map((m, i) => (
                           <div
                             key={i}
-                            className={`h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-medium border-2 border-white ${
+                            className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-medium border-2 border-white ${
                               m.status === 'active' ? 'bg-primary/10 text-primary' :
                               m.status === 'away' ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'
                             }`}
@@ -279,7 +279,7 @@ export default function TeamsPage() {
                             <div className="flex-1">
                               <p className="text-sm font-medium flex items-center gap-1.5">
                                 {m.name}
-                                {m.isLead && <Badge variant="outline" className="text-[9px]">리드</Badge>}
+                                {m.isLead && <Badge variant="outline" className="text-xs">리드</Badge>}
                               </p>
                               <p className="text-xs text-muted-foreground">{m.role}</p>
                             </div>
@@ -299,7 +299,7 @@ export default function TeamsPage() {
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {team.permissions.map((p, i) => (
-                          <Badge key={i} variant="outline" className="text-[10px] font-normal">{p}</Badge>
+                          <Badge key={i} variant="outline" className="text-xs font-normal">{p}</Badge>
                         ))}
                       </div>
                     </div>
@@ -316,7 +316,7 @@ export default function TeamsPage() {
                     <div className="p-3 rounded-xl bg-secondary/30">
                       <p className="text-xs text-muted-foreground mb-1">최근 활동</p>
                       <p className="text-sm">{team.lastActivity}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{team.lastActivityDate}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{team.lastActivityDate}</p>
                     </div>
                   </div>
                 )}
@@ -333,8 +333,8 @@ export default function TeamsPage() {
               <div className="flex gap-2 ml-auto">
                 {Object.entries(raciConfig).filter(([k]) => k !== '-').map(([key, cfg]) => (
                   <div key={key} className="flex items-center gap-1">
-                    <div className={`h-5 w-5 rounded text-[10px] font-bold flex items-center justify-center ${cfg.color}`}>{key}</div>
-                    <span className="text-[10px] text-muted-foreground">
+                    <div className={`h-5 w-5 rounded text-xs font-bold flex items-center justify-center ${cfg.color}`}>{key}</div>
+                    <span className="text-xs text-muted-foreground">
                       {key === 'R' ? '담당' : key === 'A' ? '승인' : key === 'C' ? '협의' : '통보'}
                     </span>
                   </div>
@@ -394,17 +394,17 @@ export default function TeamsPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">{item.item}</p>
-                    <p className="text-[10px] text-muted-foreground">{item.team}</p>
+                    <p className="text-xs text-muted-foreground">{item.team}</p>
                   </div>
                   {item.days > 0 && (
-                    <Badge variant="outline" className={`text-[10px] ${
+                    <Badge variant="outline" className={`text-xs ${
                       item.days >= 3 ? 'border-rose-200 text-rose-600' : 'border-amber-200 text-amber-600'
                     }`}>
                       {item.days}일 대기
                     </Badge>
                   )}
                   {item.blocker && (
-                    <Badge className="text-[10px] bg-rose-100 text-rose-700 border-rose-200">블로커</Badge>
+                    <Badge className="text-xs bg-rose-100 text-rose-700 border-rose-200">블로커</Badge>
                   )}
                 </div>
               ))}

@@ -570,22 +570,22 @@ export default function NodeViewPage() {
 
         {/* Legend */}
         <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/20">
-          <span className="text-[10px] text-muted-foreground">범례</span>
+          <span className="text-xs text-muted-foreground">범례</span>
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded bg-blue-500" />
-            <span className="text-[10px] text-muted-foreground">회의</span>
+            <span className="text-xs text-muted-foreground">회의</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded bg-emerald-500" />
-            <span className="text-[10px] text-muted-foreground">결정</span>
+            <span className="text-xs text-muted-foreground">결정</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded bg-purple-500" />
-            <span className="text-[10px] text-muted-foreground">산출물</span>
+            <span className="text-xs text-muted-foreground">산출물</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2.5 h-2.5 rounded bg-amber-500" />
-            <span className="text-[10px] text-muted-foreground">변경됨</span>
+            <span className="text-xs text-muted-foreground">변경됨</span>
           </div>
         </div>
       </div>

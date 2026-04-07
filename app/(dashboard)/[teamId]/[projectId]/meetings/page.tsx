@@ -532,7 +532,7 @@ export default function MeetingsPage() {
                             <div>
                               <div className="flex items-center gap-1.5">
                                 <p className="font-medium text-sm">실시간 회의</p>
-                                <Badge className="text-[9px] bg-primary/10 text-primary border-0 px-1 py-0">LIVE</Badge>
+                                <Badge className="text-xs bg-primary/10 text-primary border-0 px-1 py-0">LIVE</Badge>
                               </div>
                               <p className="text-[11px] text-muted-foreground">실시간 변환 + 분석</p>
                             </div>

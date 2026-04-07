@@ -134,7 +134,7 @@ export function AppSidebar() {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {currentProject?.name || "프로젝트 선택"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">게스트 · 무료 플랜</p>
+                  <p className="text-xs text-muted-foreground">게스트 · 무료 플랜</p>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               </button>
@@ -193,7 +193,7 @@ export function AppSidebar() {
           {/* Navigation Groups */}
           {projectId && navGroups.map((group) => (
             <SidebarGroup key={group.label} className="mt-1">
-              <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 mb-0.5">{group.label}</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground/60 px-3 mb-0.5">{group.label}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {group.items.map((item) => {
