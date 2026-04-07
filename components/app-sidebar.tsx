@@ -162,7 +162,7 @@ export function AppSidebar() {
                     {currentProject?.name || "프로젝트 선택"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {viewMode === 'client' ? '브랜드 담당자' : '에이전시'} · 무료 플랜
+                    {viewMode === 'client' ? 'Client View' : 'Agency View'}
                   </p>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

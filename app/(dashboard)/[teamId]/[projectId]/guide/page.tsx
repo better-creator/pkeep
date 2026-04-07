@@ -46,7 +46,7 @@ const IMGS = {
   igSample3: '/dummy/insta/insta-3.jpg',
   ytThumb: '/dummy/model/model-1.jpg',
   igThumb: '/dummy/insta-guide.jpg',
-  oohThumb: '/dummy/ooh-1.jpg',
+  oohThumb: '/dummy/ooh-4.jpg',
   webThumb: '/dummy/web-1.png',
 }
 
