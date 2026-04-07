@@ -213,11 +213,10 @@ export default function ConflictsPage() {
                         <p className="text-[11px] text-stone-500">{newDec.rationale}</p>
                         <div className="flex items-center gap-1.5">
                           <Badge variant="secondary" className="text-xs">
-                            {newDec.area === 'planning'
-                              ? '기획'
-                              : newDec.area === 'design'
-                              ? '디자인'
-                              : '개발'}
+                            {newDec.area === 'planning' ? '기획'
+                              : newDec.area === 'design' ? '디자인'
+                              : newDec.area === 'dev' ? '개발'
+                              : newDec.area}
                           </Badge>
                           <span className="text-xs text-stone-400">{newDec.proposedBy}</span>
                         </div>
@@ -241,11 +240,10 @@ export default function ConflictsPage() {
                         <p className="text-[11px] text-stone-500">{existingDec.rationale}</p>
                         <div className="flex items-center gap-1.5">
                           <Badge variant="secondary" className="text-xs">
-                            {existingDec.area === 'planning'
-                              ? '기획'
-                              : existingDec.area === 'design'
-                              ? '디자인'
-                              : '개발'}
+                            {existingDec.area === 'planning' ? '기획'
+                              : existingDec.area === 'design' ? '디자인'
+                              : existingDec.area === 'dev' ? '개발'
+                              : existingDec.area}
                           </Badge>
                           <span className="text-xs text-stone-400">{existingDec.proposedBy}</span>
                         </div>

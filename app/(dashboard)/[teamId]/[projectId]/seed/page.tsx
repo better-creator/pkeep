@@ -20,18 +20,20 @@ export default function SeedPage() {
       // Seed project entry
       const projects = [{
         id: 'proj-1',
-        name: '핏커넥트 MVP',
-        description: '피트니스 트레이너 매칭 O2O 플랫폼',
+        name: '글로우업 코스메틱 S/S 캠페인',
+        description: 'OTV 스튜디오 — 글로우업 코스메틱 S/S 시즌 캠페인',
         createdAt: new Date().toISOString(),
       }]
       localStorage.setItem('pkeep-projects', JSON.stringify(projects))
 
       // Seed team members
       const team = [
-        { id: 'member-1', name: '정우진 CEO', role: 'planning' },
-        { id: 'member-2', name: '박서연 CTO', role: 'dev' },
-        { id: 'member-3', name: '김하늘 디자이너', role: 'design' },
-        { id: 'member-4', name: '이민호 PM', role: 'planning' },
+        { id: 'member-1', name: '금민주', role: 'CD' },
+        { id: 'member-2', name: '박서연', role: '디자이너' },
+        { id: 'member-3', name: '정하은', role: '브랜드매니저' },
+        { id: 'member-4', name: '한지우', role: '포토그래퍼' },
+        { id: 'member-5', name: '오태현', role: '영상감독' },
+        { id: 'member-6', name: '최예린', role: '카피라이터' },
       ]
       localStorage.setItem('pkeep-team', JSON.stringify(team))
 
@@ -53,8 +55,8 @@ export default function SeedPage() {
     <div className="flex flex-col items-center justify-center py-20 space-y-6">
       <h1 className="text-2xl font-semibold">데모 데이터 시드</h1>
       <p className="text-muted-foreground text-sm max-w-md text-center">
-        핏커넥트(FitConnect) 피트니스 O2O 플랫폼 MVP 개발 시나리오.<br />
-        회의 10건, 결정 20건, 할 일 30+건, 기각 6건, 팀원 4명
+        글로우업 코스메틱 S/S 시즌 캠페인 (OTV 스튜디오).<br />
+        회의 4건, 결정 10건, 할 일 12건, 기각 3건, 팀원 6명
       </p>
       <Button onClick={seed} disabled={status === 'loading'} size="lg">
         {status === 'loading' ? '생성 중...' : status === 'done' ? '완료! 이동 중...' : '데모 시나리오 생성'}

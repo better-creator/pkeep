@@ -47,7 +47,7 @@ const sourceTypeCfg: Record<string, { icon: React.ComponentType<{ className?: st
   text: { icon: FileText, label: '텍스트', bg: 'bg-stone-100', text: 'text-stone-500' },
 }
 
-const areaLabel: Record<string, string> = { planning: '기획', design: '디자인', dev: '개발' }
+const areaLabel: Record<string, string> = { planning: '기획', design: '디자인', dev: '개발', '컬러': '컬러', '촬영': '촬영', '채널': '채널', '카피': '카피', '브랜딩': '브랜딩' }
 
 export default function TasksPage() {
   const params = useParams()
@@ -232,6 +232,11 @@ export default function TasksPage() {
                                     <Badge className={`text-xs px-1 py-0 rounded ${
                                       parentDec.area === 'dev' ? 'bg-sky-50 text-sky-600' :
                                       parentDec.area === 'design' ? 'bg-pink-50 text-pink-600' :
+                                      parentDec.area === '컬러' ? 'bg-orange-50 text-orange-600' :
+                                      parentDec.area === '촬영' ? 'bg-sky-50 text-sky-600' :
+                                      parentDec.area === '채널' ? 'bg-purple-50 text-purple-600' :
+                                      parentDec.area === '카피' ? 'bg-pink-50 text-pink-600' :
+                                      parentDec.area === '브랜딩' ? 'bg-emerald-50 text-emerald-600' :
                                       'bg-violet-50 text-violet-600'
                                     }`}>
                                       {areaLabel[parentDec.area] || parentDec.area}

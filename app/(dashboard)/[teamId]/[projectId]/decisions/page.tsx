@@ -59,9 +59,11 @@ const STATUS_OPTIONS = [
 
 const AREA_OPTIONS = [
   { value: 'all', label: '전체' },
-  { value: '기획', label: '기획' },
-  { value: '디자인', label: '디자인' },
-  { value: '개발', label: '개발' },
+  { value: '컬러', label: '컬러' },
+  { value: '촬영', label: '촬영' },
+  { value: '채널', label: '채널' },
+  { value: '카피', label: '카피' },
+  { value: '브랜딩', label: '브랜딩' },
 ]
 
 // Also accept English area keys from StoredDecision.area
@@ -80,6 +82,18 @@ function normalizeArea(area: string) {
     case 'design': return '디자인'
     case 'dev': return '개발'
     default: return area
+  }
+}
+
+// 콘텐츠 영역별 색상
+function getContentAreaColor(area: string) {
+  switch (area) {
+    case '컬러': return 'bg-orange-500/10 text-orange-600 border-orange-500/20'
+    case '촬영': return 'bg-sky-500/10 text-sky-600 border-sky-500/20'
+    case '채널': return 'bg-purple-500/10 text-purple-600 border-purple-500/20'
+    case '카피': return 'bg-pink-500/10 text-pink-600 border-pink-500/20'
+    case '브랜딩': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+    default: return null
   }
 }
 
@@ -113,6 +127,10 @@ function getStatusLabel(status: string) {
 }
 
 function getAreaBadgeClass(area: string) {
+  // Check content areas first
+  const contentColor = getContentAreaColor(area)
+  if (contentColor) return contentColor
+
   const norm = normalizeArea(area)
   switch (norm) {
     case '기획':

@@ -158,7 +158,9 @@ export function AppSidebar() {
                       )}
                       <DropdownMenuItem
                         className="rounded-lg text-primary"
-                        onSelect={() => setDialogOpen(true)}
+                        onSelect={() => {
+                          window.location.href = `/${teamId}/new-project`
+                        }}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         새 프로젝트
