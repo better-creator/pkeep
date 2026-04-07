@@ -7,7 +7,9 @@ import {
   CheckCircle, Clock, AlertCircle,
   Phone, Mail, ChevronRight, Sparkles,
   Zap, Target, BarChart3, Shield, X,
+  ThumbsUp, ThumbsDown, MessageSquare, Image, Calendar,
 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import type { StoredMeeting, StoredDecision, StoredTask, StoredRejected } from '@/lib/store/types'
@@ -168,9 +170,99 @@ export default function DashboardPage() {
     )
   }
 
+  // ─── 피드백 요청 (정적 데이터 — 클라이언트 포털 병합) ───
+  const feedbackRequests = [
+    { id: 1, title: '인스타 피드 시안 3차', description: '컬러 톤 수정 반영본. 코랄로 통일.', urgent: true, daysWaiting: 3, aiNote: '이 시안을 확정하시면 제작 일정이 3일 단축됩니다.' },
+    { id: 2, title: '유튜브 썸네일 A/B', description: 'A안(인물 중심) vs B안(제품 중심) 선택 필요.', urgent: false, daysWaiting: 1, aiNote: '이전 캠페인에서 인물 중심 CTR이 23% 높았습니다.' },
+    { id: 3, title: '옥외광고 카피 최종안', description: '"매일이 빛나는 순간" vs "나를 위한 작은 사치"', urgent: false, daysWaiting: 0, aiNote: null },
+  ]
+
+  const projectPhases = [
+    { name: '기획', progress: 100, status: 'done' as const },
+    { name: '디자인', progress: 85, status: 'active' as const },
+    { name: '제작', progress: 45, status: 'active' as const },
+    { name: '검수', progress: 0, status: 'upcoming' as const },
+    { name: '납품', progress: 0, status: 'upcoming' as const },
+  ]
+
+  const urgentFeedback = feedbackRequests.filter(f => f.urgent)
+
   // ─── 데이터 있는 대시보드 ───
   return (
     <div className="max-w-3xl space-y-10">
+
+      {/* ═══════════════════════════════════════════════════════
+          섹션 0: 프로젝트 진행률 + 피드백 요청 (클라이언트 포털 병합)
+          ═══════════════════════════════════════════════════════ */}
+      <div className="space-y-5">
+        {/* 진행률 바 */}
+        <div className="card-soft p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-lg font-bold">글로우업 S/S 캠페인</h1>
+              <p className="text-xs text-muted-foreground">OTV 스튜디오 · D-14</p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-primary">72%</p>
+              <p className="text-xs text-muted-foreground">전체 진행률</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {projectPhases.map((phase, i) => (
+              <div key={i} className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-medium ${
+                    phase.status === 'done' ? 'text-emerald-600' :
+                    phase.status === 'active' ? 'text-primary' : 'text-muted-foreground'
+                  }`}>{phase.name}</span>
+                </div>
+                <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all ${
+                    phase.status === 'done' ? 'bg-emerald-500' :
+                    phase.status === 'active' ? 'bg-primary' : 'bg-transparent'
+                  }`} style={{ width: `${phase.progress}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 피드백 요청 */}
+        {urgentFeedback.length > 0 && (
+          <div className="card-soft p-5 border-l-4 border-l-primary">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="h-4 w-4 text-primary" />
+              <h2 className="font-semibold text-sm">확인이 필요합니다</h2>
+              <Badge className="ml-auto bg-primary/10 text-primary text-xs border-0">{feedbackRequests.length}건</Badge>
+            </div>
+            <div className="space-y-3">
+              {feedbackRequests.map((req) => (
+                <div key={req.id} className={`p-3 rounded-xl ${req.urgent ? 'bg-primary/5 border border-primary/10' : 'bg-secondary/30'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-semibold">{req.title}</span>
+                    {req.urgent && <Badge className="text-xs bg-primary/10 text-primary border-0">{req.daysWaiting}일 대기</Badge>}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{req.description}</p>
+                  {req.aiNote && (
+                    <p className="text-xs text-primary mt-1.5 flex items-start gap-1">
+                      <Sparkles className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      {req.aiNote}
+                    </p>
+                  )}
+                  <div className="flex gap-2 mt-2">
+                    <Button size="sm" variant="outline" className="rounded-xl text-xs h-8 flex-1">
+                      <MessageSquare className="h-3.5 w-3.5 mr-1" />코멘트
+                    </Button>
+                    <Button size="sm" className="rounded-xl text-xs h-8 flex-1 bg-primary hover:bg-primary/90 text-white">
+                      <ThumbsUp className="h-3.5 w-3.5 mr-1" />확정
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* ═══════════════════════════════════════════════════════
           섹션 1: Project Health Score
@@ -178,12 +270,8 @@ export default function DashboardPage() {
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <PkeepLogo size={32} />
             <div>
-              <h1 className="text-lg font-bold text-stone-900">프로젝트 현황</h1>
-              <p className="text-xs text-stone-400">
-                프로젝트 건강도를 한눈에 확인하세요
-              </p>
+              <h2 className="text-sm font-semibold text-stone-900">프로젝트 건강도</h2>
             </div>
           </div>
           <Button
