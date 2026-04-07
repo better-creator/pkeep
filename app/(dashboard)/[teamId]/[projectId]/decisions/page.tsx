@@ -11,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CircleDot, FileText, List, Network } from 'lucide-react'
+import { CircleDot, FileText, List, Network, Image } from 'lucide-react'
+import { ReferenceSidebar } from '@/components/references/ReferenceSidebar'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { FlowMapView } from '@/components/timeline/FlowView'
@@ -517,6 +518,7 @@ export default function DecisionsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [panelOpen, setPanelOpen] = useState(false)
   const [panelItem, setPanelItem] = useState<{ type: 'meeting' | 'decision' | 'task'; id: string } | null>(null)
+  const [refOpen, setRefOpen] = useState(false)
 
   const openPanel = (type: 'meeting' | 'decision' | 'task', id: string) => {
     setPanelItem({ type, id })
@@ -580,6 +582,12 @@ export default function DecisionsPage() {
           )}
         </div>
 
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-7 px-3 text-xs rounded-lg gap-1.5" onClick={() => setRefOpen(!refOpen)}>
+            <Image className="h-3.5 w-3.5" />
+            레퍼런스
+          </Button>
         {/* View toggle */}
         <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
           <Button
@@ -600,6 +608,7 @@ export default function DecisionsPage() {
             <Network className="h-3.5 w-3.5" />
             맵
           </Button>
+        </div>
         </div>
       </div>
 
@@ -627,6 +636,13 @@ export default function DecisionsPage() {
           itemId={panelItem.id}
         />
       )}
+
+      {/* Reference Sidebar */}
+      <ReferenceSidebar
+        open={refOpen}
+        onClose={() => setRefOpen(false)}
+        title="관련 레퍼런스"
+      />
     </div>
   )
 }

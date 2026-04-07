@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ReferenceSidebar } from '@/components/references/ReferenceSidebar'
 
 type AddMode = 'document' | 'manual' | 'url'
 
@@ -63,6 +64,7 @@ export default function AddGuidePage() {
 
   const [mode, setMode] = useState<AddMode>('document')
   const [dragOver, setDragOver] = useState(false)
+  const [refOpen, setRefOpen] = useState(false)
 
   // Document upload state
   const [files, setFiles] = useState<{ name: string; size: string; type: string }[]>([])
@@ -141,10 +143,18 @@ export default function AddGuidePage() {
           <ArrowLeft className="h-4 w-4 mr-1.5" />
           마스터 가이드
         </Button>
-        <h1 className="text-2xl font-bold">브랜드 콘텐츠 지침 추가</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          문서 업로드, 직접 입력, URL 참조 — 세 가지 방법으로 가이드를 확장할 수 있습니다.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">브랜드 콘텐츠 지침 추가</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              문서 업로드, 직접 입력, URL 참조 — 세 가지 방법으로 가이드를 확장할 수 있습니다.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" className="rounded-xl shrink-0" onClick={() => setRefOpen(!refOpen)}>
+            <Image className="h-4 w-4 mr-1.5" />
+            레퍼런스 {refOpen ? '닫기' : '보기'}
+          </Button>
+        </div>
       </div>
 
       {/* Mode Tabs */}
@@ -491,6 +501,14 @@ export default function AddGuidePage() {
           </div>
         </div>
       )}
+
+      {/* Reference Sidebar */}
+      <ReferenceSidebar
+        open={refOpen}
+        onClose={() => setRefOpen(false)}
+        filterTags={manualCategory ? [manualCategory === 'color' ? '컬러' : manualCategory === 'photography' ? '촬영' : manualCategory === 'channel' ? '채널' : manualCategory === 'tone' ? '톤앤매너' : ''] : undefined}
+        title="관련 레퍼런스"
+      />
     </div>
   )
 }
