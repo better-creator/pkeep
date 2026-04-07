@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { TimelineView, TimelineItem } from '@/components/timeline'
+import { TimelineItem } from '@/components/timeline'
+import { FlowMapView } from '@/components/timeline/FlowView'
 import { DecisionHierarchyView, Decision, DecisionMaker } from '@/components/decisions'
 import { useParams } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Clock, GitBranch } from 'lucide-react'
+import { Map, List } from 'lucide-react'
 
 // Mock 사용자 데이터 — 글로우업 코스메틱 S/S 캠페인
 const users = {
@@ -533,34 +534,34 @@ const mockDecisions: Decision[] = [
   },
 ]
 
-type ViewType = 'timeline' | 'decisions'
+type ViewType = 'flow' | 'decisions'
 
 export default function NodeViewPage() {
   const params = useParams()
   const teamId = params.teamId as string
   const projectId = params.projectId as string
-  const [viewType, setViewType] = useState<ViewType>('timeline')
+  const [viewType, setViewType] = useState<ViewType>('flow')
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>()
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 3.5rem)' }}>
       {/* Header */}
-      <div className="px-6 py-6">
+      <div className="shrink-0 px-6 py-4 border-b border-border/30">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">결정 흐름</h1>
-            <p className="text-muted-foreground mt-1">
-              프로젝트 결정과 결과물의 연결 관계
+            <h1 className="text-xl font-semibold tracking-tight">콘텐츠 플로우</h1>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              회의 → 결정 → 산출물의 연결 관계를 노드 그래프로 시각화
             </p>
           </div>
           <Tabs value={viewType} onValueChange={(v) => setViewType(v as ViewType)}>
-            <TabsList className="bg-slate-100">
-              <TabsTrigger value="timeline" className="gap-2 data-[state=active]:bg-white">
-                <Clock className="h-4 w-4" />
-                플로우
+            <TabsList className="bg-secondary/50 rounded-xl">
+              <TabsTrigger value="flow" className="gap-2 rounded-lg">
+                <Map className="h-4 w-4" />
+                플로우 맵
               </TabsTrigger>
-              <TabsTrigger value="decisions" className="gap-2 data-[state=active]:bg-white">
-                <GitBranch className="h-4 w-4" />
+              <TabsTrigger value="decisions" className="gap-2 rounded-lg">
+                <List className="h-4 w-4" />
                 상태별
               </TabsTrigger>
             </TabsList>
@@ -568,47 +569,41 @@ export default function NodeViewPage() {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100">
-          <span className="text-xs text-slate-500">범례:</span>
+        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/20">
+          <span className="text-[10px] text-muted-foreground">범례</span>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-blue-500" />
-            <span className="text-xs text-slate-600">미팅</span>
+            <div className="w-2.5 h-2.5 rounded bg-blue-500" />
+            <span className="text-[10px] text-muted-foreground">회의</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-emerald-500" />
-            <span className="text-xs text-slate-600">결정</span>
+            <div className="w-2.5 h-2.5 rounded bg-emerald-500" />
+            <span className="text-[10px] text-muted-foreground">결정</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-purple-500" />
-            <span className="text-xs text-slate-600">화면</span>
+            <div className="w-2.5 h-2.5 rounded bg-purple-500" />
+            <span className="text-[10px] text-muted-foreground">산출물</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-slate-600" />
-            <span className="text-xs text-slate-600">PR·코드</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-amber-500" />
-            <span className="text-xs text-slate-600">문서</span>
+            <div className="w-2.5 h-2.5 rounded bg-amber-500" />
+            <span className="text-[10px] text-muted-foreground">변경됨</span>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-hidden p-6">
-        <div className="h-full bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {viewType === 'timeline' && (
-            <TimelineView items={mockTimelineItems} teamId={teamId} projectId={projectId} />
-          )}
-          {viewType === 'decisions' && (
-            <div className="h-full overflow-auto p-6">
-              <DecisionHierarchyView
-                decisions={mockDecisions}
-                selectedDecisionId={selectedDecisionId}
-                onSelectDecision={(d) => setSelectedDecisionId(d.id)}
-              />
-            </div>
-          )}
-        </div>
+      {/* Content — full height */}
+      <div className="flex-1 min-h-0">
+        {viewType === 'flow' && (
+          <FlowMapView items={mockTimelineItems} />
+        )}
+        {viewType === 'decisions' && (
+          <div className="h-full overflow-auto p-6">
+            <DecisionHierarchyView
+              decisions={mockDecisions}
+              selectedDecisionId={selectedDecisionId}
+              onSelectDecision={(d) => setSelectedDecisionId(d.id)}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
