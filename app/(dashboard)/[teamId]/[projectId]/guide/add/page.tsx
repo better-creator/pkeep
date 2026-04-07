@@ -65,6 +65,7 @@ export default function AddGuidePage() {
   const [mode, setMode] = useState<AddMode>('document')
   const [dragOver, setDragOver] = useState(false)
   const [refOpen, setRefOpen] = useState(false)
+  const [showDirectorBot, setShowDirectorBot] = useState(false)
 
   // Document upload state
   const [files, setFiles] = useState<{ name: string; size: string; type: string }[]>([])
@@ -485,8 +486,50 @@ export default function AddGuidePage() {
         </TabsContent>
       </Tabs>
 
+      {/* Director Bot — after adding rules */}
+      {showDirectorBot && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => { setShowDirectorBot(false); router.push(`/${teamId}/${projectId}/guide`) }}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">PKEEP 디렉터</p>
+                <p className="text-xs text-muted-foreground">지침 반영 완료</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-sm">{totalAdded}개 지침이 마스터 가이드에 반영되었습니다.</p>
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                <p className="text-sm font-medium text-primary mb-1">관련 레퍼런스 3건을 확인해보세요</p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Image className="h-3.5 w-3.5" />무드보드 A — 자연스러운 데일리
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Image className="h-3.5 w-3.5" />제품 촬영 레퍼런스 — 화이트 배경
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Image className="h-3.5 w-3.5" />인스타 피드 벤치마킹
+                  </div>
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/50">
+                <p className="text-sm text-amber-800">
+                  기존 DON&apos;T 규정 &quot;과도한 보정 금지&quot;와 신규 지침 간 범위가 모호할 수 있습니다. 검토를 권장합니다.
+                </p>
+              </div>
+            </div>
+            <Button className="w-full rounded-xl bg-primary hover:bg-primary/90" onClick={() => { setShowDirectorBot(false); router.push(`/${teamId}/${projectId}/guide`) }}>
+              마스터 가이드 확인하기
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Bottom status */}
-      {totalAdded > 0 && (
+      {totalAdded > 0 && !showDirectorBot && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
           <div className="bg-foreground text-background px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3">
             <CheckCircle2 className="h-5 w-5 text-emerald-400" />
@@ -494,7 +537,7 @@ export default function AddGuidePage() {
             <Button
               size="sm"
               className="rounded-xl bg-primary hover:bg-primary/90 text-sm ml-2"
-              onClick={() => router.push(`/${teamId}/${projectId}/guide`)}
+              onClick={() => setShowDirectorBot(true)}
             >
               가이드에 반영
             </Button>

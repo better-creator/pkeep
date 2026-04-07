@@ -5,8 +5,9 @@ import {
   Plus, Calendar, Sparkles, ChevronDown, ChevronRight,
   CheckCircle2, X, Mic, Upload, Loader2, AlertTriangle, Ban,
   ListChecks, MessageSquareWarning, Check, Clock,
-  FileText, Phone, Mail, PenLine
+  FileText, Phone, Mail, PenLine, Image,
 } from "lucide-react"
+import { ReferenceSidebar } from '@/components/references/ReferenceSidebar'
 import { SlackIcon, NotionIcon } from '@/components/brand/ServiceIcons'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -66,6 +67,8 @@ export default function MeetingsPage() {
   const [activeTab, setActiveTab] = useState<'summary' | 'transcript'>('summary')
   const [showNewSheet, setShowNewSheet] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [refOpen, setRefOpen] = useState(false)
+  const [showDirectorBot, setShowDirectorBot] = useState(false)
 
   // New meeting form state
   const [meetingTitle, setMeetingTitle] = useState("")
@@ -453,13 +456,23 @@ export default function MeetingsPage() {
             회의를 녹음하거나 파일을 올리면 AI가 결정·근거·할 일을 자동 추출합니다
           </p>
         </div>
-        <Button
-          className="bg-primary hover:bg-primary/90 shadow-soft"
-          onClick={() => { resetForm(); setShowNewSheet(true) }}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          새 녹음
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setShowDirectorBot(true)}>
+            <Sparkles className="h-4 w-4 mr-1.5" />
+            샘플 보기
+          </Button>
+          <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setRefOpen(!refOpen)}>
+            <Image className="h-4 w-4 mr-1.5" />
+            레퍼런스
+          </Button>
+          <Button
+            className="bg-primary hover:bg-primary/90 shadow-soft"
+            onClick={() => { resetForm(); setShowNewSheet(true) }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            새 녹음
+          </Button>
+        </div>
       </div>
 
       {/* ========== New Source Sheet ========== */}
@@ -1342,6 +1355,61 @@ export default function MeetingsPage() {
           })}
         </div>
       )}
+      {/* Director Bot — sample analysis result */}
+      {showDirectorBot && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setShowDirectorBot(false)}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">PKEEP 디렉터</p>
+                <p className="text-xs text-muted-foreground">회의 분석 완료</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="text-sm">M-004 촬영 리뷰 분석이 완료되었습니다.</p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2 rounded-xl bg-primary/5">
+                  <p className="text-lg font-bold text-primary">3</p>
+                  <p className="text-xs text-muted-foreground">결정 추출</p>
+                </div>
+                <div className="p-2 rounded-xl bg-emerald-50">
+                  <p className="text-lg font-bold text-emerald-600">5</p>
+                  <p className="text-xs text-muted-foreground">할 일</p>
+                </div>
+                <div className="p-2 rounded-xl bg-amber-50">
+                  <p className="text-lg font-bold text-amber-600">1</p>
+                  <p className="text-xs text-muted-foreground">충돌 감지</p>
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                <p className="text-sm font-medium text-primary mb-1">관련 레퍼런스 확인 권장</p>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">· 제품 촬영 레퍼런스 — 라이팅 각도 비교</p>
+                  <p className="text-sm text-muted-foreground">· 모델 촬영 레퍼런스 — 보정 기준 참고</p>
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/50">
+                <p className="text-sm text-amber-800">DEC-002 촬영 가이드와 DEC-007 보정 기준 간 톤 불일치가 감지되었습니다. 검토가 필요합니다.</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setShowDirectorBot(false)}>닫기</Button>
+              <Button className="flex-1 rounded-xl bg-primary hover:bg-primary/90" onClick={() => { setShowDirectorBot(false); setRefOpen(true) }}>레퍼런스 확인</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reference Sidebar */}
+      <ReferenceSidebar
+        open={refOpen}
+        onClose={() => setRefOpen(false)}
+        filterTags={['촬영', '모델']}
+        title="회의 관련 레퍼런스"
+      />
     </div>
   )
 }
