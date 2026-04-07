@@ -149,7 +149,7 @@ const channels = [
     thumbnail: IMGS.oohThumb,
     specs: '300dpi · 시인성 3m 기준 · CMYK',
     tone: '간결. 핵심 메시지 7단어 이내. 로고 면적 15% 이상.',
-    samples: ['/dummy/ooh-1.jpg', '/dummy/ooh-2.jpg', IMGS.productShot2],
+    samples: ['/dummy/ooh-4.jpg', '/dummy/ooh-5.jpg', '/dummy/ooh-1.jpg'],
     decisions: 3,
   },
   {
