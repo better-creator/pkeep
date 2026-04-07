@@ -97,19 +97,18 @@ export function AppSidebar() {
   // 그룹별 네비게이션
   const navGroups = [
     {
+      label: '가이드',
+      items: [
+        { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide`, accent: true },
+      ],
+    },
+    {
       label: '프로젝트',
       items: [
         { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
         { title: "결정", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
-        { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
         { title: "할 일", icon: ListChecks, href: `/${teamId}/${projectId}/tasks` },
-      ],
-    },
-    {
-      label: '분석',
-      items: [
         { title: "결정 흐름", icon: GitBranch, href: `/${teamId}/${projectId}/nodeview` },
-        { title: "AI 진단", icon: Bot, href: `/${teamId}/${projectId}/ai`, accent: true },
       ],
     },
     {
@@ -118,6 +117,7 @@ export function AppSidebar() {
         { title: "팀 · 외주사", icon: Network, href: `/${teamId}/${projectId}/teams` },
         { title: "클라이언트 포털", icon: Eye, href: `/${teamId}/${projectId}/client-portal` },
         { title: "녹음 · 회의", icon: Mic, href: `/${teamId}/${projectId}/meetings` },
+        { title: "AI 진단", icon: Bot, href: `/${teamId}/${projectId}/ai` },
       ],
     },
   ]

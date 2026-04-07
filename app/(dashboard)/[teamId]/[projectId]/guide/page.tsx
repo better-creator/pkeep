@@ -15,6 +15,7 @@ import {
   Clock,
   GitBranch,
   Eye,
+  Plus,
   Camera,
   PenTool,
   Volume2,
@@ -202,6 +203,11 @@ export default function BrandGuidePage() {
           <Button variant="outline" size="sm" className="rounded-xl text-sm">
             <Eye className="h-4 w-4 mr-1.5" />
             외주사 공유용
+          </Button>
+          <Button size="sm" className="rounded-xl text-sm bg-primary hover:bg-primary/90 text-white"
+            onClick={() => window.location.href = window.location.pathname + '/add'}>
+            <Plus className="h-4 w-4 mr-1.5" />
+            지침 추가
           </Button>
         </div>
       </div>
