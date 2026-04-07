@@ -65,7 +65,7 @@ const SOURCE_ICON: Record<string, React.ElementType> = {
 // Local dummy thumbnails for screen nodes
 const SCREEN_THUMBS: Record<string, string> = {
   'SCR-001': '/dummy/insta/insta-1.jpg',
-  'SCR-002': '/dummy/model/model-1.jpg',
+  'SCR-002': '/dummy/yt-thumb.png',
   'SCR-003': '/dummy/ooh-1.jpg',
   'SCR-004': '/dummy/game/game-1.png',
 }

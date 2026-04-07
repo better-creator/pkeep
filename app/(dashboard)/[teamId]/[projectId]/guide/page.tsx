@@ -44,7 +44,7 @@ const IMGS = {
   igSample1: '/dummy/insta/insta-1.jpg',
   igSample2: '/dummy/insta/insta-2.jpg',
   igSample3: '/dummy/insta/insta-3.jpg',
-  ytThumb: '/dummy/model/model-1.jpg',
+  ytThumb: '/dummy/yt-thumb.png',
   igThumb: '/dummy/insta-guide.jpg',
   oohThumb: '/dummy/ooh-4.jpg',
   webThumb: '/dummy/web-1.png',
@@ -138,7 +138,7 @@ const channels = [
     thumbnail: IMGS.ytThumb,
     specs: '썸네일 1280x720 · 영상 16:9 · 설명 5,000자',
     tone: '정보 전달 + 친근함. 자막 필수. "~입니다"체.',
-    samples: [IMGS.model1, IMGS.model2, IMGS.productShot1],
+    samples: ['/dummy/yt-thumb.png', IMGS.model1, IMGS.model2],
     decisions: 5,
   },
   {
