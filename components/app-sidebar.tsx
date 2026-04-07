@@ -20,6 +20,8 @@ import {
   ArrowLeftRight,
   Building2,
   Briefcase,
+  Image,
+  ShieldCheck,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, usePathname, useRouter } from "next/navigation"
@@ -105,12 +107,14 @@ export function AppSidebar() {
       items: [
         { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
         { title: "마스터 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
+        { title: "레퍼런스", icon: Image, href: `/${teamId}/${projectId}/references` },
         { title: "확인 · 합의 내역", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
       ],
     },
     {
-      label: '관리',
+      label: '검증 · 관리',
       items: [
+        { title: "산출물 검증", icon: ShieldCheck, href: `/${teamId}/${projectId}/outputs/upload` },
         { title: "참여 팀 현황", icon: Network, href: `/${teamId}/${projectId}/teams` },
         { title: "할 일", icon: ListChecks, href: `/${teamId}/${projectId}/tasks` },
         { title: "콘텐츠 플로우", icon: GitBranch, href: `/${teamId}/${projectId}/nodeview` },
@@ -125,13 +129,15 @@ export function AppSidebar() {
       items: [
         { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
         { title: "마스터 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
+        { title: "레퍼런스", icon: Image, href: `/${teamId}/${projectId}/references` },
         { title: "결정", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
         { title: "할 일", icon: ListChecks, href: `/${teamId}/${projectId}/tasks` },
       ],
     },
     {
-      label: '분석 · 협업',
+      label: '검증 · 협업',
       items: [
+        { title: "산출물 검증", icon: ShieldCheck, href: `/${teamId}/${projectId}/outputs/upload` },
         { title: "콘텐츠 플로우", icon: GitBranch, href: `/${teamId}/${projectId}/nodeview` },
         { title: "팀 · 외주사", icon: Network, href: `/${teamId}/${projectId}/teams` },
         { title: "클라이언트 뷰", icon: Eye, href: `/${teamId}/${projectId}/client-portal` },
