@@ -14,101 +14,101 @@
 
 @layer base {
   :root {
-    /* Warm Violet + Coral system */
-    --background: 30 25% 97%;
-    --foreground: 240 10% 15%;
+    /* Grayscale + Orange accent — branded SaaS */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 15%;
+    --card-foreground: 0 0% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 15%;
-    --primary: 275 50% 48%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 24 80% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 275 20% 95%;
-    --secondary-foreground: 275 30% 25%;
-    --muted: 260 10% 93%;
-    --muted-foreground: 260 10% 45%;
-    --accent: 24 78% 58%;
-    --accent-hover: 24 78% 52%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 25%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 24 80% 52%;
+    --accent-hover: 24 80% 46%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 260 12% 88%;
-    --input: 260 12% 88%;
-    --ring: 275 50% 48%;
-    --radius: 0.875rem;
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 24 80% 52%;
+    --radius: 0.75rem;
 
     /* Status colors */
     --status-confirmed: 160 84% 39%;
     --status-changed: 38 92% 50%;
-    --status-pending: 260 10% 50%;
-    --status-rejected: 0 84% 60%;
+    --status-pending: 0 0% 50%;
+    --status-rejected: 0 72% 51%;
 
     /* Pastel accent colors */
-    --pastel-mint: 160 60% 94%;
-    --pastel-blue: 210 80% 94%;
-    --pastel-purple: 275 50% 94%;
-    --pastel-amber: 38 80% 94%;
-    --pastel-rose: 350 70% 95%;
+    --pastel-mint: 160 40% 94%;
+    --pastel-blue: 210 40% 94%;
+    --pastel-purple: 270 30% 94%;
+    --pastel-amber: 38 50% 94%;
+    --pastel-rose: 350 40% 95%;
 
     /* Brand gradient */
-    --brand-start: 275 50% 48%;
-    --brand-end: 24 78% 58%;
+    --brand-start: 24 80% 52%;
+    --brand-end: 28 90% 58%;
 
     /* Sidebar */
-    --sidebar-background: 275 15% 97%;
-    --sidebar-foreground: 260 10% 20%;
-    --sidebar-primary: 275 50% 48%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 24 80% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 275 15% 93%;
-    --sidebar-accent-foreground: 260 10% 20%;
-    --sidebar-border: 275 12% 90%;
-    --sidebar-ring: 275 50% 48%;
+    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 91%;
+    --sidebar-ring: 24 80% 52%;
   }
 
   .dark {
-    --background: 260 28% 8%;
-    --foreground: 210 40% 98%;
-    --card: 260 28% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 260 28% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 275 55% 62%;
-    --primary-foreground: 260 28% 8%;
-    --secondary: 260 28% 16%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 260 28% 16%;
-    --muted-foreground: 260 20% 65%;
-    --accent: 24 78% 62%;
-    --accent-hover: 24 78% 55%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 24 80% 55%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 24 80% 55%;
+    --accent-hover: 24 80% 48%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 260 28% 18%;
-    --input: 260 28% 18%;
-    --ring: 275 55% 62%;
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 24 80% 55%;
 
     /* Status colors for dark mode */
     --status-confirmed: 160 84% 50%;
     --status-changed: 38 92% 55%;
-    --status-pending: 260 20% 55%;
-    --status-rejected: 0 84% 55%;
+    --status-pending: 0 0% 55%;
+    --status-rejected: 0 72% 55%;
 
     /* Pastel accent colors - darker for dark mode */
-    --pastel-mint: 160 60% 15%;
-    --pastel-blue: 210 80% 15%;
-    --pastel-purple: 275 50% 15%;
-    --pastel-amber: 38 80% 15%;
-    --pastel-rose: 350 70% 15%;
+    --pastel-mint: 160 40% 15%;
+    --pastel-blue: 210 40% 15%;
+    --pastel-purple: 270 30% 15%;
+    --pastel-amber: 38 50% 15%;
+    --pastel-rose: 350 40% 15%;
 
     /* Sidebar dark mode */
-    --sidebar-background: 260 28% 6%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 275 55% 62%;
-    --sidebar-primary-foreground: 260 28% 8%;
-    --sidebar-accent: 260 28% 12%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 260 28% 14%;
-    --sidebar-ring: 275 55% 62%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 24 80% 55%;
+    --sidebar-primary-foreground: 0 0% 7%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 24 80% 55%;
   }
 }
 
@@ -166,16 +166,16 @@
 
   /* Gradient backgrounds */
   .bg-gradient-warm {
-    background: linear-gradient(135deg, hsl(30 25% 98%) 0%, hsl(275 15% 95%) 100%);
+    background: linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 96%) 100%);
   }
   .bg-gradient-brand {
-    background: linear-gradient(135deg, hsl(275 50% 48%) 0%, hsl(24 78% 58%) 100%);
+    background: linear-gradient(135deg, hsl(24 80% 52%) 0%, hsl(28 90% 58%) 100%);
   }
   .bg-gradient-hero {
     background:
-      radial-gradient(ellipse at 20% 0%, hsl(275 40% 94% / 0.6) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 100%, hsl(24 70% 94% / 0.4) 0%, transparent 50%),
-      linear-gradient(180deg, hsl(30 25% 99%) 0%, hsl(275 15% 96%) 100%);
+      radial-gradient(ellipse at 20% 0%, hsl(24 60% 95% / 0.4) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, hsl(0 0% 95% / 0.3) 0%, transparent 50%),
+      linear-gradient(180deg, hsl(0 0% 99%) 0%, hsl(0 0% 97%) 100%);
   }
 
   /* Status badges with soft gradients */
@@ -221,7 +221,7 @@
   /* Empty state container */
   .empty-state {
     @apply flex flex-col items-center justify-center py-16 px-8 text-center rounded-2xl;
-    background: linear-gradient(135deg, hsl(275 15% 97%) 0%, hsl(275 10% 95%) 100%);
+    background: linear-gradient(135deg, hsl(0 0% 97%) 0%, hsl(0 0% 95%) 100%);
   }
   .empty-state-icon {
     @apply h-16 w-16 text-muted-foreground/30 mb-4;
@@ -238,15 +238,10 @@
     background: hsl(24 78% 52%);
   }
 
-  /* Sidebar glassmorphism */
+  /* Sidebar — clean white */
   .sidebar-glass {
-    background: linear-gradient(
-      180deg,
-      hsl(275 15% 98% / 0.95) 0%,
-      hsl(275 10% 96% / 0.9) 100%
-    );
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: hsl(0 0% 100%);
+    border-right: 1px solid hsl(0 0% 91%);
   }
 
   /* Input with warm styling */
@@ -303,14 +298,14 @@ html {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(260 10% 95%);
+  background: hsl(0 0% 95%);
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(260 10% 80%);
+  background: hsl(0 0% 80%);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(260 10% 70%);
+  background: hsl(0 0% 70%);
 }
 
 .dark ::-webkit-scrollbar-track {
