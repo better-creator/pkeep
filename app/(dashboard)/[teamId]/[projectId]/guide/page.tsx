@@ -194,7 +194,7 @@ export default function BrandGuidePage() {
               2시간 전 업데이트
             </Badge>
           </div>
-          <h1 className="text-2xl font-bold">브랜드 가이드</h1>
+          <h1 className="text-2xl font-bold">마스터 가이드</h1>
           <p className="text-muted-foreground text-sm mt-1">
             34건의 결정에서 자동 생성 · 4개 채널 분기
           </p>
@@ -207,7 +207,7 @@ export default function BrandGuidePage() {
           <Button size="sm" className="rounded-xl text-sm bg-primary hover:bg-primary/90 text-white"
             onClick={() => window.location.href = window.location.pathname + '/add'}>
             <Plus className="h-4 w-4 mr-1.5" />
-            지침 추가
+            콘텐츠 지침 추가
           </Button>
         </div>
       </div>

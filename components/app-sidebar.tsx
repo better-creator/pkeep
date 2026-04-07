@@ -104,7 +104,7 @@ export function AppSidebar() {
       label: '프로젝트',
       items: [
         { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
-        { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
+        { title: "마스터 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
         { title: "확인 · 합의 내역", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
       ],
     },
@@ -124,7 +124,7 @@ export function AppSidebar() {
       label: '제작',
       items: [
         { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
-        { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
+        { title: "마스터 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
         { title: "결정", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
         { title: "할 일", icon: ListChecks, href: `/${teamId}/${projectId}/tasks` },
       ],

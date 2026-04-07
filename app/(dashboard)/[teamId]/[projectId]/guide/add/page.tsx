@@ -139,9 +139,9 @@ export default function AddGuidePage() {
           onClick={() => router.push(`/${teamId}/${projectId}/guide`)}
         >
           <ArrowLeft className="h-4 w-4 mr-1.5" />
-          브랜드 가이드
+          마스터 가이드
         </Button>
-        <h1 className="text-2xl font-bold">브랜드 지침 추가</h1>
+        <h1 className="text-2xl font-bold">브랜드 콘텐츠 지침 추가</h1>
         <p className="text-muted-foreground text-sm mt-1">
           문서 업로드, 직접 입력, URL 참조 — 세 가지 방법으로 가이드를 확장할 수 있습니다.
         </p>
