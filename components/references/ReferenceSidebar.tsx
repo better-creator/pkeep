@@ -15,9 +15,6 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 
-const unsplash = (id: string, w = 200, h = 200) =>
-  `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&fit=crop&q=80`
-
 interface Reference {
   id: string
   title: string
@@ -30,11 +27,11 @@ interface Reference {
 }
 
 const allReferences: Reference[] = [
-  { id: 'ref-1', title: '무드보드 A — 자연스러운 데일리', type: 'image', category: '무드보드', tags: ['톤앤매너', '라이프스타일'], source: 'M-001', thumbnail: unsplash('1596462502278-27bfdc403348') },
-  { id: 'ref-2', title: '무드보드 B — 깔끔한 프로덕트', type: 'image', category: '무드보드', tags: ['미니멀', '프로덕트'], source: 'M-001', thumbnail: unsplash('1522335789203-aabd1fc54bc9') },
-  { id: 'ref-3', title: '제품 촬영 레퍼런스 — 화이트 배경', type: 'image', category: '촬영', tags: ['제품', '화이트배경'], source: 'M-002', thumbnail: unsplash('1611930022073-b7a4ba5fcccd') },
-  { id: 'ref-4', title: '모델 촬영 레퍼런스 — 내추럴', type: 'image', category: '촬영', tags: ['모델', '내추럴'], source: 'M-002', thumbnail: unsplash('1616394584738-fc6e612e71b9') },
-  { id: 'ref-5', title: '인스타 피드 벤치마킹', type: 'image', category: '채널', tags: ['인스타', '레이아웃'], source: 'M-003', thumbnail: unsplash('1596462502278-27bfdc403348') },
+  { id: 'ref-1', title: '무드보드 A — 자연스러운 데일리', type: 'image', category: '무드보드', tags: ['톤앤매너', '라이프스타일'], source: 'M-001', thumbnail: '/dummy/product/product-1.jpg' },
+  { id: 'ref-2', title: '무드보드 B — 깔끔한 프로덕트', type: 'image', category: '무드보드', tags: ['미니멀', '프로덕트'], source: 'M-001', thumbnail: '/dummy/product/product-2.jpg' },
+  { id: 'ref-3', title: '제품 촬영 레퍼런스 — 화이트 배경', type: 'image', category: '촬영', tags: ['제품', '화이트배경'], source: 'M-002', thumbnail: '/dummy/product/product-1.jpg' },
+  { id: 'ref-4', title: '모델 촬영 레퍼런스 — 내추럴', type: 'image', category: '촬영', tags: ['모델', '내추럴'], source: 'M-002', thumbnail: '/dummy/model/model-1.jpg' },
+  { id: 'ref-5', title: '인스타 피드 벤치마킹', type: 'image', category: '채널', tags: ['인스타', '레이아웃'], source: 'M-003', thumbnail: '/dummy/insta/insta-1.jpg' },
   { id: 'ref-6', title: '코랄 오렌지', type: 'color', category: '컬러', tags: ['메인컬러'], source: 'DEC-001', color: '#E8734A' },
   { id: 'ref-7', title: 'Warm White', type: 'color', category: '컬러', tags: ['서브컬러'], source: 'DEC-001', color: '#FFF8F0' },
   { id: 'ref-8', title: '글로우업 브랜드 가이드 v3', type: 'document', category: '문서', tags: ['브랜드가이드'], source: '온보딩' },

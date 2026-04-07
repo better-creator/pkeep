@@ -25,32 +25,29 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-// Unsplash beauty/cosmetics images
-const unsplash = (query: string, w = 400, h = 300) => `https://images.unsplash.com/photo-${query}?w=${w}&h=${h}&fit=crop&q=80`
-
-// Pre-selected beauty/cosmetics image IDs
+// Local dummy images
 const IMGS = {
-  moodA: unsplash('1596462502278-27bfdc403348', 400, 300),    // skincare flatlay
-  moodB: unsplash('1522335789203-aabd1fc54bc9', 400, 300),    // minimal beauty
-  moodC: unsplash('1571781926291-c477ebfd024b', 400, 300),     // lifestyle beauty
-  moodD: unsplash('1556228578-8c89e6adf883', 400, 300),       // warm textures
-  productShot1: unsplash('1611930022073-b7a4ba5fcccd', 300, 300), // cosmetic product
-  productShot2: unsplash('1631729371254-42c2892f0e6e', 300, 300), // skincare bottle
-  productShot3: unsplash('1596462502278-27bfdc403348', 300, 300), // flatlay
-  model1: unsplash('1616394584738-fc6e612e71b9', 300, 300),    // beauty model
-  model2: unsplash('1594744803329-e58b31de8bf5', 300, 300),    // natural makeup
-  model3: unsplash('1487412912498-0447578fcca8', 300, 300),    // portrait
-  doImg1: unsplash('1571781926291-c477ebfd024b', 200, 200),
-  doImg2: unsplash('1611930022073-b7a4ba5fcccd', 200, 200),
-  dontImg1: unsplash('1526045478516-99145907023c', 200, 200),  // overly filtered
-  dontImg2: unsplash('1522335789203-aabd1fc54bc9', 200, 200),
-  igSample1: unsplash('1596462502278-27bfdc403348', 200, 200),
-  igSample2: unsplash('1631729371254-42c2892f0e6e', 200, 200),
-  igSample3: unsplash('1571781926291-c477ebfd024b', 200, 200),
-  ytThumb: unsplash('1616394584738-fc6e612e71b9', 600, 400),
-  igThumb: unsplash('1596462502278-27bfdc403348', 600, 400),
-  oohThumb: unsplash('1441986300917-64674bd600d8', 600, 400),  // billboard/outdoor
-  webThumb: unsplash('1611930022073-b7a4ba5fcccd', 600, 400),
+  moodA: '/dummy/product/product-1.jpg',
+  moodB: '/dummy/product/product-2.jpg',
+  moodC: '/dummy/insta/insta-1.jpg',
+  moodD: '/dummy/insta/insta-3.jpg',
+  productShot1: '/dummy/product/product-1.jpg',
+  productShot2: '/dummy/product/product-2.jpg',
+  productShot3: '/dummy/product/product-1.jpg',
+  model1: '/dummy/model/model-1.jpg',
+  model2: '/dummy/model/model-2.jpg',
+  model3: '/dummy/model/model-1.jpg',
+  doImg1: '/dummy/product/product-2.jpg',
+  doImg2: '/dummy/product/product-1.jpg',
+  dontImg1: '/dummy/insta/insta-2.jpg',
+  dontImg2: '/dummy/model/model-2.jpg',
+  igSample1: '/dummy/insta/insta-1.jpg',
+  igSample2: '/dummy/insta/insta-2.jpg',
+  igSample3: '/dummy/insta/insta-3.jpg',
+  ytThumb: '/dummy/model/model-1.jpg',
+  igThumb: '/dummy/insta/insta-1.jpg',
+  oohThumb: '/dummy/insta/insta-3.jpg',
+  webThumb: '/dummy/product/product-1.jpg',
 }
 
 // --- Brand Guide Data (Content-Production Focused) ---

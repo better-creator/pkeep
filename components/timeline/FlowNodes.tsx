@@ -62,12 +62,12 @@ const SOURCE_ICON: Record<string, React.ElementType> = {
   call: Phone, email: Mail, document: FileText, text: FileText, zoom: Mic,
 }
 
-// Unsplash thumbnails for screen nodes
+// Local dummy thumbnails for screen nodes
 const SCREEN_THUMBS: Record<string, string> = {
-  'SCR-001': 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=160&h=100&fit=crop&q=80',
-  'SCR-002': 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=160&h=100&fit=crop&q=80',
-  'SCR-003': 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=160&h=100&fit=crop&q=80',
-  'SCR-004': 'https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=160&h=100&fit=crop&q=80',
+  'SCR-001': '/dummy/insta/insta-1.jpg',
+  'SCR-002': '/dummy/model/model-1.jpg',
+  'SCR-003': '/dummy/insta/insta-3.jpg',
+  'SCR-004': '/dummy/game/game-1.png',
 }
 
 // Color chips for color-related decisions
