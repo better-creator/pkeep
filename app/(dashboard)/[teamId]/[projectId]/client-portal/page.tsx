@@ -98,12 +98,8 @@ export default function ClientPortalPage() {
       {/* Portal Header */}
       <div className="card-soft p-6 bg-gradient-to-r from-primary/5 to-accent/5">
         <div className="flex items-center gap-2 mb-3">
-          <Badge variant="outline" className="text-xs font-normal border-primary/30 text-primary bg-white">
-            <Eye className="h-3 w-3 mr-1" />
-            클라이언트 포털
-          </Badge>
-          <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-            읽기 전용
+          <Badge variant="outline" className="text-xs font-normal border-primary/30 text-primary bg-primary/5">
+            글로우업 코스메틱
           </Badge>
         </div>
         <div className="flex items-start justify-between">

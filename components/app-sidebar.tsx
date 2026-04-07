@@ -17,6 +17,9 @@ import {
   GitBranch,
   Eye,
   Network,
+  ArrowLeftRight,
+  Building2,
+  Briefcase,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, usePathname, useRouter } from "next/navigation"
@@ -93,34 +96,52 @@ export function AppSidebar() {
   }
 
   const currentProject = projects.find(p => p.id === projectId)
+  const [viewMode, setViewMode] = useState<'client' | 'agency'>('client')
 
-  // 그룹별 네비게이션
-  const navGroups = [
-    {
-      label: '가이드',
-      items: [
-        { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide`, accent: true },
-      ],
-    },
+  // 클라이언트 뷰 — 브랜드 담당자가 보는 화면
+  const clientNavGroups = [
     {
       label: '프로젝트',
       items: [
-        { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
-        { title: "결정", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
-        { title: "할 일", icon: ListChecks, href: `/${teamId}/${projectId}/tasks` },
-        { title: "결정 흐름", icon: GitBranch, href: `/${teamId}/${projectId}/nodeview` },
+        { title: "프로젝트 현황", icon: LayoutDashboard, href: `/${teamId}/${projectId}/client-portal` },
+        { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
+        { title: "확인 · 합의 내역", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
       ],
     },
     {
-      label: '협업',
+      label: '관리',
       items: [
+        { title: "참여 팀 현황", icon: Network, href: `/${teamId}/${projectId}/teams` },
+        { title: "할 일", icon: ListChecks, href: `/${teamId}/${projectId}/tasks` },
+        { title: "콘텐츠 플로우", icon: GitBranch, href: `/${teamId}/${projectId}/nodeview` },
+      ],
+    },
+  ]
+
+  // 에이전시 뷰 — 제작사/에이전시가 보는 화면
+  const agencyNavGroups = [
+    {
+      label: '제작',
+      items: [
+        { title: "대시보드", icon: LayoutDashboard, href: `/${teamId}/${projectId}/dashboard` },
+        { title: "브랜드 가이드", icon: BookOpen, href: `/${teamId}/${projectId}/guide` },
+        { title: "결정", icon: CircleDot, href: `/${teamId}/${projectId}/decisions` },
+        { title: "할 일", icon: ListChecks, href: `/${teamId}/${projectId}/tasks` },
+      ],
+    },
+    {
+      label: '분석 · 협업',
+      items: [
+        { title: "콘텐츠 플로우", icon: GitBranch, href: `/${teamId}/${projectId}/nodeview` },
         { title: "팀 · 외주사", icon: Network, href: `/${teamId}/${projectId}/teams` },
-        { title: "클라이언트 포털", icon: Eye, href: `/${teamId}/${projectId}/client-portal` },
-        { title: "녹음 · 회의", icon: Mic, href: `/${teamId}/${projectId}/meetings` },
+        { title: "클라이언트 뷰", icon: Eye, href: `/${teamId}/${projectId}/client-portal` },
+        { title: "회의 기록", icon: Mic, href: `/${teamId}/${projectId}/meetings` },
         { title: "AI 진단", icon: Bot, href: `/${teamId}/${projectId}/ai` },
       ],
     },
   ]
+
+  const navGroups = viewMode === 'client' ? clientNavGroups : agencyNavGroups
 
   return (
     <>
@@ -134,7 +155,9 @@ export function AppSidebar() {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {currentProject?.name || "프로젝트 선택"}
                   </p>
-                  <p className="text-xs text-muted-foreground">게스트 · 무료 플랜</p>
+                  <p className="text-xs text-muted-foreground">
+                    {viewMode === 'client' ? '브랜드 담당자' : '에이전시'} · 무료 플랜
+                  </p>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               </button>
@@ -157,7 +180,16 @@ export function AppSidebar() {
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem
-                        className="rounded-lg text-primary"
+                        className="rounded-lg cursor-pointer"
+                        onSelect={() => {
+                          window.location.href = `/${teamId}/overview`
+                        }}
+                      >
+                        <Layers className="h-4 w-4 mr-2" />
+                        전체 프로젝트 보기
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="rounded-lg text-primary cursor-pointer"
                         onSelect={() => {
                           window.location.href = `/${teamId}/new-project`
                         }}
@@ -207,12 +239,12 @@ export function AppSidebar() {
                           isActive={isActive}
                           className={`h-9 rounded-xl px-3 ${
                             isActive
-                              ? 'bg-primary/10 text-primary'
-                              : 'hover:bg-secondary/50'
-                          } ${'accent' in item && item.accent && !isActive ? 'text-primary' : ''}`}
+                              ? 'bg-secondary text-foreground font-semibold'
+                              : 'hover:bg-secondary/50 text-muted-foreground'
+                          }`}
                         >
                           <Link href={item.href} className="flex items-center gap-2.5">
-                            <item.icon className={`h-4 w-4 ${isActive ? 'text-primary' : 'accent' in item && item.accent ? 'text-primary' : ''}`} />
+                            <item.icon className={`h-4 w-4 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`} />
                             <span className="font-medium text-sm">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -225,7 +257,17 @@ export function AppSidebar() {
           ))}
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border/30 p-2">
+        <SidebarFooter className="border-t border-sidebar-border/30 p-2 space-y-1">
+          {/* View Mode Toggle */}
+          <button
+            onClick={() => setViewMode(viewMode === 'client' ? 'agency' : 'client')}
+            className="flex items-center gap-2.5 w-full h-10 rounded-xl px-3 hover:bg-secondary/50 transition-colors"
+          >
+            <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-sm text-muted-foreground">
+              {viewMode === 'client' ? '에이전시 뷰로 전환' : '클라이언트 뷰로 전환'}
+            </span>
+          </button>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild className="h-10 rounded-xl px-3 hover:bg-secondary/50">

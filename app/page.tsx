@@ -20,8 +20,8 @@ export default function Home() {
             <Button asChild variant="outline" size="sm" className="rounded-xl">
               <Link href="/login">로그인</Link>
             </Button>
-            <Button asChild size="sm" className="bg-accent hover:bg-accent-hover text-white rounded-xl shadow-sm">
-              <Link href="/team-1/proj-1/meetings">무료 시작</Link>
+            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-xl shadow-sm">
+              <Link href="/team-1/proj-1/client-portal">데모 체험하기</Link>
             </Button>
           </nav>
         </div>
